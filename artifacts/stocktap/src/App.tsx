@@ -25,6 +25,7 @@ import Suggestions from "@/pages/suggestions";
 import InvoiceScan from "@/pages/invoice-scan";
 import DailyBoard from "@/pages/daily-board";
 import Team from "@/pages/team";
+import Clock from "@/pages/clock";
 import { Layout } from "@/components/Layout";
 
 const queryClient = new QueryClient();
@@ -124,6 +125,14 @@ function AuthenticatedApp() {
   );
 }
 
+// StaffApp: the entire experience for a 'staff' role — the clock screen only.
+// No Layout, no bottom nav, no SyncProvider: staff have no access to stock,
+// reports, wages or takings. Any URL renders the clock screen, so a staff
+// member can't deep-link into an admin page.
+function StaffApp() {
+  return <Clock />;
+}
+
 // AppShell: reads auth state, conditionally mounts SyncProvider.
 //
 // Loading is handled first — we show a spinner while auth state is being
@@ -162,7 +171,7 @@ function VenueFetchRetry() {
 }
 
 function AppShell() {
-  const { user, venue, loading, venueFetchFailed, passwordRecoveryPending } = useAuth();
+  const { user, venue, role, loading, venueFetchFailed, passwordRecoveryPending } = useAuth();
   const needsVenueSetup =
     !venueFetchFailed && requiresVenueSetup(loading, user, venue, passwordRecoveryPending);
 
@@ -184,7 +193,7 @@ function AppShell() {
             </div>
           )
         ) : showAuthenticatedApp ? (
-          <AuthenticatedApp />
+          role === "staff" ? <StaffApp /> : <AuthenticatedApp />
         ) : user && venueFetchFailed && !venue ? (
           <VenueFetchRetry />
         ) : (

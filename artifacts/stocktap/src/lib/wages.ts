@@ -7,7 +7,8 @@ export interface Staff {
   name: string;
   hourly_rate: number | null;
   active: boolean;
-  user_id: string | null;
+  user_id: string | null; // linked auth user once they redeem their code
+  link_code: string | null; // short code a staff member redeems to link their phone
   created_at: string;
 }
 

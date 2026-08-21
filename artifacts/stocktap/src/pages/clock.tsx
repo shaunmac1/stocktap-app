@@ -1,0 +1,129 @@
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import {
+  useMyShiftStatus,
+  useStaffClockIn,
+  useStaffClockOut,
+  staffClockErrorMessage,
+} from "@/hooks/useStaffClock";
+
+/** "3h 24m" from a clock-in time up to now. */
+function elapsed(sinceISO: string | null | undefined, nowMs: number): string {
+  if (!sinceISO) return "";
+  const ms = nowMs - new Date(sinceISO).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return "just now";
+  const mins = Math.floor(ms / 60000);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+function timeLabel(iso: string | null | undefined): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" });
+}
+
+export default function Clock() {
+  const { profile, signOut } = useAuth();
+  const { toast } = useToast();
+  const { data: status, isLoading, refetch } = useMyShiftStatus();
+  const clockIn = useStaffClockIn();
+  const clockOut = useStaffClockOut();
+
+  // Ticks once a minute so the on-shift elapsed time stays live without spinning the CPU.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const onShift = !!status?.on_shift;
+  const busy = clockIn.isPending || clockOut.isPending;
+  const firstName = (status?.name || profile?.full_name || "").split(" ")[0];
+
+  async function handleToggle() {
+    try {
+      if (onShift) {
+        await clockOut.mutateAsync();
+        toast({ title: "Clocked out", description: "Have a good one." });
+      } else {
+        await clockIn.mutateAsync();
+        toast({ title: "Clocked in", description: "You're on shift." });
+      }
+      refetch();
+    } catch (err) {
+      toast({ title: "Couldn't do that", description: staffClockErrorMessage(err), variant: "destructive" });
+    }
+  }
+
+  return (
+    <div className="flex-1 flex flex-col min-h-[100dvh] bg-background">
+      {/* Header */}
+      <div className="px-5 pt-6 pb-2 flex items-center justify-between">
+        <div>
+          <div className="text-primary text-xl font-bold leading-none">StockTap</div>
+          {status?.venue && <div className="text-xs text-muted-foreground mt-1">{status.venue}</div>}
+        </div>
+        <button
+          onClick={() => signOut()}
+          className="text-xs text-muted-foreground underline underline-offset-2"
+        >
+          Sign out
+        </button>
+      </div>
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
+        <div className="text-center">
+          {firstName && (
+            <p className="text-2xl font-semibold text-foreground">Hi {firstName}</p>
+          )}
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground mt-2">Loading…</p>
+          ) : onShift ? (
+            <div className="mt-3">
+              <p className="text-base text-muted-foreground">You're on shift</p>
+              <p className="text-4xl font-bold text-primary mt-1 tabular-nums">
+                {elapsed(status?.since, nowMs)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">since {timeLabel(status?.since)}</p>
+            </div>
+          ) : (
+            <p className="text-base text-muted-foreground mt-3">You're clocked out</p>
+          )}
+        </div>
+
+        {/* Big clock button */}
+        <button
+          onClick={handleToggle}
+          disabled={busy || isLoading}
+          className={[
+            "w-56 h-56 rounded-full flex flex-col items-center justify-center gap-1",
+            "text-white text-2xl font-bold shadow-xl transition-transform active:scale-95",
+            "disabled:opacity-60 disabled:active:scale-100",
+            onShift ? "bg-red-600 shadow-red-600/30" : "bg-primary shadow-primary/30",
+          ].join(" ")}
+        >
+          {busy ? (
+            <span className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <span className="text-lg font-medium opacity-90">Tap to</span>
+              <span>{onShift ? "Clock out" : "Clock in"}</span>
+            </>
+          )}
+        </button>
+
+        <p className="text-xs text-muted-foreground text-center max-w-[15rem]">
+          {onShift
+            ? "Don't forget to clock out at the end of your shift."
+            : "Tap in when you start. It only takes a second."}
+        </p>
+      </div>
+
+      <div className="pb-8" />
+    </div>
+  );
+}

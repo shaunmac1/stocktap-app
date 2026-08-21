@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Plus, LogOut, AlertTriangle, Pencil, Trash2 } from "lucide-react";
+import { Plus, LogOut, AlertTriangle, Pencil, Trash2, Smartphone, Share2, Check } from "lucide-react";
 import { formatGBP } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { useCashUps } from "@/hooks/useDailyBoard";
@@ -117,6 +117,26 @@ export default function Team() {
       toast({ title: `${name} clocked out`, description: `${fmtDur(shiftDurationHours(shift.clock_in, new Date().toISOString(), nowISO))} on shift.` });
     } catch (e: any) {
       toast({ title: "Couldn't clock out", description: e?.message ?? "Try again.", variant: "destructive" });
+    }
+  }
+
+  const [showCodes, setShowCodes] = useState(false);
+  async function shareCode(s: Staff) {
+    const code = s.link_code ?? "";
+    const msg = `Hi ${s.name.split(" ")[0]}, here's your StockTap code to clock in on your phone: ${code}. Open ${window.location.origin} , sign up, and enter this code.`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "StockTap clock-in code", text: msg });
+        return;
+      }
+    } catch {
+      /* user dismissed the share sheet — fall through to copy */
+    }
+    try {
+      await navigator.clipboard.writeText(msg);
+      toast({ title: "Copied", description: `${s.name}'s invite is on your clipboard.` });
+    } catch {
+      toast({ title: `${s.name}'s code`, description: code });
     }
   }
   async function handleAddStaff() {
@@ -355,6 +375,50 @@ export default function Team() {
           <Button variant="outline" className="w-full" onClick={() => setShowAdd(true)}>
             <Plus className="w-4 h-4 mr-1" /> Add a team member
           </Button>
+        )}
+
+        {/* Staff phone access — hand each person their code to clock in on their own phone */}
+        {staff.length > 0 && (
+          <div className="space-y-2">
+            <button
+              className="w-full flex items-center justify-between px-1 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide"
+              onClick={() => setShowCodes((v) => !v)}
+            >
+              <span className="flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5" /> Staff phone access</span>
+              <span className="normal-case tracking-normal text-primary font-medium">{showCodes ? "Hide" : "Show codes"}</span>
+            </button>
+            {showCodes && (
+              <>
+                <p className="text-[11px] text-muted-foreground px-1">
+                  Each person signs up in the app and enters their code once to link their phone. They can only see their
+                  own clock in/out — never wages or takings.
+                </p>
+                {staff.map((s) => (
+                  <Card key={s.id}>
+                    <CardContent className="p-3 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{s.name}</div>
+                        {s.user_id ? (
+                          <div className="text-[11px] text-emerald-600 flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Phone linked
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-muted-foreground font-mono tracking-widest">
+                            {s.link_code ?? "—"}
+                          </div>
+                        )}
+                      </div>
+                      {!s.user_id && (
+                        <Button size="sm" variant="outline" onClick={() => shareCode(s)}>
+                          <Share2 className="w-4 h-4 mr-1" /> Share
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            )}
+          </div>
         )}
 
         {staff.length === 0 && !showAdd && (

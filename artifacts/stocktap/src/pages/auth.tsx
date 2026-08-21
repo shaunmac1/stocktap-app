@@ -40,6 +40,8 @@ export default function Auth() {
   const [venueName, setVenueName] = useState("");
   const [measureMl, setMeasureMl] = useState("25");
   const [referralCode, setReferralCode] = useState("");
+  const [joinAsStaff, setJoinAsStaff] = useState(false);
+  const [staffCode, setStaffCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -234,6 +236,36 @@ export default function Auth() {
   };
 
   // ── Venue setup ───────────────────────────────────────────────────────────────
+  // Staff joining an existing venue with a code — never creates a venue.
+  const handleJoinTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast({ title: "You're not signed in", description: "Please sign in again to link your phone.", variant: "destructive" });
+      setMode("login");
+      return;
+    }
+    setLoading(true);
+    setAuthError(null);
+    try {
+      const { error } = await supabase.rpc("redeem_staff_code" as any, { p_code: staffCode.trim().toUpperCase() });
+      if (error) throw error;
+      await refreshVenue();
+      toast({ title: "You're linked", description: "You can clock in from your phone now." });
+      // AppShell will route to the clock screen once role === 'staff' loads.
+    } catch (err: any) {
+      const raw = (err?.message || "").toLowerCase();
+      const message = raw.includes("invalid_code")
+        ? "That code isn't right. Double-check it with your manager."
+        : raw.includes("code_used")
+        ? "That code is already linked to another phone."
+        : err?.message || "Couldn't link your phone. Try again.";
+      setAuthError(message);
+      toast({ title: "Couldn't link", description: message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVenueSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -588,9 +620,43 @@ export default function Auth() {
       <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center text-primary">Setup Venue</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center text-primary">
+              {joinAsStaff ? "Join your team" : "Setup Venue"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
+            {joinAsStaff ? (
+              <form onSubmit={handleJoinTeam} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="staffCode">Your code</Label>
+                  <Input
+                    id="staffCode"
+                    required
+                    value={staffCode}
+                    onChange={(e) => setStaffCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. 4F2A9C"
+                    className="uppercase tracking-widest text-center text-lg font-mono"
+                    autoFocus
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the code your manager gave you to link this phone. You'll be able to clock in and out — that's it.
+                  </p>
+                </div>
+                {authError && (
+                  <p className="text-sm text-destructive" role="alert">{authError}</p>
+                )}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Linking…" : "Link my phone"}
+                </Button>
+                <button
+                  type="button"
+                  className="w-full text-xs text-muted-foreground underline underline-offset-2"
+                  onClick={() => { setJoinAsStaff(false); setAuthError(null); }}
+                >
+                  I'm setting up a venue instead
+                </button>
+              </form>
+            ) : (
             <form onSubmit={handleVenueSetup} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="venueName">Venue Name</Label>
@@ -638,7 +704,15 @@ export default function Auth() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Creating..." : "Complete Setup"}
               </Button>
+              <button
+                type="button"
+                className="w-full text-xs text-muted-foreground underline underline-offset-2"
+                onClick={() => { setJoinAsStaff(true); setAuthError(null); }}
+              >
+                Joining a team? Enter your code instead
+              </button>
             </form>
+            )}
           </CardContent>
         </Card>
       </div>

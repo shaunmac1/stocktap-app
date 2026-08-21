@@ -124,6 +124,13 @@ async function ensureDevVenue(userId: string): Promise<Venue | null> {
 // hydrate instantly and revalidate in the background.
 const CACHE_PROFILE_KEY = "stocktap:cached_profile";
 const CACHE_VENUE_KEY = "stocktap:cached_venue";
+const CACHE_ROLE_KEY = "stocktap:cached_role";
+
+export type VenueRole = "owner" | "manager" | "staff";
+/** owner/manager see the full app; staff see the clock screen only. */
+export function isAdminRole(role: string | null | undefined): boolean {
+  return role === "owner" || role === "manager";
+}
 
 function readCache<T>(key: string): T | null {
   try {
@@ -146,6 +153,7 @@ function clearProfileVenueCache(): void {
   try {
     localStorage.removeItem(CACHE_PROFILE_KEY);
     localStorage.removeItem(CACHE_VENUE_KEY);
+    localStorage.removeItem(CACHE_ROLE_KEY);
   } catch {
     /* noop */
   }
@@ -158,6 +166,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   venue: Venue | null;
+  /** The signed-in user's role at the active venue. staff = clock screen only. */
+  role: VenueRole | null;
   loading: boolean;
   /** True when we have a user but the venue fetch failed AND no cache exists — show retry, not venue-setup. */
   venueFetchFailed: boolean;
@@ -178,6 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [venue, setVenue] = useState<Venue | null>(null);
+  const [role, setRole] = useState<VenueRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [venueFetchFailed, setVenueFetchFailed] = useState(false);
   const [bypassError, setBypassError] = useState<string | null>(null);
@@ -189,8 +200,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hydrateFromCache = (): boolean => {
     const cachedProfile = readCache<Profile>(CACHE_PROFILE_KEY);
     const cachedVenue = readCache<Venue>(CACHE_VENUE_KEY);
+    const cachedRole = readCache<VenueRole>(CACHE_ROLE_KEY);
     if (cachedProfile) setProfile(cachedProfile);
     if (cachedVenue) setVenue(cachedVenue);
+    if (cachedRole) setRole(cachedRole);
     return !!cachedVenue;
   };
 
@@ -208,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const { data: members } = await withTimeout(
-        supabase.from("venue_members").select("venue_id").eq("user_id", userId),
+        supabase.from("venue_members").select("venue_id, role").eq("user_id", userId),
         PROFILE_FETCH_TIMEOUT_MS,
         "Venue membership fetch"
       );
@@ -219,6 +232,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           venueId = members[0].venue_id;
           localStorage.setItem("venue_id", venueId);
         }
+        const memberRole = (members.find((m) => m.venue_id === venueId)?.role ?? "owner") as VenueRole;
+        setRole(memberRole);
+        writeCache(CACHE_ROLE_KEY, memberRole);
         const { data: v } = await withTimeout(
           supabase.from("venues").select("*").eq("id", venueId!).single(),
           PROFILE_FETCH_TIMEOUT_MS,
@@ -231,10 +247,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else if (DEV_BYPASS) {
         const v = await ensureDevVenue(userId);
-        if (v) setVenue(v);
+        if (v) {
+          setVenue(v);
+          setRole("owner");
+          writeCache(CACHE_ROLE_KEY, "owner");
+        }
       } else {
-        // Server says: genuinely no venue → real venue-setup case.
+        // Server says: genuinely no venue → real venue-setup / join-a-team case.
         setVenue(null);
+        setRole(null);
         clearProfileVenueCache();
         setVenueFetchFailed(false);
       }
@@ -331,6 +352,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (bypassPending.current) return;
         setProfile(null);
         setVenue(null);
+        setRole(null);
         setVenueFetchFailed(false);
         clearProfileVenueCache();
         if (!DEV_BYPASS) localStorage.removeItem("venue_id");
@@ -373,7 +395,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, profile, venue, loading, venueFetchFailed, bypassError, retryBypass, signOut, refreshVenue, passwordRecoveryPending, clearPasswordRecovery }}
+      value={{ user, session, profile, venue, role, loading, venueFetchFailed, bypassError, retryBypass, signOut, refreshVenue, passwordRecoveryPending, clearPasswordRecovery }}
     >
       {children}
     </AuthContext.Provider>
