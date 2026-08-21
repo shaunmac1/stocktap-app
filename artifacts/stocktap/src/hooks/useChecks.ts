@@ -1,12 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import type { Appliance, TempReading, ApplianceKind } from "@/lib/checks";
+import type { Appliance, TempReading, ApplianceKind, CheckItem, CheckCompletion, CheckSection, Cadence, Refusal } from "@/lib/checks";
 
-export type { Appliance, TempReading } from "@/lib/checks";
+export type { Appliance, TempReading, CheckItem, CheckCompletion, Refusal } from "@/lib/checks";
 
-// check_appliances / temp_readings are newer than the generated Database types.
+// These tables are newer than the generated Database types; access untyped.
 const appliancesTable = () => (supabase as any).from("check_appliances");
 const tempReadingsTable = () => (supabase as any).from("temp_readings");
+const checkItemsTable = () => (supabase as any).from("check_items");
+const completionsTable = () => (supabase as any).from("check_completions");
+const refusalsTable = () => (supabase as any).from("refusals");
+
+async function currentUserId(): Promise<string | null> {
+  return (await supabase.auth.getUser()).data.user?.id ?? null;
+}
 
 /** Active appliances for a venue, in display order. */
 export function useAppliances(venueId: string | undefined) {
@@ -119,5 +126,148 @@ export function useDeactivateAppliance() {
       return true;
     },
     onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["appliances", vars.venue_id] }),
+  });
+}
+
+// ─── Checklists (opening / closing / cleaning) ──────────────────────────────
+
+/** Active checklist items for a venue. */
+export function useCheckItems(venueId: string | undefined) {
+  return useQuery({
+    queryKey: ["check_items", venueId],
+    enabled: !!venueId,
+    queryFn: async () => {
+      const { data, error } = await checkItemsTable()
+        .select("*")
+        .eq("venue_id", venueId!)
+        .eq("active", true)
+        .order("sort", { ascending: true })
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as CheckItem[];
+    },
+  });
+}
+
+/** Completions in a date window [fromISO, toISO] — wide enough to cover weekly cadence. */
+export function useCompletions(venueId: string | undefined, fromISO: string, toISO: string) {
+  return useQuery({
+    queryKey: ["check_completions", venueId, fromISO, toISO],
+    enabled: !!venueId,
+    queryFn: async () => {
+      const { data, error } = await completionsTable()
+        .select("*")
+        .eq("venue_id", venueId!)
+        .gte("business_date", fromISO)
+        .lte("business_date", toISO)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as CheckCompletion[];
+    },
+  });
+}
+
+/** Tick a checklist item done for a date. */
+export function useTickItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { venue_id: string; item_id: string; business_date: string; note?: string | null }) => {
+      const recorded_by = await currentUserId();
+      const { data, error } = await completionsTable()
+        .insert({ ...row, done: true, recorded_by })
+        .select()
+        .single();
+      if (error) throw error;
+      return data as CheckCompletion;
+    },
+    onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["check_completions", vars.venue_id] }),
+  });
+}
+
+/** Undo a tick (delete a completion row). */
+export function useUntickItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id: string; venue_id: string }) => {
+      const { error } = await completionsTable().delete().eq("id", row.id);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["check_completions", vars.venue_id] }),
+  });
+}
+
+/** Admin: add a checklist item. */
+export function useAddCheckItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { venue_id: string; section: CheckSection; label: string; cadence: Cadence; sort?: number }) => {
+      const { data, error } = await checkItemsTable().insert(row).select().single();
+      if (error) throw error;
+      return data as CheckItem;
+    },
+    onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["check_items", vars.venue_id] }),
+  });
+}
+
+/** Admin: bulk-add the starter checklist. */
+export function useAddCheckItems() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: Array<{ venue_id: string; section: CheckSection; label: string; cadence: Cadence; sort?: number }>) => {
+      const { data, error } = await checkItemsTable().insert(rows).select();
+      if (error) throw error;
+      return data as CheckItem[];
+    },
+    onSuccess: (_d, vars) => { if (vars[0]) qc.invalidateQueries({ queryKey: ["check_items", vars[0].venue_id] }); },
+  });
+}
+
+/** Admin: deactivate a checklist item (keeps history). */
+export function useDeactivateCheckItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id: string; venue_id: string }) => {
+      const { error } = await checkItemsTable().update({ active: false }).eq("id", row.id);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["check_items", vars.venue_id] }),
+  });
+}
+
+// ─── Refusals register (Challenge 25) ───────────────────────────────────────
+
+/** Refusals for a venue on one business date. */
+export function useRefusalsForDate(venueId: string | undefined, businessDate: string) {
+  return useQuery({
+    queryKey: ["refusals", venueId, businessDate],
+    enabled: !!venueId,
+    queryFn: async () => {
+      const { data, error } = await refusalsTable()
+        .select("*")
+        .eq("venue_id", venueId!)
+        .eq("business_date", businessDate)
+        .order("occurred_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Refusal[];
+    },
+  });
+}
+
+/** Log a refusal. */
+export function useAddRefusal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { venue_id: string; business_date: string; description?: string | null; reason?: string | null; note?: string | null }) => {
+      const recorded_by = await currentUserId();
+      const { data, error } = await refusalsTable()
+        .insert({ ...row, recorded_by })
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Refusal;
+    },
+    onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["refusals", vars.venue_id] }),
   });
 }

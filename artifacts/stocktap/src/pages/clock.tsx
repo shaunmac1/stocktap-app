@@ -59,7 +59,7 @@ export default function Clock() {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-[100dvh] bg-background">
+    <div className="flex-1 flex flex-col bg-background">
       {/* Header */}
       <div className="px-5 pt-6 pb-2 flex items-center justify-between">
         <div>

@@ -1,5 +1,6 @@
 import React from "react";
-import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect, Link, useLocation } from "wouter";
+import { Clock as ClockIcon, Thermometer } from "lucide-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -128,12 +129,46 @@ function AuthenticatedApp() {
   );
 }
 
-// StaffApp: the entire experience for a 'staff' role — the clock screen only.
-// No Layout, no bottom nav, no SyncProvider: staff have no access to stock,
-// reports, wages or takings. Any URL renders the clock screen, so a staff
-// member can't deep-link into an admin page.
+// StaffApp: the entire experience for a 'staff' role — clock in/out and fill in
+// the daily checks. No stock, reports, wages or takings anywhere (enforced in
+// the database), and no admin config. Unknown URLs fall back to the clock screen
+// so a staff member can't deep-link into an admin page.
+function StaffNav() {
+  const [location] = useLocation();
+  const items = [
+    { href: "/", icon: ClockIcon, label: "Clock" },
+    { href: "/checks", icon: Thermometer, label: "Checks" },
+  ];
+  return (
+    <nav className="fixed bottom-0 w-full max-w-md bg-card border-t border-border flex justify-around items-center p-2 pb-safe z-50">
+      {items.map((item) => {
+        const isActive = item.href === "/" ? location === "/" || location === "/clock" : location.startsWith(item.href);
+        const Icon = item.icon;
+        return (
+          <Link key={item.href} href={item.href} className="flex-1 flex flex-col items-center py-1">
+            <Icon className={`w-6 h-6 mb-1 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+            <span className={`text-[10px] ${isActive ? "text-primary font-medium" : "text-muted-foreground"}`}>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 function StaffApp() {
-  return <Clock />;
+  return (
+    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+      <div className="min-h-[100dvh] w-full max-w-md mx-auto bg-background relative pb-16 shadow-xl flex flex-col">
+        <main className="flex-1 flex flex-col overflow-y-auto">
+          <Switch>
+            <Route path="/checks" component={Checks} />
+            <Route component={Clock} />
+          </Switch>
+        </main>
+        <StaffNav />
+      </div>
+    </WouterRouter>
+  );
 }
 
 // AppShell: reads auth state, conditionally mounts SyncProvider.
