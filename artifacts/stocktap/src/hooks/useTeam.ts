@@ -42,6 +42,43 @@ export function useShiftsForDate(venueId: string | undefined, businessDate: stri
   });
 }
 
+/** Every open (not-clocked-out) shift for a venue, any date — to catch forgotten clock-outs. */
+export function useOpenShifts(venueId: string | undefined) {
+  return useQuery({
+    queryKey: ["shifts_open", venueId],
+    enabled: !!venueId,
+    queryFn: async () => {
+      const { data, error } = await shiftsTable()
+        .select("*")
+        .eq("venue_id", venueId!)
+        .is("clock_out", null)
+        .order("clock_in", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Shift[];
+    },
+  });
+}
+
+/** Close a shift at a specific time (e.g. the venue close, to fix a forgotten clock-out). */
+export function useCloseShiftAt() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id: string; venue_id: string; at: string }) => {
+      const { data, error } = await shiftsTable()
+        .update({ clock_out: row.at, updated_at: new Date().toISOString() })
+        .eq("id", row.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Shift;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["shifts_open", vars.venue_id] });
+      qc.invalidateQueries({ queryKey: ["shifts", vars.venue_id] });
+    },
+  });
+}
+
 export function useAddStaff() {
   const qc = useQueryClient();
   return useMutation({

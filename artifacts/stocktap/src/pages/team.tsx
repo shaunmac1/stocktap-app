@@ -4,16 +4,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Plus, LogOut } from "lucide-react";
+import { Plus, LogOut, AlertTriangle } from "lucide-react";
 import { formatGBP } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { useCashUps } from "@/hooks/useDailyBoard";
-import { useStaff, useShiftsForDate, useAddStaff, useClockIn, useClockOut } from "@/hooks/useTeam";
+import { useStaff, useShiftsForDate, useOpenShifts, useAddStaff, useClockIn, useClockOut, useCloseShiftAt } from "@/hooks/useTeam";
 import {
   shiftDurationHours,
   shiftCost,
   dayWageCost,
   wagePercent,
+  shiftCapISO,
+  isForgottenClockOut,
   type Staff,
   type Shift,
 } from "@/lib/wages";
@@ -39,10 +41,13 @@ export default function Team() {
 
   const { data: staff = [] } = useStaff(venue?.id);
   const { data: shifts = [] } = useShiftsForDate(venue?.id, today);
+  const { data: openShifts = [] } = useOpenShifts(venue?.id);
   const { data: cashUps = [] } = useCashUps(venue?.id);
   const addStaff = useAddStaff();
   const clockIn = useClockIn();
   const clockOut = useClockOut();
+  const closeShiftAt = useCloseShiftAt();
+  const closeTimes = (venue as any)?.close_times as Record<string, string> | undefined;
 
   // Tick so open-shift costs update live.
   const [nowISO, setNowISO] = useState(new Date().toISOString());
@@ -57,7 +62,16 @@ export default function Team() {
     return m;
   }, [shifts]);
 
-  const wageCost = useMemo(() => dayWageCost(shifts, nowISO), [shifts, nowISO]);
+  const wageCost = useMemo(() => dayWageCost(shifts, nowISO, closeTimes), [shifts, nowISO, closeTimes]);
+  const staffById = useMemo(() => {
+    const m = new Map<string, Staff>();
+    for (const s of staff) m.set(s.id, s);
+    return m;
+  }, [staff]);
+  const forgotten = useMemo(
+    () => openShifts.filter((s) => isForgottenClockOut(s, nowISO, shiftCapISO(s.business_date, closeTimes ?? null))),
+    [openShifts, nowISO, closeTimes]
+  );
   const todayTake = useMemo(
     () => cashUps.find((c) => c.business_date === today)?.total_taken ?? null,
     [cashUps, today]
@@ -95,7 +109,20 @@ export default function Team() {
     }
   }
 
-  const onNow = staff.filter((s) => openByStaff.has(s.id));
+  async function handleFixForgotten(s: Shift) {
+    if (!venue?.id) return;
+    const cap = shiftCapISO(s.business_date, closeTimes ?? null);
+    if (!cap) return;
+    try {
+      await closeShiftAt.mutateAsync({ id: s.id, venue_id: venue.id, at: cap });
+      toast({ title: "Sorted", description: `Clocked out at ${new Date(cap).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}.` });
+    } catch (e: any) {
+      toast({ title: "Couldn't fix that", description: e?.message ?? "Try again.", variant: "destructive" });
+    }
+  }
+
+  const forgottenStaffIds = new Set(forgotten.map((s) => s.staff_id));
+  const onNow = staff.filter((s) => openByStaff.has(s.id) && !forgottenStaffIds.has(s.id));
   const offNow = staff.filter((s) => !openByStaff.has(s.id));
 
   const pctClass = wagePct == null ? "" : wagePct <= 25 ? "text-emerald-200" : wagePct <= 32 ? "text-amber-200" : "text-rose-200";
@@ -127,6 +154,28 @@ export default function Team() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Forgotten clock-outs — capped at close, one tap to fix */}
+        {forgotten.map((s) => {
+          const cap = shiftCapISO(s.business_date, closeTimes ?? null);
+          const capLabel = cap ? new Date(cap).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "close";
+          const dayLabel = new Date(s.business_date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" });
+          const name = staffById.get(s.staff_id)?.name ?? "Someone";
+          return (
+            <Card key={s.id} className="border-amber-300 bg-amber-50">
+              <CardContent className="p-3 flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm text-amber-900 truncate">{name} never clocked out</div>
+                  <div className="text-xs text-amber-700">{dayLabel} · capped at {capLabel}</div>
+                </div>
+                <Button size="sm" onClick={() => handleFixForgotten(s)} disabled={closeShiftAt.isPending}>
+                  Clock out {capLabel}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
 
         {/* On now */}
         {onNow.length > 0 && (
