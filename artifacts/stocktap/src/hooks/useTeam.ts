@@ -79,6 +79,65 @@ export function useCloseShiftAt() {
   });
 }
 
+/** Admin: correct a shift's clock-in / clock-out times. */
+export function useUpdateShiftTimes() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id: string; venue_id: string; clock_in: string; clock_out: string | null }) => {
+      const { data, error } = await shiftsTable()
+        .update({ clock_in: row.clock_in, clock_out: row.clock_out, updated_at: new Date().toISOString() })
+        .eq("id", row.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Shift;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["shifts", vars.venue_id] });
+      qc.invalidateQueries({ queryKey: ["shifts_open", vars.venue_id] });
+    },
+  });
+}
+
+/** Admin: delete a shift entirely (e.g. logged in error). */
+export function useDeleteShift() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id: string; venue_id: string }) => {
+      const { error } = await shiftsTable().delete().eq("id", row.id);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["shifts", vars.venue_id] });
+      qc.invalidateQueries({ queryKey: ["shifts_open", vars.venue_id] });
+    },
+  });
+}
+
+/** Admin: add a shift manually (someone who forgot to clock in at all). */
+export function useAddShiftManual() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: {
+      venue_id: string;
+      staff_id: string;
+      business_date: string;
+      clock_in: string;
+      clock_out: string | null;
+      rate_snapshot: number | null;
+    }) => {
+      const { data, error } = await shiftsTable().insert(row).select().single();
+      if (error) throw error;
+      return data as Shift;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["shifts", vars.venue_id] });
+      qc.invalidateQueries({ queryKey: ["shifts_open", vars.venue_id] });
+    },
+  });
+}
+
 export function useAddStaff() {
   const qc = useQueryClient();
   return useMutation({

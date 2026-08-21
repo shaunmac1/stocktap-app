@@ -4,11 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Plus, LogOut, AlertTriangle } from "lucide-react";
+import { Plus, LogOut, AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { formatGBP } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { useCashUps } from "@/hooks/useDailyBoard";
-import { useStaff, useShiftsForDate, useOpenShifts, useAddStaff, useClockIn, useClockOut, useCloseShiftAt } from "@/hooks/useTeam";
+import { useStaff, useShiftsForDate, useOpenShifts, useAddStaff, useClockIn, useClockOut, useCloseShiftAt, useUpdateShiftTimes, useDeleteShift } from "@/hooks/useTeam";
 import {
   shiftDurationHours,
   shiftCost,
@@ -34,6 +34,21 @@ function fmtDur(hours: number): string {
 }
 const AVATAR_COLORS = ["bg-emerald-600", "bg-sky-600", "bg-violet-600", "bg-amber-600", "bg-rose-600", "bg-teal-600"];
 
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fromLocalInput(v: string): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+function fmtTime(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "—";
+}
+
 export default function Team() {
   const { venue } = useAuth();
   const { toast } = useToast();
@@ -47,6 +62,8 @@ export default function Team() {
   const clockIn = useClockIn();
   const clockOut = useClockOut();
   const closeShiftAt = useCloseShiftAt();
+  const updateTimes = useUpdateShiftTimes();
+  const deleteShift = useDeleteShift();
   const closeTimes = (venue as any)?.close_times as Record<string, string> | undefined;
 
   // Tick so open-shift costs update live.
@@ -81,6 +98,9 @@ export default function Team() {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newRate, setNewRate] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editIn, setEditIn] = useState("");
+  const [editOut, setEditOut] = useState("");
 
   async function handleClockIn(s: Staff) {
     if (!venue?.id) return;
@@ -122,6 +142,33 @@ export default function Team() {
   }
 
   const forgottenStaffIds = new Set(forgotten.map((s) => s.staff_id));
+  function startEdit(s: Shift) {
+    setEditId(s.id);
+    setEditIn(toLocalInput(s.clock_in));
+    setEditOut(toLocalInput(s.clock_out));
+  }
+  async function saveEdit(s: Shift) {
+    if (!venue?.id) return;
+    const ci = fromLocalInput(editIn);
+    if (!ci) { toast({ title: "Pop in a clock-in time" }); return; }
+    try {
+      await updateTimes.mutateAsync({ id: s.id, venue_id: venue.id, clock_in: ci, clock_out: fromLocalInput(editOut) });
+      setEditId(null);
+      toast({ title: "Times updated" });
+    } catch (e: any) {
+      toast({ title: "Couldn't save", description: e?.message ?? "Try again.", variant: "destructive" });
+    }
+  }
+  async function removeShift(s: Shift) {
+    if (!venue?.id) return;
+    try {
+      await deleteShift.mutateAsync({ id: s.id, venue_id: venue.id });
+      setEditId(null);
+    } catch (e: any) {
+      toast({ title: "Couldn't delete", description: e?.message ?? "Try again.", variant: "destructive" });
+    }
+  }
+
   const onNow = staff.filter((s) => openByStaff.has(s.id) && !forgottenStaffIds.has(s.id));
   const offNow = staff.filter((s) => !openByStaff.has(s.id));
 
@@ -229,6 +276,58 @@ export default function Team() {
             ))}
           </div>
         </div>
+
+        {/* Today's shifts — admin can correct any times */}
+        {shifts.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Today's shifts</div>
+            {shifts.map((s) => {
+              const st = staffById.get(s.staff_id);
+              const cap = shiftCapISO(s.business_date, closeTimes ?? null);
+              if (editId === s.id) {
+                return (
+                  <Card key={s.id}>
+                    <CardContent className="p-3 space-y-2">
+                      <div className="font-semibold text-sm">{st?.name ?? "Staff"}</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[11px] text-muted-foreground">Clocked in</label>
+                          <Input type="datetime-local" value={editIn} onChange={(e) => setEditIn(e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-muted-foreground">Clocked out</label>
+                          <Input type="datetime-local" value={editOut} onChange={(e) => setEditOut(e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1" onClick={() => saveEdit(s)} disabled={updateTimes.isPending}>Save times</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Cancel</Button>
+                        <Button size="sm" variant="outline" className="text-red-600" onClick={() => removeShift(s)} disabled={deleteShift.isPending} aria-label="Delete shift">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              return (
+                <Card key={s.id}>
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{st?.name ?? "Staff"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {fmtTime(s.clock_in)} – {s.clock_out ? fmtTime(s.clock_out) : "on now"} · {formatGBP(shiftCost(s, nowISO, cap))}
+                      </div>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(s)} aria-label="Edit times">
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* Add staff */}
         {showAdd ? (
