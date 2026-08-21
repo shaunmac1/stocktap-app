@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What is an acceptable stocktake variance in a UK pub? | StockTap</title>
+  <meta name="description" content="The '1-2% of sales' rule is American and doesn't hold in a UK cellar. Five real audit results, plus the 5% of every pint that's legally froth." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/acceptable-stocktake-variance" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="What is an acceptable stocktake variance in a UK pub? | StockTap" />
+  <meta property="og:description" content="The '1-2% of sales' rule is American and doesn't hold in a UK cellar. Five real audit results, plus the 5% of every pint that's legally froth." />
+  <meta property="og:url" content="https://stocktap.net/guides/acceptable-stocktake-variance" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="What is an acceptable stocktake variance in a UK pub? | StockTap" />
+  <meta name="twitter:description" content="The '1-2% of sales' rule is American and doesn't hold in a UK cellar. Five real audit results, plus the 5% of every pint that's legally froth." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "What is an acceptable stocktake variance in a UK pub?",
+      "description": "The '1-2% of sales' rule is American and doesn't hold in a UK cellar. Five real audit results, plus the 5% of every pint that's legally froth.",
+      "datePublished": "2026-07-29",
+      "dateModified": "2026-07-29",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/acceptable-stocktake-variance"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is an acceptable stocktake variance percentage for a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "There is no published UK standard. In practice most pub companies treat a liquor variance inside plus or minus 0.5% of sales as normal and start asking questions somewhere around 1%. That is a working convention rather than a rule, and it varies by operator, by site and by how the last few periods have looked."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is the 1-2% figure I keep reading online correct?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It comes from American bar inventory guidance and it is measured against a different denominator. UK pub stocktake reports are usually expressed against retail sales value for the period, and UK draught trade carries an allowance for head that American spirit-led bars do not. Applying 1-2% to a wet-led UK pub will hide a real problem."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does a bad variance mean someone is stealing?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually not. The common causes are till buttons pointing at the wrong product or the wrong price, deliveries counted in the wrong period, line cleaning and pull-through not being recorded, over-pour on optics and free-pour, and cellar temperature driving fobbing. Theft exists but it is far down the list of things worth checking first."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much of a draught pint is allowed to be froth?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "British Beer and Pub Association guidance states that a measure of beer served with a head must contain a minimum of 95% liquid, and that requests for a top-up should never be refused. That means up to 5% of every draught measure can legitimately be head, which is not a loss and should not be treated as one."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "What is an acceptable stocktake variance in a UK pub?", "item": "https://stocktap.net/guides/acceptable-stocktake-variance"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Stocktaking &amp; variance
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Stocktaking &amp; variance</div>
+        <h1>What is an acceptable stocktake variance in a UK pub?</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-07-29">29 July 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+
+        <p><strong>Short answer: there is no published UK standard, and anyone who tells you there is one has made it up. In practice most pub companies treat anything inside plus or minus half a per cent of sales as normal and start asking questions somewhere around one per cent. That is a working convention, not a rule. The more useful question is not what number is acceptable, but what your own number does over five or six periods in a row.</strong></p>
+
+        <h2>The number everyone quotes, and where it actually comes from</h2>
+
+        <p>Search for this and you will get 1-2% of sales, over and over, on site after site. It is worth knowing where that figure comes from before you measure yourself against it. The clearest version of it is on Backbar&#x2019;s inventory guide, which states that an acceptable liquor inventory variance should fall somewhere within 1-2% of sales. That page carries no source for the figure, and Backbar is an American bar inventory company writing for American bars.</p>
+
+        <p>Two things go wrong when you carry it across the Atlantic and drop it in a British cellar.</p>
+
+        <p>The first is the denominator. Percentage of <em>what</em> matters more than the percentage. A UK pub company stocktake report is normally expressed against retail sales value for the period. Plenty of the software guidance online is expressed against cost of goods, or against opening stock value, or against purchases. Those are different numbers and they produce wildly different percentages from identical trading. If you do not know which one your report uses, the percentage on the front page is decoration.</p>
+
+        <p>The second is the trade itself. American bars are spirit-led and measured. A wet-led British community pub is draught-led, and draught brings a set of losses that are entirely legitimate, entirely legal and entirely absent from the American benchmark. More on that below, because it is the single biggest reason licensees panic about a number that is fine.</p>
+
+        <h2>What my own five audits actually came back at</h2>
+
+        <p>I run a pub in Washington, Tyne and Wear with a team of seventeen. Between December 2025 and July 2026 I had five liquor audits done by an independent stocktaker. Here is what came back.</p>
+
+        <table>
+          <caption>Five consecutive independent liquor audits, one site, December 2025 to July 2026</caption>
+          <thead>
+            <tr><th scope="col">Audit</th><th scope="col">Result</th><th scope="col">Direction</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>+&pound;193</td><td>Surplus</td></tr>
+            <tr><td>2</td><td>+&pound;65</td><td>Surplus</td></tr>
+            <tr><td>3</td><td>+&pound;51</td><td>Surplus</td></tr>
+            <tr><td>4</td><td>&minus;&pound;756</td><td>Deficit &mdash; &minus;1.08%</td></tr>
+            <tr><td>5</td><td>+&pound;13</td><td>Surplus</td></tr>
+          </tbody>
+        </table>
+
+        <p>Four of those five landed inside three tenths of one per cent. The fifth was &minus;&pound;755.71, which the report put at &minus;1.08%, and that one got charged back to me.</p>
+
+        <p>I want to be honest about what that table does and does not prove. It is one site, one stocktaker, one product mix, over about seven months. It is not a benchmark and I am not offering it as one. What it is good for is showing you the shape of the thing: four results clustered tight around zero, and then one that goes four times further out than any of the others. That shape is the actual signal. The individual number on any one report is close to meaningless on its own.</p>
+
+        <p>The &minus;1.08% is also the only one anybody ever asked me about, which tells you roughly where the line sits with the operator I trade with. It is not a published threshold. It is where somebody picked up the phone.</p>
+
+        <h2>The 5% of your draught that is not a loss</h2>
+
+        <p>This is the part that costs licensees the most sleep for the least reason.</p>
+
+        <p>British Beer and Pub Association guidance on head of beer states that a measure of beer served with a head must include a minimum of 95% liquid, that the beer should not be handed over until bar staff are satisfied with the measure, and that requests from customers for a top-up should be received with good grace and never refused.</p>
+
+        <p>Read that the other way round. Up to five per cent of every draught measure you serve can legitimately be head. That liquid never reaches the customer&#x2019;s glass, it never rings through the till as volume, and it will show up in your stocktake as gone. It is not shrinkage. It is not theft. It is how draught beer is served in this country.</p>
+
+        <p>Now add the things that sit alongside it and are equally real: line cleaning and pull-through at the start of a week, the first pint off a new keg, fobbing when the cellar has run warm, a sample poured for a rep. None of those are losses in any moral sense. All of them come off your stock.</p>
+
+        <p>This is exactly why a flat 1-2% benchmark borrowed from a spirit-led American bar is worse than useless in a wet-led British pub. Your draught can be running honestly and still eat a chunk of that allowance before anything has gone wrong at all. If you want the number that actually matters, you need to separate draught from packaged and from spirits and look at each on its own. A single blended percentage across the whole liquor stock will hide a genuine spirits problem behind a perfectly normal draught allowance, or make an ordinary week look like a crisis.</p>
+
+        <h2>Net variance and gross movement are not the same number</h2>
+
+        <p>The other trap is one I fell into for years, and it is the reason a small headline figure can be completely misleading.</p>
+
+        <p>On one of my own reports the bottom line came back at &pound;12.84 up. Four seconds of attention and I moved on. Underneath that figure, &pound;1,165 of stock had moved &mdash; categories up, categories down, all of it cancelling out into a number small enough that I did not read the next page. On another period, &pound;11,598 of gross category movement netted down to a bottom line of minus &pound;434.</p>
+
+        <p>A net variance near zero can sit on top of an enormous amount of movement going in both directions. If your spirits are running heavily short and your draught is running heavily over, the report can hand you a clean bill of health while two separate real problems cancel each other out. The bottom line is the least informative number on the page. We wrote that up properly in <a href="/guides/stocktake-net-vs-gross">how to read a pub stocktake report: net versus gross variance</a>, because it deserves more than a paragraph.</p>
+
+        <h2>So what number should worry you?</h2>
+
+        <p>Here is the honest working answer, offered as a convention rather than a standard, because no UK standard exists.</p>
+
+        <table>
+          <caption>A working reading of liquor variance against retail sales value</caption>
+          <thead>
+            <tr><th scope="col">Range</th><th scope="col">What it usually means</th><th scope="col">What to do</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Inside &plusmn;0.5%</td>
+              <td>Normal trading noise for most sites</td>
+              <td>Nothing. Log it and move on. Do not go looking for a culprit.</td>
+            </tr>
+            <tr>
+              <td>&plusmn;0.5% to &plusmn;1%</td>
+              <td>Worth a look, especially if the direction repeats</td>
+              <td>Break it down by category. Compare against the previous two periods.</td>
+            </tr>
+            <tr>
+              <td>Beyond &plusmn;1%</td>
+              <td>Where an operator typically starts asking</td>
+              <td>Work the causes list below before you accept the number.</td>
+            </tr>
+            <tr>
+              <td>Same direction three periods running</td>
+              <td>The one that actually matters, whatever the size</td>
+              <td>This is a systematic error, not noise. Find it.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>That last row is the point of the whole article. A single period of minus 1.2% might be a delivery landing on the wrong side of a count date. Three periods of minus 0.4% in a row is a leak, and it will cost you more over a year than the one bad report that got everybody&#x2019;s attention.</p>
+
+        <h2>Before you accept a bad number, work this list</h2>
+
+        <p>In nineteen years I have never once found the answer to be the first thing anybody suggests, which is that somebody is at it. The order that actually pays is roughly this.</p>
+
+        <ol>
+          <li><strong>Till buttons.</strong> A button pointing at the wrong product, or at the right product at an old price, will produce a perfect, consistent, entirely fictional variance every single week until someone notices. This is the most common cause I see and the easiest to prove. We covered how to find them in <a href="/guides/stock-variance-till-buttons">the till button problem</a>.</li>
+          <li><strong>Delivery timing.</strong> A delivery signed for on one side of the count date and counted on the other will throw a period completely and then correct itself the following period. If a bad result is followed by an equally good one, this is almost always why.</li>
+          <li><strong>Price changes mid-period.</strong> If the report values sales at one price and you traded part of the period at another, the gap is arithmetic, not stock.</li>
+          <li><strong>Line cleaning and pull-through.</strong> If it is not being recorded, it is being counted as loss.</li>
+          <li><strong>Cellar temperature.</strong> Warm cellar, fobbing, wasted liquid down the drain. Check the log before you check the staff.</li>
+          <li><strong>Optics and free-pour.</strong> Spirits are where a small consistent over-pour compounds fastest, because the unit is small and the price is high.</li>
+          <li><strong>Counting method.</strong> Guessing a part-used bottle by eye is not a count. If you are eyeballing spirits and dipping kegs you should not be dipping, the number was fiction before the stocktaker arrived.</li>
+        </ol>
+
+        <p>Only when that list is genuinely exhausted is it worth thinking about anything else, and by then you will usually have found it.</p>
+
+        <h2>What actually gets a chargeback reversed</h2>
+
+        <p>If the number sticks and it comes back to you as money, what matters is not how convincing you are three weeks later. It is what you wrote down on the day.</p>
+
+        <p>I have had two reversed. One I queried while the stocktaker was still stood in my cellar and told my area manager the same day, and it came off. The other was the &minus;&pound;755.71, and that one took going back to the till provider for a documented fault record before anybody moved. Both worked because there was a second piece of evidence in the room. Without one, the stocktaker has a spreadsheet and you have a story, and the spreadsheet wins.</p>
+
+        <p>Five minutes on the day beats five hours three weeks later, and it is not close. The full write-up of both reversals, and what evidence actually gets accepted, is in <a href="/guides/stocktake-chargeback">how I got a stocktake chargeback reversed</a>.</p>
+
+        <h2>Where the Pubs Code sits on this &mdash; and where it does not</h2>
+
+        <p>Worth being precise here, because there is a lot of confident nonsense about it.</p>
+
+        <p>The Pubs Code Adjudicator regulates the six largest pub-owning businesses in England and Wales, each with 500 or more tied pubs. The Pubs Code Regulations came into force on 21 July 2016 under the framework in the Small Business, Enterprise and Employment Act 2015. The two governing principles are that regulated pub companies must treat their tied tenants fairly and lawfully, and that a tied tenant should be no worse off than they would be if they were free of tie. Scotland has its own separate Scottish Pubs Code, phased in during 2025.</p>
+
+        <p>The PCA&#x2019;s statutory guidance does touch stock, but narrowly: it covers beer waste and duty accounting obligations. A stocktake chargeback is not a named right under the Code, and I would not tell you the adjudicator will take one on. I would also not tell you it definitely will not, because I have not tested it and I am not going to pretend otherwise. What I can tell you is that the argument you will actually win is the evidential one, in your own pub, on the day, and that is entirely within your control.</p>
+
+        <h2>What I still do not know</h2>
+
+        <p>Nobody publishes UK pub variance benchmarks. Not the BBPA, not the stocktaking firms, not the pub companies. The firms that hold the largest datasets on this are the ones that sell stocktakes, and they have no reason to publish a number that lets you argue with them.</p>
+
+        <p>So the table above is a working convention drawn from one site&#x2019;s results and from where an operator actually picked up the phone. It is not research. If your own operator works to a different threshold, theirs is the one that will cost you money, and it is worth asking them for it in writing.</p>
+
+        <p>What I am certain of is the method rather than the number. Split draught from packaged from spirits. Read the movement, not the bottom line. Watch direction over five periods rather than size over one. Write things down on the day. That holds whatever threshold you are being measured against.</p>
+
+        <h2>Common questions</h2>
+
+        <h3>What is an acceptable stocktake variance percentage for a pub?</h3>
+        <p>There is no published UK standard. In practice most pub companies treat a liquor variance inside plus or minus 0.5% of sales as normal and start asking questions somewhere around 1%. That is a working convention rather than a rule, and it varies by operator, by site and by how the last few periods have looked.</p>
+
+        <h3>Is the 1-2% figure I keep reading online correct?</h3>
+        <p>It comes from American bar inventory guidance and it is measured against a different denominator. UK pub stocktake reports are usually expressed against retail sales value for the period, and UK draught trade carries an allowance for head that American spirit-led bars do not. Applying 1-2% to a wet-led UK pub will hide a real problem.</p>
+
+        <h3>Does a bad variance mean someone is stealing?</h3>
+        <p>Usually not. The common causes are till buttons pointing at the wrong product or the wrong price, deliveries counted in the wrong period, line cleaning and pull-through not being recorded, over-pour on optics and free-pour, and cellar temperature driving fobbing. Theft exists but it is far down the list of things worth checking first.</p>
+
+        <h3>How much of a draught pint is allowed to be froth?</h3>
+        <p>British Beer and Pub Association guidance states that a measure of beer served with a head must contain a minimum of 95% liquid, and that requests for a top-up should never be refused. That means up to 5% of every draught measure can legitimately be head, which is not a loss and should not be treated as one.</p>
+
+      </div><!-- /article-body -->
+
+      <!-- Sources -->
+      <div class="article-sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>BBPA guidance on head of beer, published via <a href="https://cask-marque.co.uk/bbpa-guidance-head-beer/" rel="nofollow noopener" target="_blank">Cask Marque</a> &mdash; minimum 95% liquid in a measure served with a head.</li>
+          <li><a href="https://www.gov.uk/government/organisations/pubs-code-adjudicator" rel="nofollow noopener" target="_blank">Pubs Code Adjudicator</a> &mdash; remit, the six regulated pub-owning businesses, and statutory guidance including beer waste and duty accounting.</li>
+          <li>Small Business, Enterprise and Employment Act 2015 and the Pubs Code etc. Regulations 2016, in force 21 July 2016.</li>
+          <li><a href="https://academy.getbackbar.com/how-to-calculate-bar-inventory-variance-guide" rel="nofollow noopener" target="_blank">Backbar Academy</a> &mdash; the widely repeated 1-2% of sales figure, cited here as the benchmark being examined, not as a recommendation.</li>
+          <li>Author&#x2019;s own independent liquor audit reports, five consecutive periods, one site, December 2025 to July 2026.</li>
+        </ul>
+      </div>
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/stocktake-net-vs-gross">How to read a pub stocktake report: net versus gross variance</a></li>
+          <li><a href="/guides/stock-variance-till-buttons">The till button problem: why your variance is the same every week</a></li>
+          <li><a href="/guides/stocktake-chargeback">How I got a stocktake chargeback reversed</a></li>
+          <li><a href="/guides/pub-stocktaker-cost-2026">What a pub stocktaker actually costs in 2026</a></li>
+          <li><a href="/guides/beer-delivery-delays-stocktake">What a beer supply delay actually does to your stocktake numbers</a></li>
+          <li><a href="/guides/ex-vat-vs-inc-vat-stock-value">Ex-VAT or inc-VAT: reading your pub stock valuation correctly</a></li>
+          <li><a href="/guides/pub-stocktaking-software-compared">Pub stocktaking software compared: StockTap, BevSpot, BarBrain, StockLens AI and Growyze</a></li>
+          <li><a href="/guides/staff-pours-margin-cost">What bad pours are actually costing you (and why nobody tells new staff)</a></li>
+          <li><a href="/guides/pub-gp-percentage-benchmark-2026">What&rsquo;s a good GP% for a UK pub in 2026?</a></li>
+          <li><a href="/guides/cask-ale-pricing-2026-what-pubs-charge">Cask ale pricing 2026: what pubs are actually charging</a></li>
+          <li><a href="/guides/pub-closures-2026-margin-lessons">Pub closures 2026: the margin lessons behind the headlines</a></li>
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself, properly, without a stocktaker</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

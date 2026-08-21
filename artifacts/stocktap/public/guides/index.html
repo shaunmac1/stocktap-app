@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pub operator guides | StockTap</title>
+  <meta name="description" content="Practical guides for UK pub operators and licensees — from fighting a stocktake chargeback to running your own count between visits." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides" />
+  <meta property="og:title" content="Pub operator guides | StockTap" />
+  <meta property="og:description" content="Practical guides for UK pub operators and licensees — from fighting a stocktake chargeback to running your own count between visits." />
+  <meta property="og:url" content="https://stocktap.net/guides" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pub operator guides | StockTap" />
+  <meta name="twitter:description" content="Practical guides for UK pub operators and licensees — from fighting a stocktake chargeback to running your own count between visits." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Page body ───────────────────────────────────────────────── */
+    main { flex: 1; }
+    .page-wrap { max-width: 56rem; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+    .page-eyebrow {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.25rem 0.875rem;
+      margin-bottom: 1.25rem;
+    }
+    h1 {
+      font-size: clamp(1.875rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.875rem;
+    }
+    .page-intro { font-size: 1.0625rem; color: #8A9099; line-height: 1.65; max-width: 42rem; margin-bottom: 3rem; }
+
+    /* ── Article list ────────────────────────────────────────────── */
+    .article-list { display: flex; flex-direction: column; gap: 1.25rem; }
+    .article-card {
+      display: block;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .article-card:hover { border-color: #E0A343; transform: translateY(-1px); }
+    .card-category {
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343; margin-bottom: 0.625rem;
+    }
+    .card-title {
+      font-size: 1.1875rem; font-weight: 700;
+      line-height: 1.3; letter-spacing: -0.01em;
+      margin-bottom: 0.625rem;
+    }
+    .card-excerpt { font-size: 0.9375rem; color: #8A9099; line-height: 1.6; margin-bottom: 1rem; }
+    .card-meta { font-size: 0.8125rem; color: #8A9099; display: flex; gap: 1.25rem; }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-wrap">
+      <div class="page-eyebrow">Guides</div>
+      <h1>For pub operators</h1>
+      <p class="page-intro">Practical articles from licensees and personal licence holders — chargebacks, stocktakes, GP%, and the stuff that doesn't make the course notes.</p>
+
+      <div class="article-list">
+        <a href="/guides/best-pub-stocktaking-software-2026" class="article-card">
+          <div class="card-category">Tools &amp; software comparisons</div>
+          <div class="card-title">Best pub stocktaking software 2026: an honest shortlist</div>
+          <p class="card-excerpt">No single winner, and anyone who says otherwise is selling something. Ranked by who each tool actually fits, single site to group, with where each one falls down.</p>
+          <div class="card-meta"><span>Shaun McManus</span><span>21 August 2026</span></div>
+        </a>
+        <a href="/guides/stocktaking-software-for-pubs" class="article-card">
+          <div class="card-category">Tools &amp; software comparisons</div>
+          <div class="card-title">Stocktaking software for pubs: what it does, what it costs, and how to pick one</div>
+          <p class="card-excerpt">Plain guide from a working licensee: what the tools actually count, why cheap ones lie about draught froth, the real price tiers, and six things to check before you buy.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>21 August 2026</span>
+          </div>
+        </a>
+        <a href="/guides/stocktake-chargeback" class="article-card">
+          <div class="card-category">Stocktaking &amp; chargebacks</div>
+          <div class="card-title">Two ways I've got a stocktake chargeback reversed</div>
+          <p class="card-excerpt">I run a pub in Washington. Here are the two grounds that got a chargeback reversed, and what my area manager actually accepted.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>28 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/stock-variance-till-buttons" class="article-card">
+          <div class="card-category">Stocktaking &amp; variance</div>
+          <div class="card-title">Your stock variance is probably the button next to the right one</div>
+          <p class="card-excerpt">Draught Lager up £3,697 while Ale is negative every single time. That's not theft, it's the wrong till button. How to check yours.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>29 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/stocktake-net-vs-gross" class="article-card">
+          <div class="card-category">Stocktaking &amp; variance</div>
+          <div class="card-title">Your stocktake said you were £13 out. Underneath it, £1,165 had moved.</div>
+          <p class="card-excerpt">Five Venners audits at my pub show why the net result on a stocktake report hides more than it tells you, and what to read instead.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>28 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/pub-stocktaker-cost-2026" class="article-card">
+          <div class="card-category">Stocktaking &amp; costs</div>
+          <div class="card-title">What a pub stocktaker actually costs in 2026</div>
+          <p class="card-excerpt">Published UK stocktaking rates for 2026, what drives the price, and how pubco packages compare. Written by a licensee who had to go and find out.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>28 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/acceptable-stocktake-variance" class="article-card">
+          <div class="card-category">Stocktaking &amp; variance</div>
+          <div class="card-title">What is an acceptable stocktake variance in a UK pub?</div>
+          <p class="card-excerpt">The &#x2018;1-2% of sales&#x2019; rule is American and doesn&#x2019;t hold in a UK cellar. Five real audit results, plus the 5% of every pint that&#x2019;s legally froth.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>29 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/beer-delivery-delays-stocktake" class="article-card">
+          <div class="card-category">Stocktaking &amp; variance</div>
+          <div class="card-title">What a beer supply delay actually does to your stocktake numbers</div>
+          <p class="card-excerpt">Damm UK admits Old Speckled Hen deliveries are running late nationwide. Here is what a delayed delivery does to your next stocktake report.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>29 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/ex-vat-vs-inc-vat-stock-value" class="article-card">
+          <div class="card-category">Stocktaking &amp; variance</div>
+          <div class="card-title">Ex-VAT or inc-VAT: reading your pub stock valuation correctly</div>
+          <p class="card-excerpt">A stock valuation mixing VAT-inclusive and VAT-exclusive prices misstates your GP% by up to 20 points. How to check which basis your figures use.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>29 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/pub-stocktaking-software-compared" class="article-card">
+          <div class="card-category">Tools &amp; software comparisons</div>
+          <div class="card-title">Pub stocktaking software compared: StockTap, BevSpot, BarBrain, StockLens AI and Growyze</div>
+          <p class="card-excerpt">A UK licensee compares pub stocktaking software: StockTap, BevSpot, BarBrain, StockLens AI, Growyze.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>29 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/pub-stocktaking-software-cost-2026" class="article-card">
+          <div class="card-category">Tools &amp; software comparisons</div>
+          <div class="card-title">How much does pub stocktaking software actually cost in 2026?</div>
+          <p class="card-excerpt">Real sourced prices for StockTap, BevSpot, BarBrain, StockLens AI, Growyze and MarketMan &mdash; what a UK pub actually pays for stock control software.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>29 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/bevspot-alternative-uk-pub" class="article-card">
+          <div class="card-category">Guides</div>
+          <div class="card-title">BevSpot Alternative for UK Pubs: What It Actually Costs vs StockTap</div>
+          <p class="card-excerpt">BevSpot alternative for UK pubs: what BevSpot really costs in 2026, where it fits, and why a UK-built tool tracks stock differently.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/staff-pours-margin-cost" class="article-card">
+          <div class="card-category">Stocktaking &amp; variance</div>
+          <div class="card-title">What Bad Pours Are Actually Costing You (And Why Nobody Tells New Staff)</div>
+          <p class="card-excerpt">What bad pours actually cost a pub, why nobody tells new staff, and the maths every induction should cover on day one.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/barbrain-alternative-uk-pub" class="article-card">
+          <div class="card-category">Guides</div>
+          <div class="card-title">BarBrain Alternative for UK Pubs: Pricing, Gaps and What Actually Fits</div>
+          <p class="card-excerpt">BarBrain alternative for UK pubs: BarBrain&rsquo;s real euro pricing in 2026, what&rsquo;s missing for a UK licensee, and where StockTap fits instead.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/nory-alternative-uk-pub" class="article-card">
+          <div class="card-category">Tools &amp; Software Comparisons</div>
+          <div class="card-title">Nory Alternative for UK Pubs: What It Actually Costs to Find Out</div>
+          <p class="card-excerpt">Nory alternative for UK pubs: why Nory hides its pricing, what a single pub should expect to pay for stock software instead, and where StockTap fits.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/marginedge-alternative-uk-pub" class="article-card">
+          <div class="card-category">Tools &amp; Software Comparisons</div>
+          <div class="card-title">MarginEdge Alternative for UK Pubs: The Real Cost in Pounds</div>
+          <p class="card-excerpt">MarginEdge alternative for UK pubs: MarginEdge&rsquo;s real dollar pricing in 2026, the FX and Toast surcharge risk, and where StockTap fits instead.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/access-procure-wizard-alternative-uk-pub" class="article-card">
+          <div class="card-category">Tools &amp; Software Comparisons</div>
+          <div class="card-title">Access Procure Wizard Alternative for UK Pubs: What a 36-Month Contract Really Costs</div>
+          <p class="card-excerpt">Access Procure Wizard alternative for UK pubs: the 36-month minimum contract, what that costs over the full term, and how StockTap compares with no lock-in.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/pub-gp-percentage-benchmark-2026" class="article-card">
+          <div class="card-category">Money &amp; Margins</div>
+          <div class="card-title">What&rsquo;s a good GP% for a UK pub in 2026?</div>
+          <p class="card-excerpt">The last real category benchmark data, sourced and dated &mdash; plus why draught trails spirits structurally, and what&rsquo;s actually known vs made up for 2026.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/cask-ale-pricing-2026-what-pubs-charge" class="article-card">
+          <div class="card-category">Stocktaking &amp; Variance</div>
+          <div class="card-title">Cask Ale Pricing 2026: What Pubs Are Actually Charging (And What It Means For Your Cellar)</div>
+          <p class="card-excerpt">The real average pint price by brand, falling volumes, and what it means for how you price and manage your cellar &mdash; including why cask variance eats price rises before you see them.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/uk-pub-market-report-2026-lumina" class="article-card">
+          <div class="card-category">Stocktaking &amp; Costs</div>
+          <div class="card-title">UK Pub Market Report 2026: What the Lumina Numbers Actually Mean for Your Pub</div>
+          <p class="card-excerpt">Growing market, fewer pubs, more rates relief on the way &mdash; what Lumina Intelligence&rsquo;s 2026 figures actually mean if you&rsquo;re the one behind the bar.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/business-rates-relief-pubs-2026" class="article-card">
+          <div class="card-category">Money &amp; Numbers</div>
+          <div class="card-title">Business rates relief for pubs is rising in 2027 &mdash; here&rsquo;s what to actually do with the saving</div>
+          <p class="card-excerpt">The 35% relief figure explained, who qualifies, what&rsquo;s still unconfirmed, and how to actually use the money rather than let it disappear into general cash flow.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/pub-closures-2026-margin-lessons" class="article-card">
+          <div class="card-category">Stocktaking &amp; Costs</div>
+          <div class="card-title">Pub Closures 2026: The Margin Lessons Behind the Headlines</div>
+          <p class="card-excerpt">161 pubs closed in Q1 2026, up 26% on last year &mdash; and the BBPA says it&rsquo;s not because trade is down. Here&rsquo;s the margin lesson for pubs still trading.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide" class="article-card">
+          <div class="card-category">Stocktaking &amp; Costs</div>
+          <div class="card-title">How to stocktake a pub yourself, properly, without a stocktaker</div>
+          <p class="card-excerpt">Step-by-step: the count method, the legal measures, the yield maths, and the discipline that separates a proper DIY stocktake from one that&rsquo;s kidding itself.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+
+        <a href="/guides/keg-calibration-guide-pub-cellar" class="article-card">
+          <div class="card-category">Cellar Management</div>
+          <div class="card-title">Why your keg and cask calibration is probably wrong, and how to fix it</div>
+          <p class="card-excerpt">Most keg and cask calibration in UK pub cellars isn&rsquo;t real calibration &mdash; it&rsquo;s a guess. The common mistakes behind bad variance figures, and how to fix them.</p>
+          <div class="card-meta">
+            <span>Shaun McManus</span>
+            <span>31 July 2026</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

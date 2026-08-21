@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stocktaking software for pubs: what it does, what it costs, how to pick | StockTap</title>
+  <meta name="description" content="A working licensee's plain guide to pub stocktaking software: what the tools actually count, why cheap ones lie about draught froth, real price tiers, and the six things to check before you buy." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/stocktaking-software-for-pubs" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Stocktaking software for pubs: what it does, what it costs, how to pick | StockTap" />
+  <meta property="og:description" content="A working licensee's plain guide to pub stocktaking software: what the tools actually count, why cheap ones lie about draught froth, real price tiers, and the six things to check before you buy." />
+  <meta property="og:url" content="https://stocktap.net/guides/stocktaking-software-for-pubs" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Stocktaking software for pubs: what it does, what it costs, how to pick | StockTap" />
+  <meta name="twitter:description" content="A working licensee's plain guide to pub stocktaking software: what the tools actually count, why cheap ones lie about draught froth, real price tiers, and the six things to check before you buy." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Stocktaking software for pubs: what it does, what it costs, and how to pick one",
+      "description": "A working licensee's plain guide to pub stocktaking software: what the tools actually count, why cheap ones lie about draught froth, real price tiers, and the six things to check before you buy.",
+      "datePublished": "2026-08-21",
+      "dateModified": "2026-08-21",
+      "author": { "@type": "Person", "name": "Shaun McManus", "jobTitle": "Licensee", "url": "https://stocktap.net/about" },
+      "publisher": { "@type": "Organization", "name": "StockTap", "url": "https://stocktap.net" },
+      "mainEntityOfPage": "https://stocktap.net/guides/stocktaking-software-for-pubs"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What does stocktaking software for a pub actually do?", "acceptedAnswer": { "@type": "Answer", "text": "It holds your product list with cost and sell prices, records what you count, pulls in deliveries and sales, then works out expected closing stock (opening plus purchases minus sales) and compares it to your actual count. The gap is your variance, expressed in pounds. Everything else is extra." } },
+        { "@type": "Question", "name": "Is free pub stocktaking software any good?", "acceptedAnswer": { "@type": "Answer", "text": "A free spreadsheet works for a very small site with few lines, but it will not weigh spirits, calibrate a cask or catch a miscoded till button, and one broken formula corrupts every figure after it. Past about a hundred lines it becomes a liability rather than a saving." } },
+        { "@type": "Question", "name": "How much does pub stocktaking software cost?", "acceptedAnswer": { "@type": "Answer", "text": "Monthly apps typically run from around £10 to the £50s per site per month. Enterprise procurement suites are quote-only and often locked into multi-year contracts. A spreadsheet is free but limited. Most single-site pubs are best served by an affordable monthly app they can cancel anytime." } },
+        { "@type": "Question", "name": "Should I use software or hire a stocktaker?", "acceptedAnswer": { "@type": "Answer", "text": "A human stocktaker gives you a number a few times a year and judgement on a disputed audit. Software lets you count weekly yourself so problems show up early. They are not the same job. Software does not replace a stocktaker's judgement on a dispute; it replaces the weeks of not knowing that lead up to one." } }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "Stocktaking software for pubs", "item": "https://stocktap.net/guides/stocktaking-software-for-pubs"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Stocktaking software for pubs: what it does, what it costs, and how to pick one</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-08-21">21 August 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+        <p><strong>Stocktaking software for a pub does one job that matters: it tells you what you should have behind the bar and in the cellar, checks it against what you actually have, and shows you the gap in pounds before that gap becomes a habit. Everything else is trimming. This is what the tools actually do, what they cost, where the free ones stop, and how to pick one without signing three years of your life away.</strong></p>
+
+        <p>I run a pub in Washington, Tyne and Wear. Seventeen staff, wet-led, the usual mix of draught, spirits and a fridge full of stuff that walks if you don't watch it. I've been stocktaken by hand, by a bloke with a clipboard who charged me for the privilege, and by software. So this isn't a listicle scraped off five other listicles. It's what I've actually used and what I'd tell a mate who rang me asking.</p>
+
+        <h2>What the software is really counting</h2>
+
+        <p>Strip the marketing off and every pub stock system is doing the same four things.</p>
+
+        <p>It holds your product list with a cost price and a sell price against each line. It records what you count on the day. It pulls in your deliveries and your sales so it can work out what <em>should</em> be left. Then it does the sum: opening stock, plus purchases, minus sales, equals expected closing stock. What you counted minus what it expected is your variance. That number is the whole game.</p>
+
+        <p>Where the tools split apart is how you get the count in, and how honest they are about draught.</p>
+
+        <h2>The count itself: weighing versus everything else</h2>
+
+        <p>Most systems ask you to eyeball a bottle and call it "three tenths". Fine for a quick check. Useless for spirits, because your eye is guessing and the guess is always kind to itself. A bottle you'd swear is a third full is often a quarter. Over forty optics that drift adds up to real money you can't see.</p>
+
+        <p>Weighing kills the guess. Put the bottle on a cheap kitchen scale, the software knows the empty weight and the full weight, and it works out exactly what's left in millilitres. No squinting. This is the bit StockTap is built around, and it's the reason I built it, because the guessing was costing me and I couldn't prove where.</p>
+
+        <p>That said, weighing every single line every week is a slog nobody keeps up. The trick is to weigh what's worth weighing (spirits, liqueurs, anything expensive and slow) and count the fast, cheap, packaged stuff by the case. A good tool lets you mix methods on one count. A rigid one makes you do it their way.</p>
+
+        <h2>Draught is where the cheap tools lie to you</h2>
+
+        <p>Here's the test that tells you if a stock tool understands British pubs. Ask it what it does with a keg that's half gone and the head on every pint.</p>
+
+        <p>British Beer and Pub Association guidance says a pint served with a head only has to be 95% liquid. So up to 5% of every draught pint you pour is legally froth. It never reaches the glass, never rings through the till as volume, and it shows up in a naive stock system as "missing". A tool that treats that 5% as shrinkage will have you chasing a thief who doesn't exist, every single week.</p>
+
+        <p>Proper cellar handling means keg and cask calibration, dip readings that match the actual container, and an allowance for pull-through and line cleaning. If a piece of software can't tell the difference between a line clean and a leak, it's a spreadsheet with a logo.</p>
+
+        <h2>Free, cheap, and "call us for a quote"</h2>
+
+        <p>Three price tiers, and they behave very differently.</p>
+
+        <p>The spreadsheet route is free. A decent stock spreadsheet costs nothing and works, right up until it doesn't. It won't weigh, it won't calibrate a cask, it won't flag the till button that's been miscoded since March, and one wrong formula quietly poisons every number after it. Grand for a micropub with forty lines. A liability once you're past a hundred.</p>
+
+        <p>Then the monthly-subscription apps. This is where most pubs should live. You pay per month, you count on your phone, the maths is done for you. Prices run from around a tenner to the fifties per site per month depending on who you ask and what's bolted on. StockTap sits here on purpose: it's built to be the affordable end, because a struggling licensee shouldn't have to choose between a stock system and the electric bill.</p>
+
+        <p>Then the enterprise stuff. Access Procure Wizard, MarginEdge, the big procurement suites. Powerful, genuinely, if you're a group with a finance team. But the pricing is "book a demo", the contracts run to 36 months, and the onboarding is a project, not an afternoon. For a single site or a small group it's a sledgehammer, and you pay sledgehammer money whether you swing it or not.</p>
+
+        <h2>What actually matters when you pick one</h2>
+
+        <p>Forget the feature grid for a second. After doing this for real, here's what I'd actually check before I gave anyone my card details.</p>
+
+        <ul>
+          <li>Can you finish a full count and see a value the same night, on your phone, without a laptop and a training call? If not, you won't keep doing it.</li>
+          <li>Does it handle draught properly, with real cask and keg calibration, or does it panic at froth?</li>
+          <li>What's the contract? Monthly and cancel-anytime, or locked in for years? Anyone confident in their product lets you leave.</li>
+          <li>Does it work with no signal in the cellar? Half the pub is a concrete box. Offline-first is not optional.</li>
+          <li>Can you get your own data out as a CSV whenever you want? Your numbers are yours.</li>
+          <li>Does the price make sense for one site, or is it clearly built for a group and priced to match?</li>
+        </ul>
+
+        <p>Notice what's not on that list: AI dashboards, demand-forecasting engines, forty integrations you'll never wire up. Nice once the basics are nailed. Worthless if the count itself is a fight.</p>
+
+        <h2>Software or a human stocktaker?</h2>
+
+        <p>You can pay a stocktaker to come in. A single independent liquor audit runs somewhere in the region of £70 to £120 a visit for a typical site, and monthly costs mount fast. What you get is a number and a person to argue with. What you don't get is the day-to-day. A stocktaker four times a year tells you the house is on fire in hindsight. Counting weekly yourself, with software doing the maths, is a smoke alarm. Most pubs that get burned by a chargeback got burned because nobody looked between visits.</p>
+
+        <p>The honest version: software doesn't replace a good stocktaker's judgement on a disputed audit. It replaces the twelve weeks of not knowing that led up to it.</p>
+
+        <h2>Where to start this week</h2>
+
+        <p>Pick one system. Load your top thirty lines by value, not all four hundred, because those thirty are where the money leaks. Weigh the spirits, count the rest. Do it once. Look at the variance. Then do it again seven days later and compare the shape, because one count is a photo and two counts are a story.</p>
+
+        <p>That's the whole method. The tool just saves you the arithmetic and stops you lying to yourself about the tenths.</p>
+
+        <div class="article-sources">
+          <h2>Sources</h2>
+          <ul>
+            <li><a href="https://beerandpub.com/" rel="nofollow noopener" target="_blank">British Beer and Pub Association</a> &mdash; head-of-beer guidance, the 95% minimum liquid measure.</li>
+            <li>Author&rsquo;s own experience running a wet-led site in Washington, Tyne and Wear, and five independent liquor audits, December 2025 to July 2026.</li>
+            <li>Independent stocktaker visit pricing, typical UK single-site range, gathered from published stocktaker rate cards, 2026.</li>
+          </ul>
+        </div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/pub-stocktaking-software-compared">Pub stocktaking software compared: StockTap, BevSpot, BarBrain, StockLens AI and Growyze</a></li>
+          <li><a href="/guides/pub-stocktaking-software-cost-2026">How much does pub stocktaking software actually cost in 2026?</a></li>
+          <li><a href="/guides/pub-stocktaker-cost-2026">What a pub stocktaker actually costs in 2026</a></li>
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself, properly, without a stocktaker</a></li>
+          <li><a href="/guides/keg-calibration-guide-pub-cellar">Why your keg and cask calibration is probably wrong, and how to fix it</a></li>
+          <li><a href="/guides/acceptable-stocktake-variance">What is an acceptable stocktake variance in a UK pub?</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

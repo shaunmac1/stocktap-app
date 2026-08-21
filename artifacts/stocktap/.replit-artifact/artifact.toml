@@ -1,0 +1,26 @@
+kind = "web"
+previewPath = "/"
+title = "StockTap"
+version = "1.0.0"
+id = "artifacts/stocktap"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18320
+
+[services.development]
+run = "pnpm --filter @workspace/stocktap run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/stocktap", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/stocktap", "run", "start" ]
+
+[services.env]
+PORT = "18320"
+BASE_PATH = "/"

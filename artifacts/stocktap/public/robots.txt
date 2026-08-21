@@ -1,0 +1,27 @@
+User-agent: *
+
+# Public marketing pages — indexable
+Allow: /$
+Allow: /help
+Allow: /terms
+Allow: /privacy
+Allow: /guides
+Allow: /about
+
+# App screens — authenticated only, do not index
+Disallow: /auth
+Disallow: /library
+Disallow: /stocktake
+Disallow: /spot-check
+Disallow: /reports
+Disallow: /settings
+Disallow: /ledger
+Disallow: /invoice-scan
+Disallow: /suggestions
+
+# Static assets — images crawlable for Article/og:image; rest blocked
+Allow: /assets/*.png$
+Allow: /assets/*.jpg$
+Disallow: /assets/
+
+Sitemap: https://stocktap.net/sitemap.xml

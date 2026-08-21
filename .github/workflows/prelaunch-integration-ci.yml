@@ -1,0 +1,98 @@
+name: Prelaunch integration verification
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-typecheck-build:
+    runs-on: ubuntu-latest
+    env:
+      PORT: "5173"
+      BASE_PATH: "/"
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run StockTap regression tests
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm --filter @workspace/stocktap test -- --reporter=verbose | tee integration-stocktap-tests.txt
+
+      - name: Run API regression tests
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm --filter @workspace/api-server test -- --reporter=verbose | tee integration-api-tests.txt
+
+      - name: Run shared library typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm run typecheck:libs | tee integration-libs-typecheck.txt
+
+      - name: Run StockTap typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm --filter @workspace/stocktap typecheck | tee integration-stocktap-typecheck.txt
+
+      - name: Run API typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm --filter @workspace/api-server typecheck | tee integration-api-typecheck.txt
+
+      - name: Build complete production workspace
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm build | tee integration-build.txt
+
+      - name: Verify migration stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          for migration in \
+            supabase/migrations/202607140002_atomic_delivery_provenance.sql \
+            supabase/migrations/202607140003_stocktake_cadence.sql \
+            supabase/migrations/202607140004_server_catalogue.sql \
+            supabase/migrations/202607140005_seed_catalogue.sql \
+            supabase/migrations/202607140006_delivery_document_review.sql; do
+            test -s "$migration"
+          done
+          ! grep -R --line-number --include='*.ts' --include='*.tsx' 'starter-library.csv?raw' artifacts/stocktap/src
+          echo "Migration files and calibration bundle boundary verified"
+
+      - name: Upload integration verification output
+        uses: actions/upload-artifact@v4
+        with:
+          name: prelaunch-integration-output
+          path: |
+            integration-stocktap-tests.txt
+            integration-api-tests.txt
+            integration-libs-typecheck.txt
+            integration-stocktap-typecheck.txt
+            integration-api-typecheck.txt
+            integration-build.txt
+          if-no-files-found: error

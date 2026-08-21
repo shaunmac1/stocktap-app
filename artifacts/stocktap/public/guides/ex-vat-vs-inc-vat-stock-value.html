@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ex-VAT or inc-VAT: reading your pub stock valuation correctly | StockTap</title>
+  <meta name="description" content="A stock valuation mixing VAT-inclusive and VAT-exclusive prices misstates your GP% by up to 20 points. How to check which basis your figures use." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/ex-vat-vs-inc-vat-stock-value" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Ex-VAT or inc-VAT: reading your pub stock valuation correctly | StockTap" />
+  <meta property="og:description" content="A stock valuation mixing VAT-inclusive and VAT-exclusive prices misstates your GP% by up to 20 points. How to check which basis your figures use." />
+  <meta property="og:url" content="https://stocktap.net/guides/ex-vat-vs-inc-vat-stock-value" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ex-VAT or inc-VAT: reading your pub stock valuation correctly | StockTap" />
+  <meta name="twitter:description" content="A stock valuation mixing VAT-inclusive and VAT-exclusive prices misstates your GP% by up to 20 points. How to check which basis your figures use." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Ex-VAT or inc-VAT: reading your pub stock valuation correctly",
+      "description": "A stock valuation mixing VAT-inclusive and VAT-exclusive prices misstates your GP% by up to 20 points. How to check which basis your figures use.",
+      "datePublished": "2026-07-29",
+      "dateModified": "2026-07-29",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/ex-vat-vs-inc-vat-stock-value"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Should a pub stock valuation be ex-VAT or inc-VAT?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For GP% and margin reporting, stock should be valued ex-VAT, matching how sales are usually reported net of VAT in a P&L. Whichever basis you choose, the point is consistency: every price in the valuation has to be on the same basis, or the total is meaningless."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What happens if some prices are ex-VAT and others inc-VAT in the same report?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The valuation total becomes internally inconsistent. At the UK standard VAT rate of 20%, a line priced inc-VAT sits about 16.7% higher in value than the same line ex-VAT, which is enough to swing a GP% calculation by several percentage points, or the site total by considerably more if the mixing is widespread."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I check which basis my till or stock system is actually using?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Take one product with a round shelf price, work out what it costs ex-VAT by dividing by 1.2, and compare that to what your system shows as the unit value in a stock report. If they match, you're ex-VAT. If the shelf price matches instead, you're inc-VAT. Do this for a handful of lines across different categories, not just one, because some systems apply VAT inconsistently across categories."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "Ex-VAT or inc-VAT: reading your pub stock valuation correctly", "item": "https://stocktap.net/guides/ex-vat-vs-inc-vat-stock-value"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Stocktaking &amp; variance
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Stocktaking &amp; variance</div>
+        <h1>Ex-VAT or inc-VAT: reading your pub stock valuation correctly</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-07-29">29 July 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+
+        <p><strong>Short answer: for GP% and margin work, stock should be valued ex-VAT. The bigger point is consistency &mdash; if some lines in your valuation are priced inc-VAT and others ex-VAT, the total is wrong, and it will be wrong by an amount large enough to send you chasing a stock problem that doesn&#x2019;t exist.</strong></p>
+
+        <h2>Why this is easy to get wrong without noticing</h2>
+
+        <p>A pub&#x2019;s till shows the shelf price a customer pays, which is VAT-inclusive by law. A stocktaker&#x2019;s or an app&#x2019;s valuation report, on the other hand, is often built to show the ex-VAT cost or value, because that&#x2019;s the basis used for GP% and for most P&amp;L reporting. Nothing forces these two systems to agree with each other, and nothing on the screen tells you which one you&#x2019;re looking at unless the report says so explicitly.</p>
+
+        <p>I went through this directly while building StockTap. The app&#x2019;s &#x201C;Sell &pound;&#x201D; field writes to the underlying pour price field, and every price in the system is stored and displayed ex-VAT. That&#x2019;s a deliberate, confirmed choice, not an assumption &mdash; and it matters, because a licensee entering shelf prices without knowing that basis will silently overstate every valuation by exactly the VAT fraction.</p>
+
+        <h2>The maths, worked through once so you don&#x2019;t have to guess</h2>
+
+        <p>UK standard VAT is 20%, applying to sales above the current VAT registration threshold of &pound;90,000 turnover. To go from a VAT-inclusive price to the ex-VAT price, divide by 1.2. To go the other way, multiply by 1.2.</p>
+
+        <table>
+          <caption>Same product, two VAT bases</caption>
+          <thead>
+            <tr><th scope="col">Basis</th><th scope="col">Price</th><th scope="col">Difference vs ex-VAT</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Inc-VAT (shelf price)</td><td>&pound;6.00</td><td>+20.0%</td></tr>
+            <tr><td>Ex-VAT</td><td>&pound;5.00</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+
+        <p>Put another way: a value that&#x2019;s actually ex-VAT will look about 16.7% too low if you mistakenly treat it as inc-VAT, and a value that&#x2019;s actually inc-VAT will look 20% too high if you treat it as ex-VAT. Neither error is small. Run that across an entire stock valuation and the total moves by a meaningful sum, and your GP% calculation &mdash; which divides cost by sale price &mdash; moves by several percentage points in the wrong direction. A pub running a genuinely healthy GP% can look like it&#x2019;s underperforming, or a pub with a real problem can look fine, purely because of which basis two different numbers in the same calculation are using.</p>
+
+        <h2>The single most common way this breaks</h2>
+
+        <p>It isn&#x2019;t usually one system being wrong. It&#x2019;s two systems disagreeing, and a licensee copying numbers between them without checking the basis of either. A common version: the till reports sales inc-VAT because that&#x2019;s the legal shelf price, the stocktaker&#x2019;s report values closing stock ex-VAT because that&#x2019;s the accounting convention, and a GP% is calculated by dividing one by the other without adjusting either. The two halves of the calculation are on different bases, and the result is wrong by a predictable, correctable margin &mdash; but only once you know to look for it.</p>
+
+        <h2>How to check which basis you&#x2019;re actually on</h2>
+
+        <ol>
+          <li>Pick a product with a clean, round shelf price &mdash; say &pound;6.00 a bottle.</li>
+          <li>Work out its ex-VAT value: &pound;6.00 &divide; 1.2 = &pound;5.00.</li>
+          <li>Open your stock or valuation report and find that same product&#x2019;s unit value.</li>
+          <li>If it shows &pound;5.00, your system is ex-VAT. If it shows &pound;6.00, it&#x2019;s inc-VAT.</li>
+          <li>Repeat for two or three more products across different categories &mdash; spirits, draught, packaged. Some systems apply VAT consistently everywhere; others don&#x2019;t, especially if products were added at different times by different people.</li>
+        </ol>
+
+        <p>Once you know the basis, the fix is simple: make sure every figure that feeds a single calculation &mdash; sales, cost, stock value &mdash; is on the same basis before you divide one by another. If you&#x2019;re comparing your own figures against a stocktaker&#x2019;s report, ask them directly which basis they use. It&#x2019;s a one-line question and most stocktakers will answer it without hesitation, because the alternative is a licensee quietly distrusting a set of numbers for a reason that was never explained.</p>
+
+        <h2>Where this connects to the wider stocktake picture</h2>
+
+        <p>Getting the VAT basis right matters most when you&#x2019;re trying to read variance and GP% together, because a basis error looks exactly like a trading problem until you isolate it. If you&#x2019;ve read the numbers correctly and there&#x2019;s still a gap, the more common causes are covered in <a href="/guides/stock-variance-till-buttons">the till button problem</a> and in the causes checklist in <a href="/guides/acceptable-stocktake-variance">what is an acceptable stocktake variance in a UK pub?</a> And if a bad number has already been charged back to you, the evidential approach that actually reverses one is in <a href="/guides/stocktake-chargeback">how I got a stocktake chargeback reversed</a>.</p>
+
+        <h2>Common questions</h2>
+
+        <h3>Should a pub stock valuation be ex-VAT or inc-VAT?</h3>
+        <p>For GP% and margin reporting, stock should be valued ex-VAT, matching how sales are usually reported net of VAT in a P&amp;L. Whichever basis you choose, the point is consistency: every price in the valuation has to be on the same basis, or the total is meaningless.</p>
+
+        <h3>What happens if some prices are ex-VAT and others inc-VAT in the same report?</h3>
+        <p>The valuation total becomes internally inconsistent. At the UK standard VAT rate of 20%, a line priced inc-VAT sits about 16.7% higher in value than the same line ex-VAT, which is enough to swing a GP% calculation by several percentage points, or the site total by considerably more if the mixing is widespread.</p>
+
+        <h3>How do I check which basis my till or stock system is actually using?</h3>
+        <p>Take one product with a round shelf price, work out what it costs ex-VAT by dividing by 1.2, and compare that to what your system shows as the unit value in a stock report. If they match, you&#x2019;re ex-VAT. If the shelf price matches instead, you&#x2019;re inc-VAT. Do this for a handful of lines across different categories, not just one, because some systems apply VAT inconsistently across categories.</p>
+
+      </div><!-- /article-body -->
+
+      <!-- Sources -->
+      <div class="article-sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>HM Revenue &amp; Customs &mdash; UK standard VAT rate of 20% and current VAT registration threshold of &pound;90,000 turnover.</li>
+          <li>Author&#x2019;s own confirmed technical finding from StockTap&#x2019;s build: the app&#x2019;s Sell &pound; field writes to the underlying pour price field and all prices are stored and displayed ex-VAT.</li>
+        </ul>
+      </div>
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/stocktake-net-vs-gross">Net versus gross variance</a></li>
+          <li><a href="/guides/stock-variance-till-buttons">The till button problem</a></li>
+          <li><a href="/guides/pub-gp-percentage-benchmark-2026">What&rsquo;s a good GP% for a UK pub in 2026?</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

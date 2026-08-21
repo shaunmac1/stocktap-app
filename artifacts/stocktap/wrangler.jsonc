@@ -1,0 +1,12 @@
+{
+  // StockTap — Cloudflare Workers Static Assets deploy config.
+  // Fixes SPA deep-link routing: any path with no matching asset file
+  // falls back to index.html so the client-side router (wouter) handles it.
+  "name": "gentle-silence-f69f",
+  "account_id": "ddd4631249f3f41628ec56d107aab51c",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "./dist/public",
+    "not_found_handling": "single-page-application"
+  }
+}

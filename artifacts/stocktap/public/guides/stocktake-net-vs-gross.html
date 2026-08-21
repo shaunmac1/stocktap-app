@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to read a pub stocktake report: net vs gross variance | StockTap</title>
+  <meta name="description" content="Five Venners audits at my pub show why the net result on a stocktake report hides more than it tells you, and what to read instead." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/stocktake-net-vs-gross" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Your stocktake said you were £13 out. Underneath it, £1,165 had moved. | StockTap" />
+  <meta property="og:description" content="Five Venners audits at my pub show why the net result on a stocktake report hides more than it tells you, and what to read instead." />
+  <meta property="og:url" content="https://stocktap.net/guides/stocktake-net-vs-gross" />
+  <meta property="og:image" content="https://stocktap.net/assets/stocktake-net-vs-gross-hero.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Your stocktake said you were £13 out. Underneath it, £1,165 had moved. | StockTap" />
+  <meta name="twitter:description" content="Five Venners audits at my pub show why the net result on a stocktake report hides more than it tells you, and what to read instead." />
+  <meta name="twitter:image" content="https://stocktap.net/assets/stocktake-net-vs-gross-hero.png" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Your stocktake said you were £13 out. Underneath it, £1,165 had moved.",
+      "description": "Five Venners audits at my pub show why the net result on a stocktake report hides more than it tells you, and what to read instead.",
+      "image": "https://stocktap.net/assets/stocktake-net-vs-gross-hero.png",
+      "datePublished": "2026-07-28",
+      "dateModified": "2026-07-28",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/stocktake-net-vs-gross"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the difference between gross and net variance on a stocktake?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Net adds every category's surplus and deficit together, so opposite movements cancel out. Gross adds the size of each movement and ignores direction. A pub can come in £13 net with over £1,000 of stock movement underneath it, which is what happened at mine in July."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is a small net stocktake result always good news?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not on its own. Three of my five audits landed inside a tenth of one per cent of revenue and four inside three tenths, and underneath them were categories that went the same way every single time. A small net result tells you your errors balanced each other."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many stocktakes before category direction means anything?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Three is enough to spot something worth checking, five is where I would start believing it. One period of minerals being down is a miscount or a delivery booked to the wrong place. Five periods of minerals down, £1,111 worth, is something in how you operate."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should I challenge a bad stocktake result?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, but check your own equipment first. My worst period was £756 down and it turned out the tills had been down with prices rounded down at the bar. It was escalated and charged back. I had assumed the worst about people, and I was wrong."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "Your stocktake said you were £13 out. Underneath it, £1,165 had moved.", "item": "https://stocktap.net/guides/stocktake-net-vs-gross"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Stocktaking &amp; variance
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Stocktaking &amp; variance</div>
+        <h1>Your stocktake said you were £13 out. Underneath it, £1,165 had moved.</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-07-28">28 July 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+
+        <p>On 21 July my stocktake report came back at £12.84 up on the period. I looked at it for about four seconds, thought that&#x2019;ll do, and went off to deal with something more pressing, which at that time of year is usually the cellar cooling.</p>
+
+        <p>Underneath that £12.84, £1,165 of stock had moved. Categories up, categories down, all of it cancelling out into a number small enough that I didn&#x2019;t bother reading the next page. I run a pub in Washington, Tyne and Wear with a team of seventeen, and I had been reading the wrong number off these reports for a long time.</p>
+
+        <h2>What the net result on a stocktake report actually is</h2>
+
+        <p>The net result is every category&#x2019;s surplus and every category&#x2019;s deficit added together into one figure. If your draught lager comes in £600 over and your minerals come in £600 under, your net is nil. The report is not wrong. It is doing exactly what it is designed to do, which is tell you whether, taken as a whole, the money and the stock agree.</p>
+
+        <p>Gross movement is the other way of adding it up. You take the size of every category movement and ignore whether it is a plus or a minus. Lager £600 and minerals £600 is £1,200 of gross movement, not nil.</p>
+
+        <p>Both numbers are true. They just answer different questions. Net answers &#x201C;did it balance&#x201D;. Gross answers &#x201C;how much is actually going on in here&#x201D;. Most of us, me included, only ever looked at the first one.</p>
+
+        <h2>Why a good net result can hide a systematic problem</h2>
+
+        <p>A net result of £13 on a period that turned over the best part of £70,000 looks like a pub being run properly. It might be. It might also be two separate problems of £600 each pointing in opposite directions, which is not the same thing at all, and which will still be there next period and the period after that, quietly, because nothing on the front page ever asked you to look.</p>
+
+        <p>Errors in opposite directions cancel. Systematic errors do not go away when they cancel. That is the whole of it.</p>
+
+        <h2>What five audits at one pub looked like underneath</h2>
+
+        <p>Here are my last five Venners liquor audits, December 2025 through July 2026. Periods ran 33 to 41 days and revenue ran between £62,596 and £76,236.</p>
+
+        <p>Net results: +£193, +£65, +£51, &#x2212;£756, +£13.</p>
+
+        <p>Three of the five came in inside a tenth of one per cent of revenue, and four of the five inside three tenths of one per cent. On paper that is a tidy pub with a tidy cellar and not much to talk about.</p>
+
+        <p>Gross category movement across those same five audits was £11,598. It netted down to &#x2212;£434. The net figure hides about twenty-seven times its own size.</p>
+
+        <p>The 25 February audit is the clearest example. Net £65. Gross £3,456. Draught Lager on its own was £1,644 over. A £1,644 movement in one category on a £65 report, and I signed it off without comment because the front page said sixty-five quid.</p>
+
+        <h2>The categories that went the same way every single time</h2>
+
+        <p>Once I stopped looking at the net and started looking down the page, the pattern was not subtle. Across the five audits:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Direction over five audits</th>
+              <th>Same sign every audit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><a href="/guides/stock-variance-till-buttons">Draught Lager</a></td><td>+£3,697</td><td>&#x2014;</td></tr>
+            <tr><td>Draught Stout</td><td>+£870</td><td>yes, positive 5/5</td></tr>
+            <tr><td>Draught Ale</td><td>&#x2212;£773</td><td>yes, negative 5/5</td></tr>
+            <tr><td>Wines</td><td>&#x2212;£962</td><td>yes, negative 5/5</td></tr>
+            <tr><td>Minerals</td><td>&#x2212;£1,111</td><td>yes, negative 5/5</td></tr>
+            <tr><td>Postmix</td><td>&#x2212;£1,222</td><td>&#x2014;</td></tr>
+            <tr><td>Spirits</td><td>&#x2212;£643</td><td>&#x2014;</td></tr>
+            <tr><td>Packaged</td><td>&#x2212;£589</td><td>&#x2014;</td></tr>
+          </tbody>
+        </table>
+
+        <p>Minerals negative five times out of five. Wines negative five times out of five. Ale negative five times out of five. Stout positive five times out of five.</p>
+
+        <p>A category that goes the same way five times running is not bad luck. Bad luck alternates. That is either measurement, or process, or something in how the stock is being handled, and none of those fix themselves. Lager running £3,697 over five audits and ale running £773 under over the same five is a signal about my cellar and my bar, and it was sitting there in plain sight on reports whose headline figures I had already decided were fine.</p>
+
+        <p>There is also the stuff that never reaches the front page at all. One visit carried £636 of gas adjustments. Invisible in the headline. Real money.</p>
+
+        <h2>The time I got it badly wrong</h2>
+
+        <p>The odd one out in that run is the &#x2212;£756 in June. I did what I suspect most licensees do, which is assume the worst about somebody, and I escalated it.</p>
+
+        <p>It was the tills. They had been down, prices were rounded down at the bar to keep serving, and the stocktake was comparing sold-through stock against takings that never had a chance of matching. It was an equipment artefact, not missing money. It was escalated and charged back.</p>
+
+        <p>Two things came out of that. One, check your own kit before you start looking sideways at your team. Two, that £756 is the only one of the five that made me look properly at anything, and it turned out to be the one period where nothing was actually wrong with the stock. The four &#x201C;good&#x201D; reports were the ones with the real information in them.</p>
+
+        <h2>What to look at instead of the net figure</h2>
+
+        <p>Read the net once, to check nothing has gone badly wrong, and then leave it alone. Then read down the categories, across several stocktakes.</p>
+
+        <p>Three things are worth your time:</p>
+
+        <p><strong>Direction.</strong> Which categories have the same sign every period. Sign repeating matters more than size.</p>
+
+        <p><strong>Size relative to that category.</strong> A £200 movement on wines is a bigger deal than a £600 movement on draught lager, because there is far less wine going through.</p>
+
+        <p><strong>Whether it moved after you changed something.</strong> New line, new price, new supplier, new cellar routine. If a category turns after a change, you have got your answer without needing to guess.</p>
+
+        <h3>A worked example you can do with your last three reports</h3>
+
+        <p>This takes about twenty minutes at the kitchen table and needs nothing you don&#x2019;t already have.</p>
+
+        <ol>
+          <li>Get your last three stocktake reports out. Cover the net result with your hand. You are not going to use it.</li>
+          <li>Write your categories down the left of a page: draught lager, draught ale, draught stout, packaged, wines, spirits, minerals, postmix, whatever yours are called.</li>
+          <li>Put three columns next to them, one per stocktake, and write in each category&#x2019;s figure with its plus or minus.</li>
+          <li>Add up all three columns ignoring the plus and minus signs. That is your gross movement. Compare it to the three net figures you covered up. On mine the gross was roughly twenty-seven times the net.</li>
+          <li>Circle any category that has the same sign in all three columns.</li>
+          <li>Rank the circled ones by total size. That is your list, in order.</li>
+          <li>Take the top one and go and test it physically. Wine measures and free pouring for wines. Ratios, syrup changes and whether anyone is logging cleaning waste for postmix and minerals. Line cleaning allowance, gas and cellar temperature for ale. Do one at a time or you will never know which change did what.</li>
+        </ol>
+
+        <p>If you only have three reports, three is enough to spot something. Five is where I would start believing it.</p>
+
+        <h2>This is not a criticism of your stocktaker</h2>
+
+        <p>I want to be clear about that, because it would be an easy thing to read into all this and it would be wrong.</p>
+
+        <p>A net result is what a net result is for. It is the reconciliation figure. It answers the question the licensee has actually asked, which is whether the stock and the money agree, and <a href="/guides/pub-stocktaker-cost-2026">my stocktaker answered it correctly five times out of five</a>, including the time the fault was my tills. Everything I have described above was already printed on the reports they gave me. Nobody hid it. I just wasn&#x2019;t reading past page one.</p>
+
+        <p>It is worth saying too that this kind of movement is normal rather than sinister. Venners&#x2019; own Yield Report in 2021, drawn from around 22,000 stocktakes across more than 3,000 sites, found packaged beer and cider yielding 97.6% against a 99.5% expectation, and put up to £10,000 a site a year as recoverable. Their observation audits found losses at 100% of sites, and split the cause 46% human error against 39% theft. Most of what is moving in your cellar is people getting things slightly wrong, repeatedly, in the same direction.</p>
+
+        <p>Which is exactly the sort of thing a net result of £13 is guaranteed not to tell you.</p>
+
+        <h2>Common questions</h2>
+
+        <h3>What is the difference between gross and net variance on a stocktake?</h3>
+        <p>Net adds every category&#x2019;s surplus and deficit together, so opposite movements cancel out. Gross adds the size of each movement and ignores direction. A pub can come in £13 net with over £1,000 of stock movement underneath it, which is what happened at mine in July.</p>
+
+        <h3>Is a small net stocktake result always good news?</h3>
+        <p>Not on its own. Three of my five audits landed inside a tenth of one per cent of revenue and four inside three tenths, and underneath them were categories that went the same way every single time. A small net result tells you your errors balanced each other.</p>
+
+        <h3>How many stocktakes before category direction means anything?</h3>
+        <p>Three is enough to spot something worth checking, five is where I would start believing it. One period of minerals being down is a miscount or a delivery booked to the wrong place. Five periods of minerals down, £1,111 worth, is something in how you operate.</p>
+
+        <h3>Should I challenge a bad stocktake result?</h3>
+        <p>Yes, but check your own equipment first. My worst period was £756 down and it turned out the tills had been down with prices rounded down at the bar. <a href="/guides/stocktake-chargeback">It was escalated and charged back</a>. I had assumed the worst about people, and I was wrong.</p>
+
+      </div><!-- /article-body -->
+
+      <!-- Sources -->
+      <div class="article-sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>Net results (+£193, +£65, +£51, &#x2212;£756, +£13), revenue range £62,596&#x2013;£76,236, period lengths 33&#x2013;41 days, gross category movement £11,598 netting to &#x2212;£434, 21 July net £12.84 against £1,165 gross, 25 February net £65 against gross £3,456 with Draught Lager +£1,644, five-audit category directions (Draught Lager +£3,697, Draught Stout +£870, Minerals &#x2212;£1,111, Wines &#x2212;£962, Draught Ale &#x2212;£773, Postmix &#x2212;£1,222, Spirits &#x2212;£643, Packaged &#x2212;£589), £636 of gas adjustments in one visit, and the June &#x2212;£756 escalation and chargeback: Venners liquor stocktake reports for the author&#x2019;s own pub, December 2025 to July 2026, author&#x2019;s own copies.</li>
+          <li>Net result as a percentage of period revenue (+£193 on £70,279 = 0.27%; +£65 on £62,596 = 0.10%; +£51 on £73,847 = 0.07%; +£13 on £76,236 = 0.02%): calculated from the same reports.</li>
+          <li>Packaged beer and cider yield of 97.6% against a 99.5% expectation, up to £10,000 a site a year recoverable, observation audit losses at 100% of sites split 46% human error and 39% theft, drawn from around 22,000 stocktakes across 3,000+ sites: Venners Yield Report, 2021.</li>
+        </ul>
+      </div>
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/acceptable-stocktake-variance">What is an acceptable stocktake variance in a UK pub?</a></li>
+          <li><a href="/guides/beer-delivery-delays-stocktake">What a beer supply delay actually does to your stocktake numbers</a></li>
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself, properly, without a stocktaker</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Pub GP &amp; Profit-Leak Calculator | StockTap</title>
+  <meta name="description" content="Work out your pub's GP% on any line in seconds, then see exactly what a gap between your GP and your target is costing you a year. Free, no sign-up to use, built by a licensee." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/tools/pub-gp-profit-leak-calculator" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Free Pub GP &amp; Profit-Leak Calculator | StockTap" />
+  <meta property="og:description" content="Work out your GP% on any line, then see what the gap to your target costs you a year. Free, built by a licensee." />
+  <meta property="og:url" content="https://stocktap.net/tools/pub-gp-profit-leak-calculator" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Free Pub GP &amp; Profit-Leak Calculator | StockTap" />
+  <meta name="twitter:description" content="Work out your GP% on any line, then see what the gap to your target costs you a year. Free." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Pub GP & Profit-Leak Calculator",
+      "url": "https://stocktap.net/tools/pub-gp-profit-leak-calculator",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+      "description": "Free calculator for UK pubs: work out gross profit percentage on any drink line, and estimate the annual cost of a gap between your actual GP and your target GP.",
+      "author": { "@type": "Person", "name": "Shaun McManus", "jobTitle": "Licensee", "url": "https://stocktap.net/about" },
+      "publisher": { "@type": "Organization", "name": "StockTap", "url": "https://stocktap.net" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net/" },
+        { "@type": "ListItem", "position": 2, "name": "Free Tools", "item": "https://stocktap.net/tools" },
+        { "@type": "ListItem", "position": 3, "name": "Pub GP & Profit-Leak Calculator", "item": "https://stocktap.net/tools/pub-gp-profit-leak-calculator" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do you work out GP% for a pub?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Take the selling price and strip the VAT out of it to get the net selling price. Subtract what the product costs you ex VAT. Divide that gross profit by the net selling price and multiply by 100. So a pint selling at £5.00 inc VAT is £4.17 net; if it costs you £1.50, that's £2.67 profit on £4.17, which is a GP of about 64%." }
+        },
+        {
+          "@type": "Question",
+          "name": "Should I use the price including or excluding VAT?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Enter the selling price the customer actually pays, including VAT, and the cost price you pay your supplier excluding VAT. The calculator removes the VAT from the sale for you so the GP is a true ex-VAT figure. Mixing inc and ex VAT is the single most common reason a GP number looks wrong." }
+        },
+        {
+          "@type": "Question",
+          "name": "What is a good GP% for a UK pub?",
+          "acceptedAnswer": { "@type": "Answer", "text": "It varies by category. Spirits and minerals usually run high, cask and draught lower because of wastage and the legal head on a pint. As a rough guide on wet sales, under 50% is worth investigating, the high 50s to high 60s is healthy for most lines, and spirits can sit above 70%. Judge each line against its own category, not one blanket target." }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #111316; --panel: #16191D; --panel-2: #1A1D21;
+      --ink: #F3F1EC; --ink-soft: #DDD9D3; --muted: #8A9099;
+      --line: #2A2E34; --amber: #E0A343; --amber-dim: rgba(224,163,67,.10);
+      --green: #4E9A6B; --red: #C6605A;
+    }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Header */
+    .site-header { border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 0; }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon { width: 1.75rem; height: 1.75rem; background: var(--amber); border-radius: 0.375rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin { color: var(--ink); font-size: 0.875rem; font-weight: 500; padding: 0.375rem 1rem; border: 1px solid var(--line); border-radius: 0.375rem; transition: background .15s; }
+    .nav-signin:hover { background: var(--panel-2); }
+
+    main { flex: 1; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .breadcrumb { font-size: 0.8125rem; color: var(--muted); margin-bottom: 2rem; }
+    .breadcrumb a:hover { color: var(--ink); }
+
+    /* Hero */
+    .eyebrow { display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber); background: var(--amber-dim); border: 1px solid rgba(224,163,67,.25); border-radius: 9999px; padding: 0.2rem 0.75rem; margin-bottom: 1.1rem; }
+    h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    .lede { font-size: 1.0625rem; line-height: 1.7; color: var(--ink-soft); max-width: 60ch; }
+    .lede strong { color: var(--ink); font-weight: 600; }
+
+    /* Card */
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 1.75rem; margin-top: 2rem; }
+    .card-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .35rem; }
+    .card-step { font-size: .75rem; font-weight: 700; color: var(--amber); letter-spacing: .04em; }
+    .card-title { font-size: 1.25rem; font-weight: 700; letter-spacing: -.01em; }
+    .card-sub { font-size: .9375rem; color: var(--muted); margin-bottom: 1.4rem; line-height: 1.55; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.25rem; }
+    @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+    .field label { display: block; font-size: .8125rem; font-weight: 500; color: var(--ink-soft); margin-bottom: .4rem; }
+    .field .hint { color: var(--muted); font-weight: 400; }
+    .input-wrap { position: relative; }
+    .input-wrap .affix { position: absolute; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: .95rem; pointer-events: none; }
+    .input-wrap .affix.pre { left: .85rem; }
+    .input-wrap .affix.suf { right: .85rem; }
+    input[type=number], input[type=email] {
+      width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: .55rem;
+      color: var(--ink); font-family: inherit; font-size: 1rem; padding: .7rem .9rem; transition: border-color .15s, box-shadow .15s;
+      -moz-appearance: textfield;
+    }
+    input.has-pre { padding-left: 1.7rem; }
+    input.has-suf { padding-right: 2.2rem; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 3px rgba(224,163,67,.15); }
+
+    /* Result panel */
+    .result { margin-top: 1.4rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: .8rem; padding: 1.25rem 1.4rem; }
+    .result-row { display: flex; justify-content: space-between; align-items: baseline; padding: .45rem 0; }
+    .result-row + .result-row { border-top: 1px dashed var(--line); }
+    .result-label { font-size: .9375rem; color: var(--muted); }
+    .result-val { font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .result-hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
+    .result-hero .big { font-size: clamp(2rem, 8vw, 2.75rem); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+    .verdict { font-size: .8rem; font-weight: 600; padding: .28rem .7rem; border-radius: 9999px; white-space: nowrap; }
+    .v-good { color: var(--green); background: rgba(78,154,107,.12); border: 1px solid rgba(78,154,107,.3); }
+    .v-ok { color: var(--amber); background: var(--amber-dim); border: 1px solid rgba(224,163,67,.3); }
+    .v-low { color: var(--red); background: rgba(198,96,90,.12); border: 1px solid rgba(198,96,90,.3); }
+    .v-note { font-size: .875rem; color: var(--ink-soft); line-height: 1.55; margin-top: .5rem; }
+
+    .leak-figure { font-size: clamp(2.25rem, 9vw, 3rem); font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+    .leak-sub { font-size: .95rem; color: var(--ink-soft); line-height: 1.6; margin-top: .3rem; }
+    .muted-small { font-size: .8125rem; color: var(--muted); margin-top: 1rem; line-height: 1.5; }
+
+    /* Email capture */
+    .capture { margin-top: 2rem; background: linear-gradient(180deg, rgba(224,163,67,.06), rgba(224,163,67,0)); border: 1px solid rgba(224,163,67,.25); border-radius: 1rem; padding: 1.6rem 1.75rem; }
+    .capture h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: .4rem; }
+    .capture p { font-size: .9375rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 1.1rem; }
+    .capture-row { display: flex; gap: .6rem; }
+    @media (max-width: 480px) { .capture-row { flex-direction: column; } }
+    .capture-row input { flex: 1; }
+    .btn { font-family: inherit; font-size: .95rem; font-weight: 600; cursor: pointer; border: none; border-radius: .55rem; padding: .7rem 1.3rem; transition: transform .06s, background .15s, opacity .15s; }
+    .btn-primary { background: var(--amber); color: #14100A; white-space: nowrap; }
+    .btn-primary:hover { background: #ecb154; }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary:disabled { opacity: .6; cursor: default; }
+    .capture-note { font-size: .75rem; color: var(--muted); margin-top: .7rem; }
+    .capture-done { display: none; font-size: .95rem; color: var(--green); line-height: 1.6; }
+
+    /* CTA */
+    .cta { margin-top: 2.5rem; border: 1px solid var(--line); border-radius: 1rem; padding: 1.75rem; background: var(--panel); }
+    .cta h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: .5rem; }
+    .cta p { font-size: .95rem; color: var(--ink-soft); line-height: 1.65; margin-bottom: 1.1rem; }
+    .cta a.btn-primary { display: inline-block; }
+
+    /* FAQ + body */
+    .prose { margin-top: 3rem; }
+    .prose h2 { font-size: 1.375rem; font-weight: 700; margin: 2rem 0 .8rem; letter-spacing: -.01em; }
+    .prose p { font-size: 1.0625rem; line-height: 1.78; color: var(--ink-soft); margin-bottom: 1rem; }
+    .faq-item { border-top: 1px solid var(--line); padding: 1.15rem 0; }
+    .faq-q { font-size: 1.0625rem; font-weight: 600; margin-bottom: .5rem; }
+    .faq-a { font-size: 1rem; line-height: 1.7; color: var(--ink-soft); }
+
+    footer.site-footer { border-top: 1px solid var(--line); margin-top: 3rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; padding: 1.75rem 0; font-size: .8125rem; color: var(--muted); }
+    .footer-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+    .footer-links a:hover { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/tools">Free tools</a> &rsaquo; GP &amp; profit-leak calculator</div>
+
+      <span class="eyebrow">Free tool &middot; no sign-up to use</span>
+      <h1>Pub GP &amp; profit-leak calculator</h1>
+      <p class="lede">Two quick sums most licensees get told by a stocktaker four times a year. Do them yourself in ten seconds. First, <strong>your real GP% on any line</strong>. Then <strong>what the gap to your target is quietly costing you a year</strong>. No jargon, no VAT confusion, built by someone who runs a wet-led pub.</p>
+
+      <!-- STEP 1 -->
+      <section class="card">
+        <div class="card-head"><span class="card-step">STEP 1</span><span class="card-title">Your GP% on a line</span></div>
+        <p class="card-sub">Enter the price a customer pays (inc VAT) and what the product costs you (ex VAT). We strip the VAT out for you, because mixing the two is the number-one reason a GP looks wrong.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="sell">Selling price <span class="hint">(inc VAT)</span></label>
+            <div class="input-wrap"><span class="affix pre">£</span><input id="sell" class="has-pre" type="number" inputmode="decimal" step="0.01" min="0" placeholder="5.00" value="5.00" /></div>
+          </div>
+          <div class="field">
+            <label for="cost">Cost price <span class="hint">(ex VAT, per unit)</span></label>
+            <div class="input-wrap"><span class="affix pre">£</span><input id="cost" class="has-pre" type="number" inputmode="decimal" step="0.01" min="0" placeholder="1.50" value="1.50" /></div>
+          </div>
+          <div class="field">
+            <label for="vat">VAT rate</label>
+            <div class="input-wrap"><input id="vat" class="has-suf" type="number" inputmode="decimal" step="0.5" min="0" placeholder="20" value="20" /><span class="affix suf">%</span></div>
+          </div>
+        </div>
+
+        <div class="result" id="gpResult">
+          <div class="result-hero">
+            <div><div class="result-label">Gross profit</div><div class="big" id="gpPct">—</div></div>
+            <span class="verdict v-ok" id="gpVerdict">enter figures</span>
+          </div>
+          <div class="v-note" id="gpNote"></div>
+          <div class="result-row"><span class="result-label">Net selling price (ex VAT)</span><span class="result-val" id="netSell">—</span></div>
+          <div class="result-row"><span class="result-label">Cash profit per unit</span><span class="result-val" id="cashGP">—</span></div>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="card">
+        <div class="card-head"><span class="card-step">STEP 2</span><span class="card-title">What a GP gap costs you</span></div>
+        <p class="card-sub">Now the one that stings. Put in your weekly wet sales and the GP you're actually running, against the GP you're aiming for. This is the money on the table, not an accusation — most of it is priced-in wastage, miskeyed till buttons and drift, not people.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="weekly">Weekly wet sales <span class="hint">(inc VAT)</span></label>
+            <div class="input-wrap"><span class="affix pre">£</span><input id="weekly" class="has-pre" type="number" inputmode="decimal" step="10" min="0" placeholder="8000" value="8000" /></div>
+          </div>
+          <div class="field">
+            <label for="curGp">Your current GP</label>
+            <div class="input-wrap"><input id="curGp" class="has-suf" type="number" inputmode="decimal" step="0.5" min="0" max="100" placeholder="55" value="55" /><span class="affix suf">%</span></div>
+          </div>
+          <div class="field">
+            <label for="tgtGp">Your target GP</label>
+            <div class="input-wrap"><input id="tgtGp" class="has-suf" type="number" inputmode="decimal" step="0.5" min="0" max="100" placeholder="62" value="62" /><span class="affix suf">%</span></div>
+          </div>
+        </div>
+
+        <div class="result" id="leakResult">
+          <div class="result-label" id="leakLabel">Closing that gap is worth</div>
+          <div class="leak-figure" id="leakYear">—</div>
+          <div class="leak-sub" id="leakSub"></div>
+        </div>
+        <p class="muted-small">Rough guide, not gospel: it assumes your current and target GP are blended across your wet sales. A weekly stocktake is what turns a guess like this into a real number you can act on.</p>
+      </section>
+
+      <!-- EMAIL CAPTURE -->
+      <section class="capture">
+        <h3>Get the 20-line GP cheat sheet</h3>
+        <p>The one-page sheet I actually use: the 20 lines worth counting first, the GP band each should hit, and the three till-button mistakes that fake a stock loss. Pop your email in and it's yours to download straight away.</p>
+        <form id="captureForm" class="capture-row" novalidate>
+          <input id="email" type="email" placeholder="you@yourpub.co.uk" autocomplete="email" required />
+          <button type="submit" class="btn btn-primary" id="captureBtn">Get the cheat sheet</button>
+        </form>
+        <div class="capture-note" id="captureNote">No spam, no daily emails. Just the sheet, and the odd genuinely useful thing for licensees.</div>
+        <div class="capture-done" id="captureDone">
+          <p style="margin-bottom:.9rem;">Sorted. Here's your cheat sheet — pin it up in the cellar.</p>
+          <a href="/downloads/gp-cheat-sheet.pdf" download class="btn btn-primary" id="downloadBtn" style="display:inline-block;">Download the cheat sheet (PDF)</a>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta">
+        <h3>This is the bit StockTap does on its own</h3>
+        <p>The calculator is the manual version. StockTap weighs your spirits to the millilitre, handles draught and the legal head on a pint properly, and hands you the GP and the variance the same night, on your phone. Founding price is £19 a month, cancel any time.</p>
+        <a href="/auth" class="btn btn-primary">Start a free trial</a>
+      </section>
+
+      <!-- PROSE / FAQ -->
+      <div class="prose">
+        <h2>How the GP sum actually works</h2>
+        <p>Gross profit is the share of a sale you keep after the product cost, before your rent, staff and everything else. The only trap is VAT. The price on your till is inc VAT, but your GP has to be worked out on the ex-VAT price, or the number flatters you. So the tool takes your selling price, removes the VAT to get the net sale, subtracts the ex-VAT cost, and shows what's left as a percentage of that net sale. Do it on a £5 pint that costs you £1.50 and you're looking at roughly 64%, which is healthy for draught.</p>
+        <h2>Why the gap in step two matters more than the GP itself</h2>
+        <p>A single line's GP is easy. The money hides in the gap between what you think you're making across everything and what you actually bank. A few points of GP on decent wet sales is thousands a year, and most of it isn't theft — it's the pint poured with too much head counted as sold, the double vodka keyed as a single, the promotion nobody switched off. You only see it if you count, weekly, and compare. That's the whole job.</p>
+
+        <h2>Common questions</h2>
+        <div class="faq-item"><div class="faq-q">Do I use the price including or excluding VAT?</div><div class="faq-a">Selling price including VAT (what the customer pays), cost price excluding VAT (what you pay your supplier). The tool removes the VAT from the sale so the GP is a true figure. Mixing them is the most common reason a GP looks off.</div></div>
+        <div class="faq-item"><div class="faq-q">What's a good GP% for a pub?</div><div class="faq-a">Depends on the category. Spirits and minerals run high, cask and draught lower because of wastage and the legal head on a pint. Under 50% on wet is worth a look, high-50s to high-60s is healthy for most lines, spirits can top 70%. Judge each line against its own category.</div></div>
+        <div class="faq-item"><div class="faq-q">Is this stored anywhere?</div><div class="faq-a">Your figures stay in your browser. Nothing is sent unless you ask for the cheat sheet, and then it's only your email plus the results, so I can send the right thing.</div></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/guides">Guides</a>
+          <a href="/tools">Free tools</a>
+          <a href="/about">About</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    var SUPABASE_URL = "https://nyqohgaxvqypdvdmpyix.supabase.co";
+    var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55cW9oZ2F4dnF5cGR2ZG1weWl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTA5NjUsImV4cCI6MjA5ODQ4Njk2NX0.I3LUpSbwiYnRj7_-4XOyuU02smoQkZTrz7Rbng6Lfso";
+
+    var $ = function (id) { return document.getElementById(id); };
+    var gbp = function (n) { return "£" + (Math.round(n * 100) / 100).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    var gbp0 = function (n) { return "£" + Math.round(n).toLocaleString("en-GB"); };
+    var num = function (id) { var v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+
+    function calcGP() {
+      var sell = num("sell"), cost = num("cost"), vat = num("vat");
+      var netSell = sell / (1 + vat / 100);
+      var cash = netSell - cost;
+      var gp = netSell > 0 ? (cash / netSell) * 100 : 0;
+      if (sell <= 0) {
+        $("gpPct").textContent = "—"; $("netSell").textContent = "—"; $("cashGP").textContent = "—";
+        $("gpVerdict").textContent = "enter figures"; $("gpVerdict").className = "verdict v-ok"; $("gpNote").textContent = ""; return;
+      }
+      $("gpPct").textContent = gp.toFixed(1) + "%";
+      $("netSell").textContent = gbp(netSell);
+      $("cashGP").textContent = gbp(cash);
+      var v = $("gpVerdict"), note = $("gpNote");
+      if (gp < 50) { v.textContent = "on the low side"; v.className = "verdict v-low"; note.textContent = "Under 50% on a wet line is worth a proper look — either the price is soft, the cost has crept up, or the till button is wrong."; }
+      else if (gp < 60) { v.textContent = "fair"; v.className = "verdict v-ok"; note.textContent = "Fair for draught, a bit light for spirits and minerals. Worth checking this line against others in its category."; }
+      else if (gp <= 70) { v.textContent = "healthy"; v.className = "verdict v-good"; note.textContent = "Healthy for most wet lines. If this is a spirit you might squeeze a little more; if it's cask, you're doing well."; }
+      else { v.textContent = "strong"; v.className = "verdict v-good"; note.textContent = "Strong — typical of a well-priced spirit or mineral. Just make sure the measure and the till button match reality."; }
+    }
+
+    function calcLeak() {
+      var weekly = num("weekly"), cur = num("curGp"), tgt = num("tgtGp"), vat = num("vat");
+      var net = weekly / (1 + vat / 100);
+      var gap = (tgt - cur) / 100;
+      var weeklyCash = net * gap;
+      var year = weeklyCash * 52;
+      var label = $("leakLabel"), fig = $("leakYear"), sub = $("leakSub");
+      if (weekly <= 0 || cur <= 0 || tgt <= 0) { fig.textContent = "—"; sub.textContent = ""; return; }
+      if (tgt <= cur) {
+        label.textContent = "You're already at or above target";
+        fig.textContent = gbp0(0) + " leaking";
+        sub.textContent = "Nice. You're running at or above the GP you set. Keep counting so it stays that way — this is exactly where it quietly slips.";
+        return;
+      }
+      label.textContent = "Closing that gap is worth";
+      fig.textContent = gbp0(year) + " a year";
+      sub.textContent = "That's about " + gbp0(weeklyCash) + " a week — the difference between running at " + cur + "% and " + tgt + "% on " + gbp0(weekly) + " of weekly wet sales.";
+    }
+
+    ["sell", "cost", "vat"].forEach(function (id) { $(id).addEventListener("input", function () { calcGP(); calcLeak(); }); });
+    ["weekly", "curGp", "tgtGp"].forEach(function (id) { $(id).addEventListener("input", calcLeak); });
+    calcGP(); calcLeak();
+
+    // Lead capture
+    $("captureForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = $("email").value.trim();
+      if (!email || email.indexOf("@") < 1 || email.indexOf(".") < 0) { $("email").focus(); $("email").style.borderColor = "#C6605A"; return; }
+      var btn = $("captureBtn"); btn.disabled = true; btn.textContent = "Sending…";
+      var payload = {
+        email: email,
+        source: "gp-profit-leak-calculator",
+        payload: {
+          sell: num("sell"), cost: num("cost"), vat: num("vat"),
+          gp_pct: $("gpPct").textContent, net_sell: $("netSell").textContent, cash_gp: $("cashGP").textContent,
+          weekly_wet: num("weekly"), current_gp: num("curGp"), target_gp: num("tgtGp"),
+          annual_gap: $("leakYear").textContent,
+          ts: new Date().toISOString(), ref: location.href
+        }
+      };
+      function reveal() {
+        $("captureForm").style.display = "none"; $("captureNote").style.display = "none"; $("captureDone").style.display = "block";
+      }
+      fetch(SUPABASE_URL + "/rest/v1/leads", {
+        method: "POST",
+        headers: { "apikey": SUPABASE_ANON, "Authorization": "Bearer " + SUPABASE_ANON, "Content-Type": "application/json", "Prefer": "return=minimal" },
+        body: JSON.stringify(payload)
+      }).then(function (r) {
+        reveal();
+      }).catch(function () {
+        // Never deny the sheet over a capture hiccup — always deliver it.
+        reveal();
+      });
+    });
+    $("email").addEventListener("input", function () { this.style.borderColor = ""; });
+  </script>
+</body>
+</html>

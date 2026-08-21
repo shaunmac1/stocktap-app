@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="google-site-verification" content="T6ILbk7ihxQ55-MuK4Rj-BFt1lC0DRg2Z5xXFDaT-fo" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>StockTap</title>
+    <meta name="description" content="StockTap — stock-taking by weight for UK pubs, bars and restaurants. Weigh bottles on your phone, catch losses before they become a problem." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="StockTap" />
+    <meta property="og:description" content="StockTap — stock-taking by weight for UK pubs, bars and restaurants. Weigh bottles on your phone, catch losses before they become a problem." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="StockTap" />
+    <meta name="twitter:description" content="StockTap — stock-taking by weight for UK pubs, bars and restaurants. Weigh bottles on your phone, catch losses before they become a problem." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "name": "StockTap",
+      "url": "https://stocktap.net",
+      "founder": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "url": "https://stocktap.net/about"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "name": "StockTap",
+      "url": "https://stocktap.net"
+    }
+  ]
+}
+    </script>
+    <script>
+      /* Self-heal guard — if a hashed asset fails to load (404 because a
+         stale cached index.html points at a deleted bundle after republish),
+         unregister all service workers, clear all caches, and reload ONCE.
+         sessionStorage prevents an infinite reload loop. */
+      (function () {
+        if (sessionStorage.getItem('__st_heal')) return;
+        function heal() {
+          sessionStorage.setItem('__st_heal', '1');
+          var ps = [];
+          if ('serviceWorker' in navigator) {
+            ps.push(
+              navigator.serviceWorker.getRegistrations().then(function (regs) {
+                return Promise.all(regs.map(function (r) { return r.unregister(); }));
+              })
+            );
+          }
+          if ('caches' in window) {
+            ps.push(
+              caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+              })
+            );
+          }
+          Promise.all(ps).then(function () { location.reload(); });
+        }
+        /* Script / stylesheet load error — capture phase catches 404s on
+           <script> tags injected by Vite's module preload. */
+        window.addEventListener('error', function (e) {
+          var t = e.target;
+          if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) heal();
+        }, true);
+        /* Dynamic import / Vite chunk load failure (unhandled promise) */
+        window.addEventListener('unhandledrejection', function (e) {
+          var msg = String((e.reason && e.reason.message) || e.reason || '');
+          if (msg.indexOf('Loading chunk') !== -1 ||
+              msg.indexOf('dynamically imported module') !== -1 ||
+              msg.indexOf('Failed to fetch dynamically') !== -1) {
+            heal();
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+name: Protected catalogue verification
+
+on:
+  pull_request:
+    branches:
+      - feature/stocktake-cadence
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-typecheck-build:
+    runs-on: ubuntu-latest
+    env:
+      PORT: "5173"
+      BASE_PATH: "/"
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run regression tests
+        run: pnpm --filter @workspace/stocktap test -- --reporter=verbose | tee catalogue-test-output.txt
+
+      - name: Run StockTap typecheck
+        run: pnpm --filter @workspace/stocktap typecheck | tee catalogue-typecheck-output.txt
+
+      - name: Build production bundle
+        run: pnpm --filter @workspace/stocktap build | tee catalogue-build-output.txt
+
+      - name: Confirm raw calibration CSV is not imported by application code
+        run: |
+          if grep -R --line-number --include='*.ts' --include='*.tsx' 'starter-library.csv?raw' artifacts/stocktap/src; then
+            echo "Raw calibration CSV is still imported by client code"
+            exit 1
+          fi
+          echo "No raw starter calibration CSV imports remain"
+
+      - name: Upload verification output
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalogue-multiselect-output
+          path: |
+            catalogue-test-output.txt
+            catalogue-typecheck-output.txt
+            catalogue-build-output.txt
+          if-no-files-found: error
