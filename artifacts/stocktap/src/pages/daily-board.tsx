@@ -3,7 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
+import { Link } from "wouter";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Users } from "lucide-react";
 import { formatGBP } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { useCashUps, useSaveCashUp, buildComparisons, entertainmentRoi, recentTrend, shiftISO } from "@/hooks/useDailyBoard";
@@ -237,6 +238,22 @@ export default function DailyBoard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Team & wages entry */}
+        <Link href="/team">
+          <Card className="active:scale-[0.99] transition-transform">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-sm">Team &amp; wages</div>
+                <div className="text-xs text-muted-foreground">Clock staff in, see your wage % against the take</div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Optional extras */}
         <button className="text-sm text-primary font-medium" onClick={() => setShowMore((s) => !s)}>
