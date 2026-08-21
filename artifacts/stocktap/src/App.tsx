@@ -25,6 +25,7 @@ import Suggestions from "@/pages/suggestions";
 import InvoiceScan from "@/pages/invoice-scan";
 import DailyBoard from "@/pages/daily-board";
 import Team from "@/pages/team";
+import Checks from "@/pages/checks";
 import Clock from "@/pages/clock";
 import { Layout } from "@/components/Layout";
 
@@ -89,6 +90,7 @@ const InvoiceScanRoute = () => <ProtectedRoute component={InvoiceScan} />;
 const SuggestionsRoute = () => <ProtectedRoute component={Suggestions} />;
 const DailyBoardRoute  = () => <ProtectedRoute component={DailyBoard} />;
 const TeamRoute        = () => <ProtectedRoute component={Team} />;
+const ChecksRoute      = () => <ProtectedRoute component={Checks} />;
 
 function AppRouter({ authenticated }: { authenticated: boolean }) {
   return (
@@ -100,6 +102,7 @@ function AppRouter({ authenticated }: { authenticated: boolean }) {
       <Route path="/"              component={authenticated ? HomeRouteAuth : Landing} />
       <Route path="/daily-board"   component={DailyBoardRoute} />
       <Route path="/team"          component={TeamRoute} />
+      <Route path="/checks"        component={ChecksRoute} />
       <Route path="/library"       component={LibraryRoute} />
       <Route path="/stocktake"     component={StocktakeRoute} />
       <Route path="/spot-check"    component={SpotCheckRoute} />

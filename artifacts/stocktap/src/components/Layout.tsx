@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Coins, Library, ClipboardList, ScanLine, BarChart3 } from "lucide-react";
+import { Home, Coins, Thermometer, Library, ClipboardList, ScanLine, BarChart3 } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -8,6 +8,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/daily-board", icon: Coins, label: "Board" },
+    { href: "/checks", icon: Thermometer, label: "Checks" },
     { href: "/library", icon: Library, label: "Library" },
     { href: "/stocktake", icon: ClipboardList, label: "Stocktake" },
     { href: "/spot-check", icon: ScanLine, label: "Spot Check" },
