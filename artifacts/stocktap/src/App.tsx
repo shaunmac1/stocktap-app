@@ -23,6 +23,7 @@ import Settings from "@/pages/settings";
 import Ledger from "@/pages/ledger";
 import Suggestions from "@/pages/suggestions";
 import InvoiceScan from "@/pages/invoice-scan";
+import DailyBoard from "@/pages/daily-board";
 import { Layout } from "@/components/Layout";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const SettingsRoute    = () => <ProtectedRoute component={Settings} />;
 const LedgerRoute      = () => <ProtectedRoute component={Ledger} />;
 const InvoiceScanRoute = () => <ProtectedRoute component={InvoiceScan} />;
 const SuggestionsRoute = () => <ProtectedRoute component={Suggestions} />;
+const DailyBoardRoute  = () => <ProtectedRoute component={DailyBoard} />;
 
 function AppRouter({ authenticated }: { authenticated: boolean }) {
   return (
@@ -93,6 +95,7 @@ function AppRouter({ authenticated }: { authenticated: boolean }) {
       <Route path="/terms"         component={Terms} />
       <Route path="/privacy"       component={Privacy} />
       <Route path="/"              component={authenticated ? HomeRouteAuth : Landing} />
+      <Route path="/daily-board"   component={DailyBoardRoute} />
       <Route path="/library"       component={LibraryRoute} />
       <Route path="/stocktake"     component={StocktakeRoute} />
       <Route path="/spot-check"    component={SpotCheckRoute} />

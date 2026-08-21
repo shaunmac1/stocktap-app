@@ -1,12 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Library, ClipboardList, ScanLine, BarChart3 } from "lucide-react";
+import { Home, Coins, Library, ClipboardList, ScanLine, BarChart3 } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
+    { href: "/daily-board", icon: Coins, label: "Board" },
     { href: "/library", icon: Library, label: "Library" },
     { href: "/stocktake", icon: ClipboardList, label: "Stocktake" },
     { href: "/spot-check", icon: ScanLine, label: "Spot Check" },
