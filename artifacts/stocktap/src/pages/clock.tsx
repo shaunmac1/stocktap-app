@@ -10,6 +10,7 @@ import {
   staffClockErrorMessage,
 } from "@/hooks/useStaffClock";
 import { useOutstandingToday } from "@/hooks/useChecks";
+import { ReminderToggle } from "@/components/ReminderToggle";
 import { useMyRota } from "@/hooks/useRota";
 import { shiftRangeLabel, AREA_LABELS } from "@/lib/rota";
 import { shiftCapISO, type CloseTimes } from "@/lib/wages";
@@ -179,6 +180,8 @@ export default function Clock() {
             </div>
           </Link>
         )}
+
+        <div className="w-full max-w-xs"><ReminderToggle /></div>
       </div>
 
       <div className="pb-8" />

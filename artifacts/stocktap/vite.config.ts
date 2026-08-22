@@ -67,6 +67,9 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Pull in our push/notificationclick handlers (public/push-sw.js) so
+        // the app can receive web-push while closed.
+        importScripts: ["push-sw.js"],
         // html intentionally excluded — index.html is served network-first
         // via runtimeCaching so a stale cached document never points at a
         // deleted hashed bundle (the root cause of the blank-screen bug).

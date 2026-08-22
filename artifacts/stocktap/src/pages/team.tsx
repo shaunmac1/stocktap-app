@@ -8,6 +8,7 @@ import { Plus, LogOut, AlertTriangle, Pencil, Trash2, Smartphone, Share2, Check,
 import { formatGBP } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { useCashUps } from "@/hooks/useDailyBoard";
+import { ReminderToggle } from "@/components/ReminderToggle";
 import { useStaff, useShiftsForDate, useOpenShifts, useAddStaff, useClockIn, useClockOut, useCloseShiftAt, useUpdateShiftTimes, useDeleteShift } from "@/hooks/useTeam";
 import {
   shiftDurationHours,
@@ -215,6 +216,8 @@ export default function Team() {
             </CardContent>
           </Card>
         </Link>
+
+        <ReminderToggle />
 
         {/* Tonight's wages */}
         <Card className="bg-primary text-primary-foreground border-none shadow-md">
