@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
         if (r.key === "vision_model" && !model) model = r.value;
       }
     }
-    if (!model) model = "claude-3-5-sonnet-latest";
+    if (!model) model = "claude-sonnet-4-5-20250929";
     if (!apiKey) return json({ error: "no_api_key", message: "Rota reading is not set up yet - an AI vision key needs adding." }, 503);
 
     const body = await req.json().catch(() => ({}));
