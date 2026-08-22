@@ -28,6 +28,7 @@ import DailyBoard from "@/pages/daily-board";
 import Team from "@/pages/team";
 import Checks from "@/pages/checks";
 import Clock from "@/pages/clock";
+import { useOutstandingToday } from "@/hooks/useChecks";
 import { Layout } from "@/components/Layout";
 
 const queryClient = new QueryClient();
@@ -135,9 +136,11 @@ function AuthenticatedApp() {
 // so a staff member can't deep-link into an admin page.
 function StaffNav() {
   const [location] = useLocation();
+  const { venue } = useAuth();
+  const outstanding = useOutstandingToday(venue?.id);
   const items = [
-    { href: "/", icon: ClockIcon, label: "Clock" },
-    { href: "/checks", icon: Thermometer, label: "Checks" },
+    { href: "/", icon: ClockIcon, label: "Clock", badge: 0 },
+    { href: "/checks", icon: Thermometer, label: "Checks", badge: outstanding.total },
   ];
   return (
     <nav className="fixed bottom-0 w-full max-w-md bg-card border-t border-border flex justify-around items-center p-2 pb-safe z-50">
@@ -146,7 +149,12 @@ function StaffNav() {
         const Icon = item.icon;
         return (
           <Link key={item.href} href={item.href} className="flex-1 flex flex-col items-center py-1">
-            <Icon className={`w-6 h-6 mb-1 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+            <div className="relative">
+              <Icon className={`w-6 h-6 mb-1 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+              {item.badge > 0 && (
+                <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">{item.badge}</span>
+              )}
+            </div>
             <span className={`text-[10px] ${isActive ? "text-primary font-medium" : "text-muted-foreground"}`}>{item.label}</span>
           </Link>
         );

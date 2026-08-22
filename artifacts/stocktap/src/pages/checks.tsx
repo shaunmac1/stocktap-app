@@ -178,6 +178,11 @@ export default function Checks() {
   }
 
   const nothingSetUp = appliances.length === 0 && items.length === 0;
+  const checklistRemaining = useMemo(
+    () => sections.reduce((n, s) => n + sectionCompletion(items, completions, dateISO, s).remaining, 0),
+    [sections, items, completions, dateISO],
+  );
+  const totalRemaining = tempCompletion.remaining + checklistRemaining;
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
@@ -193,6 +198,19 @@ export default function Checks() {
           <button className="p-1.5 rounded-md border border-border disabled:opacity-40" onClick={() => setDateISO(shiftISO(dateISO, 1))} disabled={isToday} aria-label="Next day"><ChevronRight className="w-4 h-4" /></button>
         </div>
       </div>
+
+      {/* Admin at-a-glance nudge */}
+      {admin && !nothingSetUp && isToday && (
+        totalRemaining > 0 ? (
+          <div className="rounded-xl bg-amber-50 border border-amber-300 p-3 text-sm text-amber-900">
+            <span className="font-semibold">{totalRemaining} still to do today.</span> Anything out of range or overdue is flagged below.
+          </div>
+        ) : (
+          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-800 flex items-center gap-2">
+            <Check className="w-4 h-4" /> All of today's checks are done.
+          </div>
+        )
+      )}
 
       {/* Staff, nothing set up yet */}
       {nothingSetUp && !admin && (

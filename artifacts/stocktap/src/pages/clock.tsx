@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "wouter";
+import { ClipboardCheck, AlertTriangle, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -7,6 +9,13 @@ import {
   useStaffClockOut,
   staffClockErrorMessage,
 } from "@/hooks/useStaffClock";
+import { useOutstandingToday } from "@/hooks/useChecks";
+import { shiftCapISO, type CloseTimes } from "@/lib/wages";
+
+function localTodayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 /** "3h 24m" from a clock-in time up to now. */
 function elapsed(sinceISO: string | null | undefined, nowMs: number): string {
@@ -26,11 +35,12 @@ function timeLabel(iso: string | null | undefined): string {
 }
 
 export default function Clock() {
-  const { profile, signOut } = useAuth();
+  const { profile, venue, signOut } = useAuth();
   const { toast } = useToast();
   const { data: status, isLoading, refetch } = useMyShiftStatus();
   const clockIn = useStaffClockIn();
   const clockOut = useStaffClockOut();
+  const outstanding = useOutstandingToday(venue?.id);
 
   // Ticks once a minute so the on-shift elapsed time stays live without spinning the CPU.
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -42,6 +52,13 @@ export default function Clock() {
   const onShift = !!status?.on_shift;
   const busy = clockIn.isPending || clockOut.isPending;
   const firstName = (status?.name || profile?.full_name || "").split(" ")[0];
+
+  // Past-close clock-out nudge: if they're still on shift after the venue's
+  // close time for today, remind them to clock out.
+  const closeTimes = (venue as any)?.close_times as CloseTimes | undefined;
+  const capISO = closeTimes ? shiftCapISO(localTodayISO(), closeTimes) : null;
+  const pastClose = onShift && capISO != null && nowMs > new Date(capISO).getTime();
+  const capLabel = capISO ? new Date(capISO).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) : "";
 
   async function handleToggle() {
     try {
@@ -73,6 +90,16 @@ export default function Clock() {
           Sign out
         </button>
       </div>
+
+      {/* Past-close clock-out reminder */}
+      {pastClose && (
+        <div className="mx-4 mt-1 mb-1 rounded-xl bg-amber-50 border border-amber-300 p-3 flex items-start gap-2">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-900">
+            <span className="font-semibold">Still on shift.</span> The venue closed around {capLabel} — tap the button to clock out.
+          </div>
+        </div>
+      )}
 
       {/* Main */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
@@ -121,6 +148,22 @@ export default function Clock() {
             ? "Don't forget to clock out at the end of your shift."
             : "Tap in when you start. It only takes a second."}
         </p>
+
+        {/* Checks-due nudge */}
+        {outstanding.total > 0 && (
+          <Link href="/checks" className="w-full max-w-xs">
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 flex items-center gap-3 active:scale-[0.98] transition-transform">
+              <ClipboardCheck className="w-5 h-5 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-primary">{outstanding.total} check{outstanding.total === 1 ? "" : "s"} still to do</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {[outstanding.temps ? `${outstanding.temps} temperature${outstanding.temps === 1 ? "" : "s"}` : null, outstanding.checklist ? `${outstanding.checklist} on the lists` : null].filter(Boolean).join(" · ")}
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-primary shrink-0" />
+            </div>
+          </Link>
+        )}
       </div>
 
       <div className="pb-8" />

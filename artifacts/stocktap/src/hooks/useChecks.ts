@@ -1,8 +1,16 @@
+import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { shiftISO } from "@/hooks/useDailyBoard";
+import { todaysCompletion, activeSections, sectionCompletion } from "@/lib/checks";
 import type { Appliance, TempReading, ApplianceKind, CheckItem, CheckCompletion, CheckSection, Cadence, Refusal } from "@/lib/checks";
 
 export type { Appliance, TempReading, CheckItem, CheckCompletion, Refusal } from "@/lib/checks";
+
+function localTodayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 // These tables are newer than the generated Database types; access untyped.
 const appliancesTable = () => (supabase as any).from("check_appliances");
@@ -253,6 +261,28 @@ export function useRefusalsForDate(venueId: string | undefined, businessDate: st
       return (data ?? []) as Refusal[];
     },
   });
+}
+
+/**
+ * How much of today's checks are still outstanding — for in-app nudges.
+ * Composes the appliance/reading/item/completion queries and counts what's left.
+ */
+export function useOutstandingToday(venueId: string | undefined) {
+  const today = localTodayISO();
+  const from = shiftISO(today, -6);
+  const { data: appliances = [] } = useAppliances(venueId);
+  const { data: readings = [] } = useReadingsForDate(venueId, today);
+  const { data: items = [] } = useCheckItems(venueId);
+  const { data: completions = [] } = useCompletions(venueId, from, today);
+
+  return useMemo(() => {
+    const temps = todaysCompletion(appliances, readings).remaining;
+    const checklist = activeSections(items).reduce(
+      (n, s) => n + sectionCompletion(items, completions, today, s).remaining,
+      0,
+    );
+    return { temps, checklist, total: temps + checklist };
+  }, [appliances, readings, items, completions, today]);
 }
 
 /** Log a refusal. */
