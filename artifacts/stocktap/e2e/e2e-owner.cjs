@@ -81,6 +81,19 @@ const log = (...a) => console.log(...a);
     log('  rota body', (await p.innerText('body')).replace(/\s+/g,' ').slice(0,220));
   } catch(e){ log('  ROTA ERR', e.message); await shot('rota-err'); }
 
+  log('6. Rota: edit a shift');
+  try {
+    const editable = p.getByText(/tap to edit/i);
+    if (await editable.count()) {
+      await editable.first().click(); await p.waitForTimeout(600);
+      const times = p.locator('input[type="time"]');
+      if (await times.count()) { await times.first().fill('12:00'); }
+      await p.getByRole('button', { name: /save times/i }).click(); await p.waitForTimeout(1500);
+      await shot('13-rota-edited');
+      log('  rota after edit', (await p.innerText('body')).replace(/\s+/g,' ').slice(0,220));
+    } else { log('  no editable shift found'); }
+  } catch(e){ log('  ROTA EDIT ERR', e.message); await shot('rota-edit-err'); }
+
   log('ERRORS:', errors.length ? errors.slice(0,10) : 'none');
   await b.close();
 })().catch(e => { console.error('FATAL', e.message); process.exit(1); });

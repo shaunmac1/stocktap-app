@@ -7,7 +7,7 @@ import { Link } from "wouter";
 import { ChevronLeft, ChevronRight, ArrowLeft, Plus, Trash2, Copy, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useStaff } from "@/hooks/useTeam";
-import { useRotaForDate, useRotaForWeek, useAddRotaShift, useDeleteRotaShift, useCopyLastWeek } from "@/hooks/useRota";
+import { useRotaForDate, useRotaForWeek, useAddRotaShift, useUpdateRotaShift, useDeleteRotaShift, useCopyLastWeek } from "@/hooks/useRota";
 import {
   ROTA_AREAS, AREA_LABELS, weekStartISO, weekDaysISO, addDaysISO, weekdayShort,
   shiftsByArea, shiftRangeLabel, prettyTime, type RotaArea,
@@ -39,6 +39,7 @@ export default function Rota() {
   const { data: dayShifts = [] } = useRotaForDate(venue?.id, dateISO);
   const { data: weekShifts = [] } = useRotaForWeek(venue?.id, weekStart);
   const addShift = useAddRotaShift();
+  const updateShift = useUpdateRotaShift();
   const delShift = useDeleteRotaShift();
   const copyWeek = useCopyLastWeek();
 
@@ -61,10 +62,45 @@ export default function Rota() {
   const [end, setEnd] = useState("17:00");
   const [untilClose, setUntilClose] = useState(false);
 
+  // Edit-shift state (tap a shift to change its times)
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editStart, setEditStart] = useState("11:30");
+  const [editEnd, setEditEnd] = useState("17:00");
+  const [editUntilClose, setEditUntilClose] = useState(false);
+
   function openAdd(area: RotaArea) {
     setAddArea(area);
     setPickStaff(staff[0]?.id ?? "");
     setShowAdd(true);
+  }
+
+  function startEdit(s: { id: string; start_time: string; end_time: string | null; until_close: boolean }) {
+    setEditId(s.id);
+    setEditStart((s.start_time || "11:30").slice(0, 5));
+    setEditEnd((s.end_time || "17:00").slice(0, 5));
+    setEditUntilClose(s.until_close);
+  }
+
+  async function saveEdit() {
+    if (!venue?.id || !editId) return;
+    try {
+      await updateShift.mutateAsync({
+        id: editId, venue_id: venue.id,
+        start_time: editStart, end_time: editUntilClose ? null : editEnd, until_close: editUntilClose,
+      });
+      setEditId(null);
+    } catch (e: any) { toast({ title: "Couldn't save", description: e?.message ?? "Try again.", variant: "destructive" }); }
+  }
+
+  // Quick presets for common shifts (tap to fill the add form).
+  const SHIFT_PRESETS: Array<{ label: string; start: string; end: string | null; until: boolean }> = [
+    { label: "Day 11:30–5", start: "11:30", end: "17:00", until: false },
+    { label: "Mid 4–8:30", start: "16:00", end: "20:30", until: false },
+    { label: "Late 5–close", start: "17:00", end: null, until: true },
+    { label: "All day", start: "11:30", end: null, until: true },
+  ];
+  function applyPreset(pr: { start: string; end: string | null; until: boolean }) {
+    setStart(pr.start); setUntilClose(pr.until); if (pr.end) setEnd(pr.end);
   }
 
   async function handleAdd() {
@@ -140,13 +176,30 @@ export default function Rota() {
             {list.map((s) => {
               const info = staffById.get(s.staff_id);
               const name = info?.name ?? "Staff";
+              if (editId === s.id) {
+                return (
+                  <Card key={s.id}><CardContent className="p-3 space-y-2">
+                    <div className="font-semibold text-sm">{name}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div><label className="text-[11px] text-muted-foreground">Start</label><Input type="time" value={editStart} onChange={(e) => setEditStart(e.target.value)} /></div>
+                      <div><label className="text-[11px] text-muted-foreground">Finish</label><Input type="time" value={editEnd} onChange={(e) => setEditEnd(e.target.value)} disabled={editUntilClose} className={editUntilClose ? "opacity-50" : ""} /></div>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editUntilClose} onChange={(e) => setEditUntilClose(e.target.checked)} className="w-4 h-4 accent-primary" /> Until close</label>
+                    <div className="flex gap-2">
+                      <Button size="sm" className="flex-1" onClick={saveEdit} disabled={updateShift.isPending}>Save times</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Cancel</Button>
+                      <Button size="sm" variant="outline" className="text-red-600" onClick={() => { delShift.mutate({ id: s.id, venue_id: venue!.id }); setEditId(null); }} aria-label="Delete shift"><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  </CardContent></Card>
+                );
+              }
               return (
                 <Card key={s.id}><CardContent className="p-3 flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold ${AVATAR_COLORS[(info?.i ?? 0) % AVATAR_COLORS.length]}`}>{initials(name)}</div>
-                  <div className="flex-1 min-w-0">
+                  <button className="flex-1 min-w-0 text-left" onClick={() => startEdit(s)}>
                     <div className="font-medium text-sm truncate">{name}</div>
-                    <div className="text-xs text-muted-foreground">{shiftRangeLabel(s)}</div>
-                  </div>
+                    <div className="text-xs text-muted-foreground">{shiftRangeLabel(s)} · tap to edit</div>
+                  </button>
                   <button className="text-muted-foreground/40 hover:text-red-600 p-1" onClick={() => delShift.mutate({ id: s.id, venue_id: venue!.id })} aria-label="Remove shift"><Trash2 className="w-4 h-4" /></button>
                 </CardContent></Card>
               );
@@ -174,6 +227,14 @@ export default function Rota() {
             {ROTA_AREAS.map((a) => (
               <button key={a} onClick={() => setAddArea(a)} className={`text-sm py-2 rounded-lg border ${addArea === a ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}>{AREA_LABELS[a]}</button>
             ))}
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Quick fill</label>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {SHIFT_PRESETS.map((pr) => (
+                <button key={pr.label} onClick={() => applyPreset(pr)} className="text-[11px] py-1.5 px-2.5 rounded-full border border-border text-muted-foreground active:scale-95">{pr.label}</button>
+              ))}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="text-xs font-medium text-muted-foreground">Start</label><Input type="time" value={start} onChange={(e) => setStart(e.target.value)} /></div>
