@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Plus, LogOut, AlertTriangle, Pencil, Trash2, Smartphone, Share2, Check } from "lucide-react";
+import { Plus, LogOut, AlertTriangle, Pencil, Trash2, Smartphone, Share2, Check, CalendarDays, ChevronRight } from "lucide-react";
 import { formatGBP } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { useCashUps } from "@/hooks/useDailyBoard";
@@ -202,6 +202,20 @@ export default function Team() {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Rota link */}
+        <Link href="/rota">
+          <Card className="active:scale-[0.99] transition-transform">
+            <CardContent className="p-4 flex items-center gap-3">
+              <CalendarDays className="w-5 h-5 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm">Rota</div>
+                <div className="text-xs text-muted-foreground">Plan the week's bar and kitchen shifts</div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+            </CardContent>
+          </Card>
+        </Link>
+
         {/* Tonight's wages */}
         <Card className="bg-primary text-primary-foreground border-none shadow-md">
           <CardContent className="p-5">

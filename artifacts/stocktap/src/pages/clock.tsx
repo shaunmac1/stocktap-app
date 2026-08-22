@@ -10,6 +10,8 @@ import {
   staffClockErrorMessage,
 } from "@/hooks/useStaffClock";
 import { useOutstandingToday } from "@/hooks/useChecks";
+import { useMyRota } from "@/hooks/useRota";
+import { shiftRangeLabel, AREA_LABELS } from "@/lib/rota";
 import { shiftCapISO, type CloseTimes } from "@/lib/wages";
 
 function localTodayISO(): string {
@@ -41,6 +43,7 @@ export default function Clock() {
   const clockIn = useStaffClockIn();
   const clockOut = useStaffClockOut();
   const outstanding = useOutstandingToday(venue?.id);
+  const { data: myShiftsToday = [] } = useMyRota(localTodayISO(), localTodayISO());
 
   // Ticks once a minute so the on-shift elapsed time stays live without spinning the CPU.
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -121,6 +124,18 @@ export default function Clock() {
             <p className="text-base text-muted-foreground mt-3">You're clocked out</p>
           )}
         </div>
+
+        {/* Your shift today from the rota */}
+        {myShiftsToday.length > 0 && (
+          <div className="w-full max-w-xs rounded-xl border border-border bg-card p-3 text-center">
+            <div className="text-[11px] text-muted-foreground uppercase tracking-wide">You're on today</div>
+            {myShiftsToday.map((s) => (
+              <div key={s.id} className="text-sm font-semibold mt-0.5">
+                {AREA_LABELS[s.area] ?? s.area}: {shiftRangeLabel(s)}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Big clock button */}
         <button
