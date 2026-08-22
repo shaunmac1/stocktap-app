@@ -219,15 +219,21 @@ export default function Checks() {
         </CardContent></Card>
       )}
 
-      {/* Admin first-run setup */}
+      {/* Admin first-run intro */}
       {admin && nothingSetUp && (
-        <Card><CardContent className="p-4 text-center space-y-3">
+        <Card><CardContent className="p-4 text-center space-y-1">
           <ClipboardCheck className="w-8 h-8 text-primary mx-auto" />
-          <p className="text-sm text-muted-foreground">Set up your daily checks once. Staff fill them in on their phones, you see everything here with anything out of range or missed flagged automatically.</p>
-          <div className="flex flex-col gap-2">
-            <Button onClick={addApplianceStarters} disabled={addAppliances.isPending}>{addAppliances.isPending ? "Adding…" : "Add the usual temperature points"}</Button>
-            <Button variant="outline" onClick={addChecklistStarters} disabled={addItems.isPending}>{addItems.isPending ? "Adding…" : "Add the standard checklists"}</Button>
-          </div>
+          <p className="text-sm text-muted-foreground">Set up your daily checks once. Staff fill them in on their phones, and you see everything here with anything out of range or missed flagged automatically. Add temperatures and checklists below.</p>
+        </CardContent></Card>
+      )}
+
+      {/* Temperatures starter — available whenever none are set up yet */}
+      {admin && appliances.length === 0 && (
+        <Card><CardContent className="p-4 text-center space-y-3">
+          <div className="text-sm font-semibold flex items-center justify-center gap-1.5"><Thermometer className="w-4 h-4 text-primary" /> Temperatures</div>
+          <p className="text-xs text-muted-foreground">Fridges, freezers, hot holding and the cellar — logged daily with anything out of range flagged.</p>
+          <Button className="w-full" onClick={addApplianceStarters} disabled={addAppliances.isPending}>{addAppliances.isPending ? "Adding…" : "Add the usual temperature points"}</Button>
+          <Button variant="outline" className="w-full" onClick={() => { setShowAddApp(true); setKind("fridge"); }}>Add one manually</Button>
         </CardContent></Card>
       )}
 
@@ -285,26 +291,39 @@ export default function Checks() {
               </CardContent></Card>
             );
           })}
-          {admin && (showAddApp ? (
-            <Card><CardContent className="p-4 space-y-3">
-              <div><label className="text-xs font-medium text-muted-foreground">Name</label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Cellar fridge" autoFocus /></div>
-              <div><label className="text-xs font-medium text-muted-foreground">Type</label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
-                  {(Object.keys(KIND_LABELS) as ApplianceKind[]).map((k) => (
-                    <button key={k} onClick={() => setKind(k)} className={`text-xs py-2 rounded-lg border ${newKind === k ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}>{KIND_LABELS[k]}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs font-medium text-muted-foreground">Min °C</label><Input type="number" inputMode="decimal" value={newMin} onChange={(e) => setNewMin(e.target.value)} placeholder="none" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground">Max °C</label><Input type="number" inputMode="decimal" value={newMax} onChange={(e) => setNewMax(e.target.value)} placeholder="none" /></div>
-              </div>
-              <div className="flex gap-2"><Button className="flex-1" onClick={handleAddAppliance} disabled={addAppliance.isPending || !newName.trim()}>Add</Button><Button variant="outline" onClick={() => setShowAddApp(false)}>Cancel</Button></div>
-            </CardContent></Card>
-          ) : (
+          {admin && !showAddApp && (
             <Button variant="outline" className="w-full" onClick={() => { setShowAddApp(true); setKind("fridge"); }}><Plus className="w-4 h-4 mr-1" /> Add a temperature point</Button>
-          ))}
+          )}
         </>
+      )}
+
+      {/* Appliance add form — renders independently so it works from the starter too */}
+      {admin && showAddApp && (
+        <Card><CardContent className="p-4 space-y-3">
+          <div><label className="text-xs font-medium text-muted-foreground">Name</label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Cellar fridge" autoFocus /></div>
+          <div><label className="text-xs font-medium text-muted-foreground">Type</label>
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              {(Object.keys(KIND_LABELS) as ApplianceKind[]).map((k) => (
+                <button key={k} onClick={() => setKind(k)} className={`text-xs py-2 rounded-lg border ${newKind === k ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}>{KIND_LABELS[k]}</button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-xs font-medium text-muted-foreground">Min °C</label><Input type="number" inputMode="decimal" value={newMin} onChange={(e) => setNewMin(e.target.value)} placeholder="none" /></div>
+            <div><label className="text-xs font-medium text-muted-foreground">Max °C</label><Input type="number" inputMode="decimal" value={newMax} onChange={(e) => setNewMax(e.target.value)} placeholder="none" /></div>
+          </div>
+          <div className="flex gap-2"><Button className="flex-1" onClick={handleAddAppliance} disabled={addAppliance.isPending || !newName.trim()}>Add</Button><Button variant="outline" onClick={() => setShowAddApp(false)}>Cancel</Button></div>
+        </CardContent></Card>
+      )}
+
+      {/* Checklists starter — available whenever none are set up yet */}
+      {admin && items.length === 0 && (
+        <Card><CardContent className="p-4 text-center space-y-3">
+          <div className="text-sm font-semibold flex items-center justify-center gap-1.5"><ClipboardCheck className="w-4 h-4 text-primary" /> Checklists</div>
+          <p className="text-xs text-muted-foreground">Opening, closing and cleaning checks — the SFBB daily diary your EHO looks for, plus weekly jobs like the beer lines.</p>
+          <Button className="w-full" onClick={addChecklistStarters} disabled={addItems.isPending}>{addItems.isPending ? "Adding…" : "Add the standard checklists"}</Button>
+          <Button variant="outline" className="w-full" onClick={() => setShowAddItem(true)}>Add one manually</Button>
+        </CardContent></Card>
       )}
 
       {/* ── Checklists ── */}
@@ -339,7 +358,7 @@ export default function Checks() {
         );
       })}
 
-      {admin && items.length > 0 && (showAddItem ? (
+      {admin && showAddItem && (
         <Card><CardContent className="p-4 space-y-3">
           <div><label className="text-xs font-medium text-muted-foreground">Section</label>
             <div className="grid grid-cols-3 gap-2 mt-1">
@@ -358,9 +377,10 @@ export default function Checks() {
           </div>
           <div className="flex gap-2"><Button className="flex-1" onClick={handleAddItem} disabled={addItem.isPending || !itemLabel.trim()}>Add</Button><Button variant="outline" onClick={() => setShowAddItem(false)}>Cancel</Button></div>
         </CardContent></Card>
-      ) : (
+      )}
+      {admin && items.length > 0 && !showAddItem && (
         <Button variant="outline" className="w-full" onClick={() => setShowAddItem(true)}><Plus className="w-4 h-4 mr-1" /> Add a check</Button>
-      ))}
+      )}
 
       {/* ── Refusals register ── */}
       {(items.length > 0 || appliances.length > 0 || refusals.length > 0) && (
