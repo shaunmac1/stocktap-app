@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, ArrowLeft, Plus, Trash2, Copy, CalendarDays 
 import { useToast } from "@/hooks/use-toast";
 import { useStaff } from "@/hooks/useTeam";
 import { useRotaForDate, useRotaForWeek, useAddRotaShift, useUpdateRotaShift, useDeleteRotaShift, useCopyLastWeek } from "@/hooks/useRota";
+import { RotaUpload } from "@/components/RotaUpload";
 import {
   ROTA_AREAS, AREA_LABELS, weekStartISO, weekDaysISO, addDaysISO, weekdayShort,
   shiftsByArea, shiftRangeLabel, prettyTime, type RotaArea,
@@ -162,6 +163,10 @@ export default function Rota() {
         <Card><CardContent className="p-4 text-center text-sm text-muted-foreground">
           Add your team on the <Link href="/team" className="text-primary underline">Team</Link> page first, then you can rota them on here.
         </CardContent></Card>
+      )}
+
+      {staff.length > 0 && venue?.id && (
+        <RotaUpload venueId={venue.id} staff={staff.map((s) => ({ id: s.id, name: s.name }))} weekStartISO={weekStart} onDone={() => {}} />
       )}
 
       {/* Areas */}

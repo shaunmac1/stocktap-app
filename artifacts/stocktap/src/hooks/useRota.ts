@@ -57,6 +57,23 @@ export function useAddRotaShift() {
   });
 }
 
+/** Bulk-insert several shifts (used by the paper-rota importer). */
+export function useAddRotaShifts() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: Array<{
+      venue_id: string; staff_id: string; area: RotaArea; shift_date: string;
+      start_time: string; end_time: string | null; until_close: boolean;
+    }>) => {
+      if (!rows.length) return [] as RotaShift[];
+      const { data, error } = await rotaTable().insert(rows).select();
+      if (error) throw error;
+      return data as RotaShift[];
+    },
+    onSuccess: (_d, vars) => { if (vars[0]) invalidateRota(qc, vars[0].venue_id); },
+  });
+}
+
 export function useUpdateRotaShift() {
   const qc = useQueryClient();
   return useMutation({
