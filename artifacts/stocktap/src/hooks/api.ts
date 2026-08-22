@@ -174,6 +174,21 @@ export function useCalibrateFullBottle() {
       });
       if (error) throw error;
 
+      // Moat write-back: if this product came from the shared global catalogue,
+      // contribute the calibrated full/empty weights back so every venue's
+      // weighings improve the shared bottle database. Best-effort and anonymous:
+      // the server validates + averages, and any failure here must never break
+      // the user's calibration, so we swallow errors.
+      try {
+        await (supabase as any).rpc("contribute_catalogue_calibration", {
+          p_product_id: product.id,
+          p_full_weight_g: weightG,
+          p_empty_weight_g: derivedEmpty,
+        });
+      } catch {
+        /* non-fatal — the venue's own calibration is already saved */
+      }
+
       return { derivedEmpty };
     },
     onSuccess: (_data, variables) => {
