@@ -143,6 +143,11 @@ export default function Home() {
               Add or manage products
             </Button>
           </Link>
+          <Link href="/finances" className="block">
+            <Button variant="outline" size="lg" className="w-full h-12 font-semibold" data-testid="button-home-finances">
+              Finances — takings, spending &amp; payments
+            </Button>
+          </Link>
         </div>
 
         {/* Recent readings strip */}

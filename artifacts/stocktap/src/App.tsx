@@ -25,6 +25,7 @@ import Ledger from "@/pages/ledger";
 import Suggestions from "@/pages/suggestions";
 import InvoiceScan from "@/pages/invoice-scan";
 import DailyBoard from "@/pages/daily-board";
+import Finances from "@/pages/finances";
 import Team from "@/pages/team";
 import Checks from "@/pages/checks";
 import Rota from "@/pages/rota";
@@ -92,6 +93,7 @@ const LedgerRoute      = () => <ProtectedRoute component={Ledger} />;
 const InvoiceScanRoute = () => <ProtectedRoute component={InvoiceScan} />;
 const SuggestionsRoute = () => <ProtectedRoute component={Suggestions} />;
 const DailyBoardRoute  = () => <ProtectedRoute component={DailyBoard} />;
+const FinancesRoute    = () => <ProtectedRoute component={Finances} />;
 const TeamRoute        = () => <ProtectedRoute component={Team} />;
 const ChecksRoute      = () => <ProtectedRoute component={Checks} />;
 const RotaRoute        = () => <ProtectedRoute component={Rota} />;
@@ -114,6 +116,7 @@ function AppRouter({ authenticated }: { authenticated: boolean }) {
       <Route path="/reports"       component={ReportsRoute} />
       <Route path="/settings"      component={SettingsRoute} />
       <Route path="/ledger"        component={LedgerRoute} />
+      <Route path="/finances"      component={FinancesRoute} />
       <Route path="/invoice-scan"  component={InvoiceScanRoute} />
       <Route path="/suggestions"   component={SuggestionsRoute} />
       <Route component={NotFound} />
