@@ -64,6 +64,26 @@ describe("stocktake close valuation", () => {
     expect(valueAggregatedReading(kegProduct, reading)).toBeCloseTo(60, 8);
   });
 
+  it("sums a spirit across locations: half + 1 full in the bar + 10 in the cellar", () => {
+    // Shaun's exact scenario. Absolut-style spirit, 700ml, £20 cost.
+    // Bar: one HALF-full open bottle weighed to ~350ml, plus one FULL sealed bottle.
+    // Cellar: ten FULL sealed bottles. Every entry's ml_remaining already folds
+    // full sealed bottles in (fullSpare * 700 + weighed partial), per computeCategoryReading.
+    const entries = [
+      // bar — half open bottle, weighed
+      { product_id: "gin", method: "weigh" as const, full_containers: 0, part_value: 845, ml_remaining: 350 },
+      // bar — one full sealed bottle (no weighing needed)
+      { product_id: "gin", method: "weigh" as const, full_containers: 1, part_value: null, ml_remaining: 700 },
+      // cellar — ten full sealed bottles
+      { product_id: "gin", method: "weigh" as const, full_containers: 10, part_value: null, ml_remaining: 7000 },
+    ];
+    const reading = aggregateProductEntries(weighProduct, entries);
+    // 350 + 700 + 7000 = 8050ml = 11.5 bottles of 700ml
+    expect(reading.mlRemaining).toBe(8050);
+    // 11.5 bottles x £20 = £230 — the three entries add together, not overwrite
+    expect(valueProductEntries(weighProduct, entries)).toBeCloseTo(230, 8);
+  });
+
   it("values dozen products from pack cost, including loose units", () => {
     const product = { ...countProduct, id: "case", counting_method: "dozen", pack_size: 12, cost_price: 12 };
     const reading = aggregateProductEntries(product, [{

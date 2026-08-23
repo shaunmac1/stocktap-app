@@ -1392,12 +1392,17 @@ export async function addLineEntry(entry: LocalLineEntry): Promise<void> {
       entered_at: entry.entered_at,
       user_id: entry.user_id,
     }, { onConflict: "id" })
-    .then(({ error }) => {
-      if (!error) {
-        db.line_entries.update(entry.id, { sync_status: "uploaded", updated_at: new Date().toISOString() });
-      }
-      // If error (table missing / offline) leave as 'pending' — counting continues
-    });
+    .then(
+      ({ error }) => {
+        if (!error) {
+          db.line_entries.update(entry.id, { sync_status: "uploaded", updated_at: new Date().toISOString() });
+        }
+        // If error (table missing / offline) leave as 'pending' — counting continues
+      },
+      () => {
+        // Network rejection — leave as 'pending'; flushPendingLineEntries retries.
+      },
+    );
 }
 
 /** Remove a line entry from Dexie; delete remotely, queueing durably on failure

@@ -8,7 +8,39 @@ import {
   DEFAULT_DENSITIES,
   calcVariance,
   calcSoldSinceLast,
+  computeCategoryReading,
+  calcProductGpPercent,
+  calcMlRemaining,
 } from "./calculations";
+
+describe("dozen (case) products — regression for pack-dropping bug", () => {
+  const dozenProduct = {
+    category: "packaged" as const, unit: "count" as const, sizeMl: 330, density: 1,
+    emptyWeightG: null, fullWeightG: null, costPrice: 12, measureMl: null,
+    containerL: null, dipFullMm: null, packSize: 12,
+  };
+  it("keeps full packs in the returned fullContainers (was dropped → 89% value loss)", () => {
+    // 2 full packs + 3 loose of a 12-pack
+    const r = computeCategoryReading(dozenProduct, { method: "dozen", fullPacks: 2, partUnits: 3 }, 25);
+    expect(r.fullContainers).toBe(2);            // packs preserved, not 0
+    expect(r.mlRemaining).toBe(27 * 330);        // 27 units total
+    expect(r.valueGbp).toBeCloseTo(27 / 12 * 12, 6); // £27, not £3
+  });
+  it("GP% for a dozen product uses per-unit cost, not per-pack", () => {
+    // pack of 24 at £18/pack, sells at £2.50 each → per-unit cost £0.75 → 70% GP
+    const gp = calcProductGpPercent(
+      { unit: "count", counting_method: "dozen", pack_size: 24, cost_price: 18, pour_price: 2.5 }, 25);
+    expect(gp).toBeCloseTo(70, 4);
+  });
+});
+
+describe("calcMlRemaining density guard", () => {
+  it("does not return NaN/Infinity when density is 0 or missing", () => {
+    expect(Number.isFinite(calcMlRemaining(900, 510, 0, 700))).toBe(true);
+    // @ts-expect-error deliberately passing a bad density
+    expect(Number.isFinite(calcMlRemaining(900, 510, null, 700))).toBe(true);
+  });
+});
 
 describe("deriveDensity", () => {
   it("derives correct density for a spirit bottle", () => {

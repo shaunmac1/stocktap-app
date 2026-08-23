@@ -64,32 +64,48 @@ export function parseMoney(raw: string | number | null | undefined): number | nu
 const MONTHS: Record<string, number> = {
   jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
 };
+/** Build an ISO date only if y-m-d is a real calendar date, else null. */
+function isoIfValid(yr: number, mm: number, dd: number): string | null {
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  if (yr < 1900 || yr > 2200) return null;
+  // Round-trip through Date to reject 31 Feb, 30 Feb, etc.
+  const dt = new Date(Date.UTC(yr, mm - 1, dd));
+  if (dt.getUTCFullYear() !== yr || dt.getUTCMonth() !== mm - 1 || dt.getUTCDate() !== dd) return null;
+  return `${yr}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+}
 /** Parse common UK date formats → ISO YYYY-MM-DD, or null. Assumes DD/MM/YYYY. */
 export function parseDate(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const s = String(raw).trim();
   if (!s) return null;
-  // Already ISO
-  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  // Already ISO — still validate the calendar (rejects 2026-13-40)
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return isoIfValid(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
   // DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
   m = s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})$/);
   if (m) {
-    let [_, d, mo, y] = m;
-    let yr = y.length === 2 ? 2000 + parseInt(y, 10) : parseInt(y, 10);
-    const dd = parseInt(d, 10), mm = parseInt(mo, 10);
-    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
-    return `${yr}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+    const yr = m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10);
+    return isoIfValid(yr, parseInt(m[2], 10), parseInt(m[1], 10));
   }
   // 12 Aug 2026 / 12 August 2026
   m = s.match(/^(\d{1,2})\s+([A-Za-z]{3,})\.?\s+(\d{2,4})$/);
   if (m) {
-    const dd = parseInt(m[1], 10);
     const mm = MONTHS[m[2].slice(0, 3).toLowerCase()];
-    let yr = m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10);
-    if (!mm || dd < 1 || dd > 31) return null;
-    return `${yr}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+    const yr = m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10);
+    if (!mm) return null;
+    return isoIfValid(yr, mm, parseInt(m[1], 10));
   }
+  return null;
+}
+
+/** Normalise a free-text status cell to a stored status, or null if unrecognised. */
+export function normaliseStatus(raw: string | null | undefined): FinanceStatus | null {
+  if (!raw) return null;
+  const s = String(raw).trim().toLowerCase();
+  if (!s) return null;
+  if (/(unpaid|outstanding|owing|owed|overdue|\bdue\b|to pay|payable|not paid)/.test(s)) return "due";
+  if (/(received|receipt|paid in|credited)/.test(s)) return "received";
+  if (/\bpaid\b|\bsettled\b|\bcleared\b|\bdone\b/.test(s)) return "paid";
   return null;
 }
 
@@ -133,24 +149,27 @@ export function guessFieldForHeader(header: string): FinanceField {
   const h = header.toLowerCase().trim();
   if (/(^|\b)(date|day|when)\b/.test(h) && !/due/.test(h)) return "entry_date";
   if (/due/.test(h)) return "due_date";
-  if (/(amount|total|value|cost|paid|payable|£|gbp|sum|price|net|gross)/.test(h)) return "amount";
+  // Status BEFORE amount so a lone "Paid"/"Status" column isn't read as money.
+  // "Amount paid" still maps to amount (it contains "amount").
+  if (/(status|\bstate\b|\bpaid\b|\bunpaid\b|outstanding|owing|overdue)/.test(h) && !/amount|total|value|sum/.test(h)) return "status";
+  if (/(amount|total|value|cost|payable|£|gbp|sum|price|net|gross)/.test(h)) return "amount";
   if (/(supplier|vendor|payee|to|from|company|account|brewery|pubco)/.test(h)) return "supplier";
   if (/(category|type|kind|class)/.test(h)) return "category";
   if (/(ref\b|reference|invoice|statement|number|\bno\.?\b)/.test(h)) return "reference";
-  if (/(status|paid\?|state)/.test(h)) return "status";
   if (/(desc|detail|note|item|memo|narrative|particular)/.test(h)) return "description";
   return "ignore";
 }
 
 export interface ParsedFinanceRow {
   entry_date: string | null;
-  amount: number | null;
+  amount: number | null;   // always the absolute value
+  negative: boolean;       // true if the source cell was negative / (bracketed)
   category: string | null;
   supplier: string | null;
   description: string | null;
   reference: string | null;
   due_date: string | null;
-  status: string | null;
+  status: FinanceStatus | null;
   valid: boolean;      // has at least a date and an amount
 }
 
@@ -166,12 +185,13 @@ export function mapRows(headerToField: FinanceField[], dataRows: string[][]): Pa
     const out: ParsedFinanceRow = {
       entry_date,
       amount: amount == null ? null : Math.abs(amount),
+      negative: amount != null && amount < 0,
       category: get("category") || null,
       supplier: get("supplier") || null,
       description: get("description") || null,
       reference: get("reference") || null,
       due_date: parseDate(get("due_date")),
-      status: get("status") || null,
+      status: normaliseStatus(get("status")),
       valid: entry_date != null && amount != null,
     };
     return out;

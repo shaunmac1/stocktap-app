@@ -79,8 +79,12 @@ export function calcMlRemaining(
   density: number,
   sizeMl: number
 ): number {
-  const ml = (currentWeightG - emptyWeightG) / density;
-  return Math.max(0, Math.min(ml, sizeMl));
+  // Guard a missing/zero density (would give NaN or Infinity and poison every
+  // downstream total). Fall back to a plausible spirit density so the reading
+  // degrades sensibly instead of corrupting the stocktake.
+  const d = density > 0 && isFinite(density) ? density : 0.95;
+  const ml = (currentWeightG - emptyWeightG) / d;
+  return Math.max(0, Math.min(isFinite(ml) ? ml : 0, sizeMl));
 }
 
 /**
@@ -183,6 +187,8 @@ export function calcGpPercent(pourPrice: number, costPerMeasure: number): number
 export function calcProductGpPercent(
   p: {
     unit?: string | null;
+    counting_method?: string | null;
+    pack_size?: number | null;
     cost_price?: number | null;
     pour_price?: number | null;
     size_ml?: number | null;
@@ -192,6 +198,13 @@ export function calcProductGpPercent(
 ): number | null {
   if (p.cost_price == null || p.pour_price == null || p.pour_price <= 0) return null;
   if (p.unit === "count") {
+    // Dozen/case products: cost_price is per PACK but pour_price is per single
+    // unit, so the per-unit cost is cost_price / pack_size. Using the pack cost
+    // directly gives a wildly wrong (often hugely negative) GP.
+    if (p.counting_method === "dozen") {
+      const packSize = p.pack_size && p.pack_size > 0 ? p.pack_size : 12;
+      return calcGpPercent(p.pour_price, p.cost_price / packSize);
+    }
     return calcGpPercent(p.pour_price, p.cost_price);
   }
   if (!p.size_ml || p.size_ml <= 0) return null;
@@ -418,6 +431,10 @@ export function computeCategoryReading(
   const fullSpare = input.fullContainers ?? 0;
   let partialMl = 0;
   let capacityMl = product.sizeMl ?? 0;
+  // What to persist as `full_containers`. For most methods it's the spare full
+  // containers; for "dozen" it must be the full PACKS, or close-time count math
+  // (full_containers*packSize + loose) drops the packs entirely.
+  let reportedFullContainers = fullSpare;
 
   switch (input.method) {
     case "dipstick": {
@@ -456,6 +473,7 @@ export function computeCategoryReading(
       const fullPacks = input.fullPacks ?? 0;
       const partUnits = input.partUnits ?? 0;
       partialMl = (fullPacks * packSize + partUnits) * unitMl;
+      reportedFullContainers = fullPacks;
       break;
     }
     case "each": {
@@ -520,7 +538,7 @@ export function computeCategoryReading(
   return {
     mlRemaining,
     tenths,
-    fullContainers: fullSpare,
+    fullContainers: reportedFullContainers,
     partContainerFraction,
     measuresRemaining,
     volumeMl: mlRemaining,

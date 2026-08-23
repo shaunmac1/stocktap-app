@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-  calcWeighValuation,
-  calcCountValuation,
   calcTenths,
   calcGpPercent,
   calcProductGpPercent,
@@ -76,15 +74,10 @@ export default function Reports() {
       const count = reading?.count ?? 0;
       const capMl = productCapacityMl(p);
 
-      const isVolumeMethod = p.counting_method === "keg_weight" || p.counting_method === "dipstick" || p.counting_method === "tenths_pints";
-      const isCountUnit = p.unit === "count" && !isVolumeMethod;
-
-      let value = 0;
-      if (isCountUnit && p.cost_price) {
-        value = calcCountValuation(count, p.cost_price);
-      } else if (p.cost_price && capMl > 0) {
-        value = calcWeighValuation(mlRemaining, capMl, p.cost_price);
-      }
+      // Shared valuation: values dozen/case products by the pack (count / pack_size
+      // * pack cost), discrete counts per unit, and everything else by volume —
+      // so a case of 12 isn't valued 12x its pack price on this tab.
+      const value = p.cost_price ? stockValueFromReading(p, reading) : 0;
 
       const tenths = capMl > 0 ? calcTenths(mlRemaining, capMl) : null;
       const locName = (p as any).locations?.name ?? "—";

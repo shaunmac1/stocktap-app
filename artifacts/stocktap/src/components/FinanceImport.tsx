@@ -66,18 +66,22 @@ export function FinanceImport({
       toast({ title: "No valid rows", description: "Map a Date column and an Amount column so rows can be read.", variant: "destructive" });
       return;
     }
-    const known = new Set(categories.map((c) => c.value));
     const rows = validRows.map((r) => {
+      // A negative/(bracketed) amount means the opposite flow — a refund on a
+      // spend sheet, a payment out on an income sheet — so flip its direction.
+      const dir: FinanceDirection = r.negative ? (direction === "out" ? "in" : "out") : direction;
+      const knownForDir = new Set((dir === "in" ? IN_CATEGORIES : OUT_CATEGORIES).map((c) => c.value));
+      const fallbackCat = dir === direction ? defaultCategory : (dir === "in" ? "other_income" : "other");
       const status: "paid" | "due" | "received" =
-        r.status === "paid" || r.status === "due" || r.status === "received"
-          ? r.status
-          : direction === "in" ? "received" : defaultStatus;
+        dir === "in"
+          ? "received"
+          : (r.status === "paid" || r.status === "due" ? r.status : defaultStatus);
       return {
         venue_id: venueId,
-        direction,
+        direction: dir,
         entry_date: r.entry_date!,
-        due_date: r.due_date,
-        category: r.category && known.has(r.category) ? r.category : defaultCategory,
+        due_date: dir === "out" && status === "due" ? r.due_date : null,
+        category: r.category && knownForDir.has(r.category) ? r.category : fallbackCat,
         supplier: r.supplier,
         description: r.description,
         amount: r.amount!,
@@ -154,6 +158,22 @@ export function FinanceImport({
             </select>
           </div>
         </div>
+
+        {direction === "out" && (
+          <div>
+            <label className="text-[11px] text-muted-foreground">Rows with no status in the sheet are…</label>
+            <div className="flex gap-1 mt-1">
+              {(["paid", "due"] as const).map((s) => (
+                <button key={s} onClick={() => setDefaultStatus(s)}
+                  className={`flex-1 text-xs py-1.5 rounded border ${defaultStatus === s ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}
+                  data-testid={`button-default-status-${s}`}>
+                  {s === "paid" ? "Already paid" : "Still owed"}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">A “Status” column in your sheet (paid, due, outstanding…) always wins over this.</p>
+          </div>
+        )}
 
         <div className="space-y-1.5 max-h-[240px] overflow-auto">
           {headers.map((h, i) => (

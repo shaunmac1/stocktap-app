@@ -1,8 +1,57 @@
 import { describe, it, expect } from "vitest";
 import {
   parseMoney, parseDate, parseCsv, guessFieldForHeader, mapRows, summarise, withinRange,
+  normaliseStatus,
   type FinanceEntry, type FinanceField,
 } from "./finance";
+
+describe("parseDate calendar validation", () => {
+  it("rejects impossible calendar dates", () => {
+    expect(parseDate("2026-13-40")).toBeNull();
+    expect(parseDate("31/02/2026")).toBeNull();
+    expect(parseDate("30/02/2026")).toBeNull();
+    expect(parseDate("29/02/2027")).toBeNull(); // not a leap year
+  });
+  it("accepts real edge dates", () => {
+    expect(parseDate("29/02/2028")).toBe("2028-02-29"); // leap year
+    expect(parseDate("2026-08-31")).toBe("2026-08-31");
+  });
+});
+
+describe("normaliseStatus", () => {
+  it("maps owed-style words to 'due'", () => {
+    for (const s of ["Outstanding", "UNPAID", "owing", "Overdue", "Due", "to pay", "not paid"])
+      expect(normaliseStatus(s)).toBe("due");
+  });
+  it("maps paid-style words to 'paid'", () => {
+    for (const s of ["Paid", "SETTLED", "cleared"]) expect(normaliseStatus(s)).toBe("paid");
+  });
+  it("returns null for unknown/empty", () => {
+    expect(normaliseStatus("")).toBeNull();
+    expect(normaliseStatus("banana")).toBeNull();
+    expect(normaliseStatus(null)).toBeNull();
+  });
+});
+
+describe("guessFieldForHeader — status vs amount", () => {
+  it("maps a lone Paid/Status column to status, not amount", () => {
+    expect(guessFieldForHeader("Paid")).toBe("status");
+    expect(guessFieldForHeader("Status")).toBe("status");
+    expect(guessFieldForHeader("Outstanding")).toBe("status");
+  });
+  it("still maps money columns to amount", () => {
+    expect(guessFieldForHeader("Amount Paid")).toBe("amount");
+    expect(guessFieldForHeader("Total Amount Payable")).toBe("amount");
+  });
+});
+
+describe("mapRows sign handling", () => {
+  it("flags negative/bracketed amounts while storing the absolute value", () => {
+    const rows = mapRows(["entry_date", "amount"], [["01/08/2026", "(50.00)"], ["02/08/2026", "20"]]);
+    expect(rows[0]).toMatchObject({ amount: 50, negative: true, valid: true });
+    expect(rows[1]).toMatchObject({ amount: 20, negative: false, valid: true });
+  });
+});
 
 describe("parseMoney", () => {
   it("parses plain and formatted numbers", () => {
