@@ -1,9 +1,35 @@
 import { describe, it, expect } from "vitest";
 import {
   parseMoney, parseDate, parseCsv, guessFieldForHeader, mapRows, summarise, withinRange,
-  normaliseStatus,
+  normaliseStatus, vatFromNet, netFromGross,
   type FinanceEntry, type FinanceField,
 } from "./finance";
+
+describe("VAT maths", () => {
+  it("computes VAT and gross from a net amount", () => {
+    expect(vatFromNet(100, 20)).toEqual({ vat: 20, gross: 120 });
+    expect(vatFromNet(100, 5)).toEqual({ vat: 5, gross: 105 });
+    expect(vatFromNet(100, 0)).toEqual({ vat: 0, gross: 100 });
+  });
+  it("backs net and VAT out of a gross (VAT-inclusive) amount", () => {
+    expect(netFromGross(120, 20)).toEqual({ net: 100, vat: 20 });
+    const r = netFromGross(105, 5);
+    expect(r.net).toBeCloseTo(100, 2);
+    expect(r.vat).toBeCloseTo(5, 2);
+  });
+});
+
+describe("summarise VAT reclaimable", () => {
+  const mk = (dir: "in" | "out", amount: number, vat?: number): FinanceEntry => ({
+    id: Math.random().toString(), venue_id: "v", direction: dir, entry_date: "2026-08-01",
+    due_date: null, category: "x", supplier: null, description: null, amount,
+    status: dir === "in" ? "received" : "paid", reference: null, source: "manual", vat_amount: vat ?? null,
+  });
+  it("sums vat_amount on money-out only", () => {
+    const s = summarise([mk("out", 120, 20), mk("out", 210, 10), mk("in", 500)]);
+    expect(s.vatReclaimable).toBe(30);
+  });
+});
 
 describe("parseDate calendar validation", () => {
   it("rejects impossible calendar dates", () => {

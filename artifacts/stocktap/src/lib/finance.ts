@@ -14,12 +14,33 @@ export interface FinanceEntry {
   category: string;
   supplier: string | null;
   description: string | null;
-  amount: number;
+  amount: number;          // gross / total
   status: FinanceStatus;
   reference: string | null;
   source: "manual" | "import";
+  net_amount?: number | null;   // ex-VAT (owned/tenancy delivery notes)
+  vat_rate?: number | null;     // % applied, e.g. 20
+  vat_amount?: number | null;   // VAT in £ (reclaimable on purchases)
   created_at?: string;
   updated_at?: string;
+}
+
+/** Standard UK VAT rates a pub encounters. */
+export const VAT_RATES: { value: number; label: string }[] = [
+  { value: 20, label: "20% (standard)" },
+  { value: 5, label: "5% (reduced)" },
+  { value: 0, label: "0% / zero-rated" },
+];
+
+/** From a net amount and a rate, the VAT and gross. Rounded to the penny. */
+export function vatFromNet(net: number, rate: number): { vat: number; gross: number } {
+  const vat = Math.round(net * (rate / 100) * 100) / 100;
+  return { vat, gross: Math.round((net + vat) * 100) / 100 };
+}
+/** Back out the net and VAT from a gross (VAT-inclusive) amount and a rate. */
+export function netFromGross(gross: number, rate: number): { net: number; vat: number } {
+  const net = Math.round((gross / (1 + rate / 100)) * 100) / 100;
+  return { net, vat: Math.round((gross - net) * 100) / 100 };
 }
 
 export const OUT_CATEGORIES: { value: string; label: string }[] = [
@@ -203,20 +224,22 @@ export interface FinanceSummary {
   income: number;
   outgoings: number;
   net: number;
-  payable: number;   // outgoings still 'due'
+  payable: number;        // outgoings still 'due'
+  vatReclaimable: number; // VAT on purchases (money out) you can reclaim
   count: number;
 }
 
 export function summarise(entries: FinanceEntry[]): FinanceSummary {
-  let income = 0, outgoings = 0, payable = 0;
+  let income = 0, outgoings = 0, payable = 0, vatReclaimable = 0;
   for (const e of entries) {
     if (e.direction === "in") income += e.amount;
     else {
       outgoings += e.amount;
       if (e.status === "due") payable += e.amount;
+      if (e.vat_amount && e.vat_amount > 0) vatReclaimable += e.vat_amount;
     }
   }
-  return { income, outgoings, net: income - outgoings, payable, count: entries.length };
+  return { income, outgoings, net: income - outgoings, payable, vatReclaimable, count: entries.length };
 }
 
 export function withinRange(entries: FinanceEntry[], fromISO: string, toISO: string): FinanceEntry[] {

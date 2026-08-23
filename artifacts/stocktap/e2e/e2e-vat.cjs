@@ -1,0 +1,30 @@
+const { chromium } = require('/home/claude/.npm-global/lib/node_modules/playwright/index.js');
+const BASE='http://localhost:5173'; const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+  const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+  const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2}); const p=await ctx.newPage();
+  const bad=[]; p.on('response',r=>{if(r.status()>=400)bad.push(r.status()+' '+r.url())});
+  const tap=async(t)=>{const l=p.locator(`[data-testid="${t}"]`);await l.first().waitFor({state:'visible',timeout:10000});await l.first().click({force:true});await sleep(500)};
+  const fill=async(t,v)=>{await p.locator(`[data-testid="${t}"]`).first().fill(v);await sleep(150)};
+  const pick=async(t,v)=>{await p.locator(`[data-testid="${t}"]`).first().selectOption(v);await sleep(150)};
+  const txt=async(t)=>(await p.locator(`[data-testid="${t}"]`).first().innerText()).trim();
+  await p.goto(`${BASE}/auth`,{waitUntil:'domcontentloaded'});await p.waitForSelector('#email');
+  await p.fill('#email','demo+tealfarm@stocktap.net');await p.fill('#password','DemoPass!2926');
+  await p.getByRole('button',{name:/^sign in$/i}).click();await p.waitForSelector('text=Reports',{timeout:20000});await sleep(800);
+  await p.evaluate(()=>{history.pushState({},'','/finances');dispatchEvent(new PopStateEvent('popstate'))});await sleep(1500);
+  await tap('button-period-all'); await sleep(300);
+  const vatBefore=await txt('text-vat');
+  await tap('button-finance-add');
+  // money out default; category stock; amount 1200 incl VAT; VAT 20%
+  await fill('input-entry-amount','1200');
+  await fill('input-entry-supplier','Beer delivery (owned)');
+  await pick('select-entry-vat','20');
+  await sleep(300);
+  const hint=await txt('text-vat-hint');
+  await tap('button-entry-save'); await sleep(1200);
+  await tap('button-period-all'); await sleep(400);
+  const vatAfter=await txt('text-vat');
+  await p.screenshot({path:'/tmp/shots/finance-vat.png'});
+  console.log('VAT_HINT',JSON.stringify(hint),'VAT_BEFORE',vatBefore,'VAT_AFTER',vatAfter,'BAD',bad.length);
+  await b.close();
+})().catch(e=>{console.error('FATAL',e.message);process.exit(1)});

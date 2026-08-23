@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Plus, Upload, Trash2, Pencil, Wallet, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { ChevronLeft, Plus, Upload, Trash2, Pencil, Wallet, TrendingUp, TrendingDown, AlertCircle, Receipt } from "lucide-react";
 import { formatGBP } from "@/lib/calculations";
 import {
   OUT_CATEGORIES, IN_CATEGORIES, categoryLabel, summarise, withinRange,
+  VAT_RATES, netFromGross,
   type FinanceEntry, type FinanceDirection,
 } from "@/lib/finance";
 import { useFinanceEntries, useAddFinanceEntry, useUpdateFinanceEntry, useDeleteFinanceEntry } from "@/hooks/useFinance";
@@ -46,15 +47,17 @@ interface DraftEntry {
   status: "paid" | "due" | "received";
   due_date: string;
   reference: string;
+  vatRate: string;   // "" = no VAT breakdown, else "20"/"5"/"0"
 }
 
 const emptyDraft = (): DraftEntry => ({
   direction: "out", entry_date: isoToday(), category: "stock", supplier: "",
-  description: "", amount: "", status: "paid", due_date: "", reference: "",
+  description: "", amount: "", status: "paid", due_date: "", reference: "", vatRate: "",
 });
 
 export default function Finances() {
   const { venue } = useAuth();
+  const isTied = !!(venue as any)?.is_tied;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { data: entries, isLoading } = useFinanceEntries(venue?.id);
@@ -79,6 +82,7 @@ export default function Finances() {
       id: e.id, direction: e.direction, entry_date: e.entry_date, category: e.category,
       supplier: e.supplier ?? "", description: e.description ?? "", amount: String(e.amount),
       status: e.status, due_date: e.due_date ?? "", reference: e.reference ?? "",
+      vatRate: e.vat_rate != null ? String(e.vat_rate) : "",
     });
   }
 
@@ -88,6 +92,13 @@ export default function Finances() {
     if (!editing.entry_date || !isFinite(amt) || amt < 0) {
       toast({ title: "Check the entry", description: "A date and a valid amount are required.", variant: "destructive" });
       return;
+    }
+    // VAT (owned/tenancy money-out only): back the reclaimable VAT out of the gross.
+    let net_amount: number | null = null, vat_rate: number | null = null, vat_amount: number | null = null;
+    if (editing.direction === "out" && !isTied && editing.vatRate !== "") {
+      const rate = parseFloat(editing.vatRate);
+      const { net, vat } = netFromGross(amt, rate);
+      net_amount = net; vat_rate = rate; vat_amount = vat;
     }
     const payload = {
       venue_id: venue.id,
@@ -101,6 +112,7 @@ export default function Finances() {
       status: editing.direction === "in" ? "received" as const : editing.status,
       reference: editing.reference.trim() || null,
       source: "manual" as const,
+      net_amount, vat_rate, vat_amount,
     };
     try {
       if (editing.id) await updateEntry.mutateAsync({ id: editing.id, ...payload });
@@ -165,6 +177,13 @@ export default function Finances() {
             <div className="text-lg font-bold text-amber-700 tabular-nums" data-testid="text-payable">{formatGBP(summary.payable)}</div>
           </CardContent></Card>
         </div>
+
+        {!isTied && (
+          <Card><CardContent className="p-3 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Receipt className="w-3.5 h-3.5 text-primary" /> VAT to reclaim (on purchases)</div>
+            <div className="text-lg font-bold text-primary tabular-nums" data-testid="text-vat">{formatGBP(summary.vatReclaimable)}</div>
+          </CardContent></Card>
+        )}
 
         {/* list */}
         {isLoading ? (
@@ -277,6 +296,20 @@ export default function Finances() {
                       <Input type="date" value={editing.due_date} onChange={(e) => setEditing({ ...editing, due_date: e.target.value })} className="h-9" data-testid="input-entry-due" />
                     </div>
                   )}
+                </div>
+              )}
+              {editing.direction === "out" && !isTied && (
+                <div>
+                  <label className="text-[11px] text-muted-foreground">VAT (reclaimable) — the amount above is the total incl. VAT</label>
+                  <select value={editing.vatRate} onChange={(e) => setEditing({ ...editing, vatRate: e.target.value })}
+                    className="w-full h-9 rounded-md border border-border px-2 text-sm" data-testid="select-entry-vat">
+                    <option value="">No VAT / not applicable</option>
+                    {VAT_RATES.map((r) => <option key={r.value} value={String(r.value)}>{r.label}</option>)}
+                  </select>
+                  {editing.vatRate !== "" && parseFloat(editing.amount) > 0 && (() => {
+                    const { net, vat } = netFromGross(parseFloat(editing.amount), parseFloat(editing.vatRate));
+                    return <p className="text-[11px] text-primary mt-1" data-testid="text-vat-hint">Net £{net.toFixed(2)} + £{vat.toFixed(2)} VAT to reclaim</p>;
+                  })()}
                 </div>
               )}
               <div>
