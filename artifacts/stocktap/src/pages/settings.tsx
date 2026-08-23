@@ -154,23 +154,25 @@ export default function Settings() {
   };
 
   const addOfferHandler = async () => {
-    if (!venue?.id || !offerName.trim() || !offerPrice || !offerStarts || !offerEnds || offerProductIds.length === 0) {
-      toast({ title: "Fill in all fields", description: "Name, price, dates, and at least one product are required.", variant: "destructive" });
+    // Only the deal text is required — price, dates and products are optional so a
+    // multi-buy mechanic ("3 for £12", "Double up for £2") can be jotted down as-is.
+    if (!venue?.id || !offerName.trim()) {
+      toast({ title: "Add the deal", description: "Type the deal, e.g. “3 for £12” or “Double up for £2”.", variant: "destructive" });
       return;
     }
     try {
       await addOffer.mutateAsync({
         venue_id: venue.id,
         name: offerName.trim(),
-        offer_price: parseFloat(offerPrice),
-        starts_at: new Date(offerStarts).toISOString(),
-        ends_at: new Date(offerEnds).toISOString(),
+        offer_price: offerPrice ? parseFloat(offerPrice) : null,
+        starts_at: offerStarts ? new Date(offerStarts).toISOString() : null,
+        ends_at: offerEnds ? new Date(offerEnds).toISOString() : null,
         product_ids: offerProductIds,
-      });
+      } as any);
       setOfferName("");
       setOfferPrice("");
       setOfferProductIds([]);
-      toast({ title: "Special offer created" });
+      toast({ title: "Deal saved" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -447,20 +449,21 @@ export default function Settings() {
         <TabsContent value="offers" className="flex-1 overflow-auto p-4 space-y-4">
           <Card>
             <CardContent className="p-4 space-y-3">
-              <div className="font-bold text-primary">New Special Offer</div>
+              <div className="font-bold text-primary">New deal / offer</div>
               <div>
-                <Label htmlFor="offer-name">Offer Name</Label>
+                <Label htmlFor="offer-name">Deal</Label>
                 <Input
                   id="offer-name"
                   value={offerName}
                   onChange={(e) => setOfferName(e.target.value)}
-                  placeholder="e.g. Happy Hour Lager"
+                  placeholder="e.g. 3 for £12 · Double up for £2 · Happy Hour Lager"
                   className="mt-1"
                   data-testid="input-offer-name"
                 />
+                <p className="text-[11px] text-muted-foreground mt-1">Write the deal however it runs — a price and dates below are optional.</p>
               </div>
               <div>
-                <Label htmlFor="offer-price">Offer Price (£, ex-VAT)</Label>
+                <Label htmlFor="offer-price">Offer price (£, optional)</Label>
                 <Input
                   id="offer-price"
                   type="number"
@@ -473,7 +476,7 @@ export default function Settings() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label htmlFor="offer-starts">Starts</Label>
+                  <Label htmlFor="offer-starts">Starts (optional)</Label>
                   <Input
                     id="offer-starts"
                     type="date"
@@ -484,7 +487,7 @@ export default function Settings() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="offer-ends">Ends</Label>
+                  <Label htmlFor="offer-ends">Ends (optional)</Label>
                   <Input
                     id="offer-ends"
                     type="date"
@@ -496,7 +499,7 @@ export default function Settings() {
                 </div>
               </div>
               <div>
-                <Label>Products on offer</Label>
+                <Label>Products (optional)</Label>
                 <div className="mt-1 max-h-40 overflow-auto border border-border rounded-lg divide-y divide-border">
                   {products?.map((p: any) => (
                     <button
@@ -521,14 +524,20 @@ export default function Settings() {
                 disabled={addOffer.isPending}
                 data-testid="button-create-offer"
               >
-                {addOffer.isPending ? "Creating..." : "Create Offer"}
+                {addOffer.isPending ? "Saving..." : "Save deal"}
               </Button>
             </CardContent>
           </Card>
 
           <div className="space-y-2">
             {offers?.map((o: any) => {
-              const active = new Date(o.starts_at) <= new Date() && new Date() <= new Date(o.ends_at);
+              const hasDates = o.starts_at && o.ends_at;
+              const active = hasDates ? (new Date(o.starts_at) <= new Date() && new Date() <= new Date(o.ends_at)) : true;
+              const meta = [
+                o.offer_price != null ? `£${Number(o.offer_price).toFixed(2)} ex-VAT` : null,
+                hasDates ? `${new Date(o.starts_at).toLocaleDateString()} – ${new Date(o.ends_at).toLocaleDateString()}` : null,
+                (o.product_ids?.length ?? 0) > 0 ? `${o.product_ids.length} product(s)` : null,
+              ].filter(Boolean).join(" · ");
               return (
                 <Card key={o.id}>
                   <CardContent className="p-3 flex justify-between items-center">
@@ -536,12 +545,12 @@ export default function Settings() {
                       <div className="font-medium text-sm flex items-center gap-2">
                         {o.name}
                         <Badge variant={active ? "default" : "secondary"} className="text-xs">
-                          {active ? "Active" : "Scheduled/Ended"}
+                          {!hasDates ? "Always on" : active ? "Active" : "Scheduled/Ended"}
                         </Badge>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        £{Number(o.offer_price).toFixed(2)} ex-VAT · {new Date(o.starts_at).toLocaleDateString()} – {new Date(o.ends_at).toLocaleDateString()} · {o.product_ids?.length ?? 0} product(s)
-                      </div>
+                      {meta && (
+                        <div className="text-xs text-muted-foreground mt-0.5">{meta}</div>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
