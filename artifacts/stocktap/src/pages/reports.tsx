@@ -407,37 +407,30 @@ export default function Reports() {
               )}
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold">Product</TableHead>
-                    <TableHead className="font-semibold">Location</TableHead>
-                    <TableHead className="font-semibold text-right">Qty</TableHead>
-                    <TableHead className="font-semibold text-right">Tenths</TableHead>
-                    <TableHead className="font-semibold text-right">Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayedValuationRows.map(({ p, mlRemaining, count, value, tenths, locName, reading }) => {
-                    const isVolM = p.counting_method === "keg_weight" || p.counting_method === "dipstick" || p.counting_method === "tenths_pints";
-                    const isCnt = p.unit === "count" && !isVolM;
-                    return (
-                    <TableRow key={p.id} data-testid={`row-valuation-${p.id}`}>
-                      <TableCell className="font-medium text-sm max-w-[120px] truncate">{p.name}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{locName}</TableCell>
-                      <TableCell className="text-right tabular-nums text-sm">{!reading ? "—" : isCnt ? `${Math.round(count)} units` : isVolM && p.container_l ? `${(mlRemaining / 1000).toFixed(1)}L` : `${Math.round(mlRemaining)}ml`}</TableCell>
-                      <TableCell className="text-right tabular-nums text-sm">{!reading || isCnt || isVolM ? "—" : (tenths != null ? tenths.toFixed(1) : "—")}</TableCell>
-                      <TableCell className="text-right tabular-nums font-semibold text-sm">{formatGBP(value)}</TableCell>
-                    </TableRow>
-                    );
-                  })}
-                  <TableRow className="bg-primary/5 font-bold">
-                    <TableCell colSpan={4} className="font-bold">Total</TableCell>
-                    <TableCell className="text-right font-bold text-primary">{formatGBP(totalValue)}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+            {/* Stacked rows so the Value is always on-screen on a phone (a wide
+                table pushed it off the right edge). Qty/tenths sit as subtext. */}
+            <div className="space-y-2">
+              {displayedValuationRows.map(({ p, mlRemaining, count, value, tenths, locName, reading }) => {
+                const isVolM = p.counting_method === "keg_weight" || p.counting_method === "dipstick" || p.counting_method === "tenths_pints";
+                const isCnt = p.unit === "count" && !isVolM;
+                const qtyLabel = !reading ? "—" : isCnt ? `${Math.round(count)} units` : isVolM && p.container_l ? `${(mlRemaining / 1000).toFixed(1)}L` : `${Math.round(mlRemaining)}ml`;
+                const tenthsLabel = (!reading || isCnt || isVolM || tenths == null) ? null : `${tenths.toFixed(1)} tenths`;
+                return (
+                  <div key={p.id} data-testid={`row-valuation-${p.id}`} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm truncate">{p.name}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        {locName} · {qtyLabel}{tenthsLabel ? ` · ${tenthsLabel}` : ""}
+                      </div>
+                    </div>
+                    <div className="text-right tabular-nums font-bold text-sm shrink-0">{formatGBP(value)}</div>
+                  </div>
+                );
+              })}
+              <div className="flex items-center justify-between rounded-xl bg-primary/5 border border-border p-3">
+                <span className="font-bold">Total</span>
+                <span className="font-bold text-primary tabular-nums">{formatGBP(totalValue)}</span>
+              </div>
             </div>
             {zeroRowCount > 0 && (
               <button
