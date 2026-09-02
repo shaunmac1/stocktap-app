@@ -33,7 +33,7 @@ export default function Terms() {
 
         <section>
           <h2 className="text-base font-semibold text-[#F3F1EC] mb-2">3. Plans, pricing and billing</h2>
-          <p>All prices shown in the app are ex-VAT, in pounds sterling. Free, Pro and Premium plans and their features are listed in Settings &gt; Plan. Subscriptions renew automatically until cancelled; you can cancel any time from Settings and you'll keep access until the end of the period you've already paid for. We don't offer pro-rata refunds for early cancellation, but if something's gone wrong, contact support and we'll sort it out fairly.</p>
+          <p>Plan prices are in pounds sterling and no VAT is added (StockTap is not VAT registered). Your own stock costs and pour prices inside the app are entered ex-VAT so GP% is right. Free, Pro and Premium plans and their features are listed in Settings &gt; Plan. Subscriptions renew automatically until cancelled; you can cancel any time from Settings and you'll keep access until the end of the period you've already paid for. We don't offer pro-rata refunds for early cancellation, but if something's gone wrong, contact support and we'll sort it out fairly.</p>
         </section>
 
         <section>
@@ -63,7 +63,7 @@ export default function Terms() {
 
         <section>
           <h2 className="text-base font-semibold text-[#F3F1EC] mb-2">9. Contact</h2>
-          <p>Questions about these terms: <a href="mailto:mac_tattoo@hotmail.co.uk" className="text-[#E0A343]">mac_tattoo@hotmail.co.uk</a></p>
+          <p>Questions about these terms: <a href="mailto:hello@stocktap.net" className="text-[#E0A343]">hello@stocktap.net</a></p>
         </section>
       </div>
     </div>

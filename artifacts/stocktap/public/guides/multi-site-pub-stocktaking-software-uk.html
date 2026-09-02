@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-site pub stocktaking software: real prices and the per-venue trap | StockTap</title>
+  <meta name="description" content="Most stock systems charge per venue, so three pubs can mean &pound;5,000 a year. Real multi-site prices, what breaks at site two, and what to demand before you sign." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/multi-site-pub-stocktaking-software-uk" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Multi-site pub stocktaking software: real prices and the per-venue trap | StockTap" />
+  <meta property="og:description" content="Most stock systems charge per venue, so three pubs can mean &pound;5,000 a year. Real multi-site prices, what breaks at site two, and what to demand before you sign." />
+  <meta property="og:url" content="https://stocktap.net/guides/multi-site-pub-stocktaking-software-uk" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Multi-site pub stocktaking software: real prices and the per-venue trap | StockTap" />
+  <meta name="twitter:description" content="Most stock systems charge per venue, so three pubs can mean &pound;5,000 a year. Real multi-site prices, what breaks at site two, and what to demand before you sign." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Multi-site pub stocktaking software: what changes at site two, and the pricing trap nobody mentions",
+      "description": "Most stock systems charge per venue, so three pubs can mean £5,000 a year. Real multi-site prices, what breaks at site two, and what to demand before you sign.",
+      "datePublished": "2026-08-30",
+      "dateModified": "2026-08-30",
+      "author": { "@type": "Person", "name": "Shaun McManus", "jobTitle": "Licensee", "url": "https://stocktap.net/about" },
+      "publisher": { "@type": "Organization", "name": "StockTap", "url": "https://stocktap.net" },
+      "mainEntityOfPage": "https://stocktap.net/guides/multi-site-pub-stocktaking-software-uk"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "How much does multi-site pub stocktaking software cost in the UK?", "acceptedAnswer": { "@type": "Answer", "text": "Most vendors price per venue, so the bill multiplies with every site. Growyze publishes £79 to £139 a month per venue, Jelly £129 a month per location, and StockLens AI's Multi-Site tier is £499 a month. Across three pubs that ranges from roughly £2,800 to £6,000 a year. Always check how a published price scales with sites before you sign." } },
+        { "@type": "Question", "name": "Can I run several pubs on single-site stocktaking software?", "acceptedAnswer": { "@type": "Answer", "text": "You can, but only if every site counts the same way. Separate accounts with different counting methods produce GP figures that cannot be compared, so your best site and worst site swap places depending on who guessed most kindly. What you actually need is one enforced counting method and one screen showing every site's variance in pounds." } },
+        { "@type": "Question", "name": "Is a stocktaker or software better for a small pub group?", "acceptedAnswer": { "@type": "Answer", "text": "A stocktaker visiting three sites monthly costs roughly £2,500 to £4,300 a year at typical UK rates of £70 to £120 a visit, and between visits nobody is looking. Software with weekly counts catches problems inside a week at each site. Groups that can afford both use the stocktaker as an independent check on the software's numbers, not as the only set of eyes." } },
+        { "@type": "Question", "name": "What should multi-site stocktaking software do that single-site software doesn't?", "acceptedAnswer": { "@type": "Answer", "text": "Four things: enforce one counting method across every site so the numbers are comparable, show all sites' variance and GP on one consolidated screen worst-first, give each site's team roles and permissions so a relief manager can count without editing prices, and publish a price that scales predictably with sites rather than a quote form." } }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "Multi-site pub stocktaking software", "item": "https://stocktap.net/guides/multi-site-pub-stocktaking-software-uk"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Multi-site pub stocktaking software: what changes at site two, and the pricing trap nobody mentions</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-08-30">30 August 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+        <p><strong>Run one pub and stocktaking software costs you somewhere between &pound;19 and &pound;139 a month. Run three and most of the market quietly triples the bill, because nearly every vendor prices per venue. Across a small group that's &pound;2,800 to &pound;6,000 a year before you've counted a single bottle. This is what actually changes when you add a second site, what the per-venue trap costs, and what to demand from a stock system before you sign for a group.</strong></p>
+
+        <p>I run one pub, in Washington, Tyne and Wear. But it sits inside a tied estate of well over a thousand, so I've spent nineteen years watching multi-site stock control from the receiving end. Head office sees my stock result before I've finished reading it. The estate wants line checks logged every week. And the numbers that come back from the centre rarely match what the pub can see on the ground. Being at the bottom of a very large group teaches you exactly where multi-site counting falls apart, because you're the one standing where it lands.</p>
+
+        <h2>The real change at site two isn't the software</h2>
+
+        <p>It's that you stop doing the counting.</p>
+
+        <p>At one site, the count is yours. You know which optic drips and which till button was set up wrong, and when the variance looks odd you can walk the cellar and find out why. At two sites you're only in one of them. By four or five, the count is a job you've delegated to a manager you hope is doing it the way you would.</p>
+
+        <p>So the thing you're actually buying with multi-site stock software isn't a dashboard. It's a method that holds still when you're not in the building. If site A counts spirits by eyeballing tenths and site B weighs the bottles, the two GP figures that land on your desk are not the same measurement. Tenths guessing is always kind to itself. A bottle a manager swears is a third full is often a quarter. Put those two sites in a league table and it doesn't tell you who runs the tighter bar. It tells you who guesses most generously.</p>
+
+        <p>I've written before about <a href="/guides/how-to-calculate-gp-percentage-pub-drinks">how to calculate GP on drinks without flattering yourself</a>, and the flattery problem gets worse with every site you add, because each site finds its own way to be kind to itself. One manager keys sell prices with VAT still in and their GP sits about seven points adrift of the site doing it properly. Nobody's lying. The numbers just aren't measuring the same thing.</p>
+
+        <h2>The per-venue pricing trap</h2>
+
+        <p>Now the bit the vendors don't put in the headline. Almost everyone in this market prices per venue or per location. That's a perfectly rational model for them. It's an expensive surprise for you, because the £99-a-month figure you saw on the pricing page was never your price. It was your price multiplied by however many sites you run.</p>
+
+        <p>Here's what the published numbers look like across three sites.</p>
+
+        <table>
+          <caption>Published pricing from each vendor's own pricing page, checked August 2026. Pricing pages change and scaling rules vary, so confirm how any price grows with sites before you sign. Ours included.</caption>
+          <thead>
+            <tr><th>System</th><th>Published price</th><th>Three sites, monthly</th><th>Three sites, a year</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Growyze</td><td>&pound;79&ndash;&pound;139/month per venue</td><td>&pound;237&ndash;&pound;417</td><td>&pound;2,844&ndash;&pound;5,004</td></tr>
+            <tr><td>Jelly</td><td>&pound;129/month per location</td><td>&pound;387</td><td>&pound;4,644</td></tr>
+            <tr><td>StockLens AI</td><td>Multi-Site tier &pound;499/month</td><td>&pound;499</td><td>&pound;5,988</td></tr>
+            <tr><td>MarginEdge</td><td>$350/month per location</td><td>$1,050</td><td>$12,600</td></tr>
+            <tr><td>WISK</td><td>$249&ndash;$399/month, $750 setup</td><td>Scaling not published</td><td>Scaling not published</td></tr>
+            <tr><td>Independent stocktaker, monthly visits</td><td>&pound;70&ndash;&pound;120 per visit</td><td>&pound;210&ndash;&pound;360</td><td>&pound;2,520&ndash;&pound;4,320</td></tr>
+            <tr><td>StockTap Premium</td><td>&pound;39/month, multi-venue reporting included</td><td>&pound;39</td><td>&pound;468</td></tr>
+          </tbody>
+        </table>
+
+        <p>Read that middle column again. A three-site operator on Growyze's top tier is paying more per month than a single-site pub pays per year on the affordable end of this market. The enterprise suites are worse. Access and the big procurement platforms don't publish prices at all, and when a vendor's pricing page is a quote form, the quote is being built off your site count. I went through <a href="/guides/pub-stocktaking-software-cost-2026">what pub stocktaking software actually costs</a> line by line if you want the single-site version of this table.</p>
+
+        <p>None of this makes per-venue pricing a scam. Some of those systems carry per-site EPOS integrations and supplier feeds that genuinely cost the vendor money per location. But you should walk into the conversation knowing the multiplication is coming, because the pricing page won't do the maths for you.</p>
+
+        <h2>A stocktaker across three sites</h2>
+
+        <p>The traditional answer for a small group is a stocktaker on a circuit. At typical UK rates of &pound;70 to &pound;120 a visit, monthly visits across three sites run &pound;2,520 to &pound;4,320 a year. I've broken down <a href="/guides/pub-stocktaker-cost-2026">what a pub stocktaker actually costs</a> before, and I'll say the same thing here: you're paying for a number and for judgement, and the judgement is worth having when an audit turns into an argument.</p>
+
+        <p>But between visits, nobody is looking. At one site that's bad enough. Across three, you personally aren't standing in two of them, so a problem at your weakest site gets a month's head start before anyone with authority sees it in a report. A &pound;150-a-week leak at one site is &pound;600 gone by the next visit. The stocktaker tells you it happened. A weekly count would have told you it was happening.</p>
+
+        <p>The groups that do this well use both. Software for the weekly rhythm at every site, and an independent audit a few times a year as a check on the software's numbers and the managers' counting. That's not the stocktaker's version and it's not the software vendor's version, but it's the one that works.</p>
+
+        <h2>What to demand from multi-site stock software</h2>
+
+        <p>Feature grids for multi-site tools are long and mostly padding. These are the things that decide whether the system survives contact with a real group.</p>
+
+        <ul>
+          <li><strong>One counting method, enforced.</strong> The system should make every site count the same way: same measures, same treatment of part bottles, same draught calibration, same rules for what counts as wastage. If each site can freestyle, your consolidated numbers are decoration.</li>
+          <li><strong>Every site on one screen, worst first.</strong> Variance in pounds, by site, sorted so the biggest problem is at the top. You have thirty seconds of attention for this on a Tuesday. The report should spend it for you.</li>
+          <li><strong>Roles and permissions that match real staffing.</strong> A relief manager covering your weakest site needs to count. They do not need to edit cost prices or delete stocktakes. Site-level access with owner-level oversight is the shape that works.</li>
+          <li><strong>Offline counting in every cellar.</strong> Half of every pub is a concrete box with no signal. Multiply by your site count. If the app dies without WiFi, the counts at your worst-connected site quietly stop happening.</li>
+          <li><strong>Consistent ex-VAT handling everywhere.</strong> Every site's GP calculated the same way, off ex-VAT figures, automatically. The <a href="/guides/ex-vat-vs-inc-vat-stock-value">ex-VAT versus inc-VAT trap</a> is bad enough at one site. Across five it makes the league table fiction.</li>
+          <li><strong>Your data out, per site and consolidated, as CSV.</strong> Your accountant wants the group view. A buyer doing due diligence on one site wants that site alone. Both should be one export, not a support ticket.</li>
+          <li><strong>A price that's written down and scales predictably.</strong> If you can't work out from the pricing page what site four will cost you, the answer is designed to be discovered on a sales call.</li>
+        </ul>
+
+        <h2>The comparability problem is the whole job</h2>
+
+        <p>One more pass at this, because it's the thing single-site operators don't see coming and it's the thing my own estate gets wrong at scale.</p>
+
+        <p>When head office compares my pub to the one down the road, the comparison is only worth anything if both results were produced the same way. In a big estate they mostly aren't. Different people do the counting, with different levels of care, and the central system treats every number as equally true. Then a result comes back that doesn't match what the pub can see with its own eyes, and the pub stops trusting the reports. Once your managers think the numbers are wrong, they're right to ignore them, and your stock control is now a monthly argument instead of a system.</p>
+
+        <p>So the standard you're holding software to isn't "does it have a group dashboard". It's "does it force the counts to be comparable before it dares compare them". Method first, dashboard second. A group GP report built on three different counting styles is a very confident way of knowing nothing. If you want the benchmark to hold your sites against once the counting is honest, I've published <a href="/guides/pub-gp-percentage-benchmark-2026">the GP% benchmarks UK pubs actually run at</a>.</p>
+
+        <h2>Where StockTap honestly sits</h2>
+
+        <p>StockTap's Premium plan is &pound;39 a month and includes consolidated multi-venue reporting, with weight-based counting as the enforced method everywhere. That's the fact, and here's the context: I built it single-site first, because that's the operator I am and the one being priced out of the tools above. It fits an owner with one to a handful of sites who still cares what the count says. If you're twenty sites with a procurement team and a finance department, the enterprise suites are the right sledgehammer and you should go read my <a href="/guides/access-procure-wizard-alternative-uk-pub">honest take on Access Procure Wizard</a> instead, because I'd rather you bought the right thing than my thing.</p>
+
+        <p>And if you're not sure the spend is justified at all, do the payback maths before anyone's trial starts. I wrote up <a href="/guides/pub-stocktaking-software-roi-payback-time">the full payback calculation</a> for exactly that decision.</p>
+
+        <h2>Rolling out to a second site without wrecking the first</h2>
+
+        <p>Don't launch group-wide. Pick your worst site by variance, because that's where the money is, and run it on the same method as your best site for two full count cycles. Top thirty lines by value, spirits weighed, packaged stock counted by the case. One person owns the method across both sites. The managers own the counting, not the rules.</p>
+
+        <p>After two comparable counts you'll have something you've possibly never had before: two sites measured with the same ruler. One count is a photo and two counts are a story, and with matching methods the story is finally about the pubs, not about the counting. That's the entire point of multi-site stock software. The dashboard is just where the story gets printed.</p>
+
+        <div class="article-sources">
+          <h2>Sources</h2>
+          <ul>
+            <li><a href="https://www.growyze.com/pricing" rel="nofollow noopener" target="_blank">Growyze pricing</a> &mdash; per-venue monthly tiers, checked August 2026.</li>
+            <li><a href="https://blog.getjelly.co.uk/" rel="nofollow noopener" target="_blank">Jelly</a> &mdash; published &pound;129 per location per month, checked August 2026.</li>
+            <li><a href="https://stocklensai.co.uk/pricing" rel="nofollow noopener" target="_blank">StockLens AI pricing</a> &mdash; Multi-Site tier, checked August 2026.</li>
+            <li><a href="https://www.marginedge.com/" rel="nofollow noopener" target="_blank">MarginEdge</a> and <a href="https://wisk.ai/" rel="nofollow noopener" target="_blank">WISK</a> &mdash; published US pricing, checked August 2026.</li>
+            <li>Independent stocktaker visit pricing, typical UK single-site range, gathered from published stocktaker rate cards, 2026.</li>
+            <li>Author&rsquo;s own experience: nineteen years running a wet-led site inside a tied estate of over a thousand pubs, and five independent liquor audits, December 2025 to July 2026.</li>
+          </ul>
+        </div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>One method, every site, &pound;39 a month</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/pub-stocktaking-software-cost-2026">How much does pub stocktaking software actually cost in 2026?</a></li>
+          <li><a href="/guides/pub-stocktaker-cost-2026">What a pub stocktaker actually costs in 2026</a></li>
+          <li><a href="/guides/best-pub-stocktaking-software-2026">Best pub stocktaking software 2026, compared honestly</a></li>
+          <li><a href="/guides/pub-stocktaking-software-roi-payback-time">Is pub stocktaking software worth it? The payback maths, done honestly</a></li>
+          <li><a href="/guides/how-to-calculate-gp-percentage-pub-drinks">How to calculate GP on drinks, without flattering yourself</a></li>
+          <li><a href="/guides/bar-inventory-management">Bar inventory management: the full method</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

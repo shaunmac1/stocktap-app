@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pub stocktaking apps: iPhone, Android, and the PWA question | StockTap</title>
+  <meta name="description" content="A licensee compares pub stocktaking apps for iPhone and Android: 365 Pub Stocktaking, StockTake Online, Bar Patrol, Partender, BarBrain, and why StockTap is a PWA." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/best-pub-stocktaking-app-iphone-android-pwa" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Pub stocktaking apps: iPhone, Android, and the PWA question | StockTap" />
+  <meta property="og:description" content="A licensee compares pub stocktaking apps for iPhone and Android: 365 Pub Stocktaking, StockTake Online, Bar Patrol, Partender, BarBrain, and why StockTap is a PWA." />
+  <meta property="og:url" content="https://stocktap.net/guides/best-pub-stocktaking-app-iphone-android-pwa" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pub stocktaking apps: iPhone, Android, and the PWA question | StockTap" />
+  <meta name="twitter:description" content="A licensee compares pub stocktaking apps for iPhone and Android: 365 Pub Stocktaking, StockTake Online, Bar Patrol, Partender, BarBrain, and why StockTap is a PWA." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Pub stocktaking apps: iPhone, Android, and why mine isn’t in the App Store",
+      "description": "A licensee compares pub stocktaking apps for iPhone and Android: 365 Pub Stocktaking, StockTake Online, Bar Patrol, Partender, BarBrain, and why StockTap is a PWA.",
+      "datePublished": "2026-08-24",
+      "dateModified": "2026-08-24",
+      "author": { "@type": "Person", "name": "Shaun McManus", "jobTitle": "Licensee", "url": "https://stocktap.net/about" },
+      "publisher": { "@type": "Organization", "name": "StockTap", "url": "https://stocktap.net" },
+      "mainEntityOfPage": "https://stocktap.net/guides/best-pub-stocktaking-app-iphone-android-pwa"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is the best pub stocktaking app for iPhone?", "acceptedAnswer": { "@type": "Answer", "text": "There is no single best, it depends on how you count. 365 Pub Stocktaking and StockTake Online are both on the App Store but neither publishes a price. Bar Patrol and Partender are American and built around ounces and visual tenths. StockTap runs on iPhone as a web app you install from Safari, weighs bottles on a kitchen scale, and costs \u00a319 a month at the founding rate." } },
+        { "@type": "Question", "name": "Is there a pub stocktaking app for Android?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. 365 Pub Stocktaking and StockTake Online both have Android apps on Google Play. StockTap installs on Android from Chrome as a progressive web app, so there is nothing to download from a store and updates arrive instantly." } },
+        { "@type": "Question", "name": "Do I need an App Store app to do a pub stocktake on my phone?", "acceptedAnswer": { "@type": "Answer", "text": "No. A progressive web app installs from the browser to your home screen and runs full screen like any other app, including offline. The stocktake itself only needs the phone, a cheap kitchen scale for spirits, and a tool that does the maths honestly." } },
+        { "@type": "Question", "name": "Why do so many stocktaking apps hide their prices?", "acceptedAnswer": { "@type": "Answer", "text": "Because they sell through demos and sales calls, and a published price makes that harder. Of the six apps compared here, only three state a price in public. If the price is not on the website, assume it is negotiated, and assume the person who negotiates best is not you." } }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "Pub stocktaking apps: iPhone, Android, and why mine isn’t in the App Store", "item": "https://stocktap.net/guides/best-pub-stocktaking-app-iphone-android-pwa"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Pub stocktaking apps: iPhone, Android, and why mine isn&rsquo;t in the App Store</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-08-24">24 August 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+        <p><strong>A pub stocktaking app has one real exam: a cellar with no signal, one free hand, and a phone balanced next to a set of scales at half eleven on a Sunday night. Plenty of apps pass the screenshot test and fail that one. Here's what's actually in the app stores for UK pubs, what each one costs where anyone will admit it, and why I built StockTap as a web app you install from the browser instead.</strong></p>
+
+        <p>I run a pub in Washington, Tyne and Wear, and I count my own stock on my own phone. So this is a working licensee's tour, not a directory scrape. Where a vendor doesn't publish a price I'll say so rather than guess.</p>
+
+        <h2>What's actually in the app stores</h2>
+
+        <p>Search either store for pub stocktaking and the honest shortlist is small.</p>
+
+        <p><strong>365 Pub Stocktaking</strong> is a UK app on both iPhone and Android, pitched as fast, professional stocktaking. What I can't tell you is the price, because the website doesn't publish one, and it doesn't state its counting method either. I checked on 24 August 2026. It may be decent. I just think you shouldn't have to enquire to find out what a stock app costs.</p>
+
+        <p><strong>StockTake Online</strong> is an established name with apps on both stores, aimed more at multi-site and restaurant operations. Everything sits behind a demo booking, including the price. If you run a group with a head office that enjoys calls with sales teams, it's built for you. If you run one pub, the buying process alone tells you who the customer is.</p>
+
+        <p><strong>Bar Patrol</strong> publishes its price, $49 to $69 a month, and credit where due for that. It's American, there's no free trial, and it thinks in ounces, which means every UK measure needs translating and your 25ml world never quite fits.</p>
+
+        <p><strong>Partender</strong> is the tap-the-bottle one, you slide your finger to where the level looks. Quick, genuinely. But it's visual tenths at speed, so it's the same kind eye that flatters every back bar, just faster, and there's no published UK pricing. Not weight-based.</p>
+
+        <p><strong>BarBrain</strong> runs &euro;52 to &euro;99 a month with a 30-day trial. European, polished, visual estimating again. I've written it up properly in the <a href="/guides/barbrain-alternative-uk-pub">BarBrain comparison</a>.</p>
+
+        <h2>The pattern, in one table</h2>
+
+        <table>
+          <caption>Pub stocktaking apps compared, vendor websites and store listings, checked 24 August 2026. Prices as published by each vendor.</caption>
+          <thead>
+            <tr><th>App</th><th>Runs on</th><th>Price on the website</th><th>Counting method</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>365 Pub Stocktaking</td><td>iPhone, Android</td><td>Not published</td><td>Not stated</td></tr>
+            <tr><td>StockTake Online</td><td>iPhone, Android</td><td>Not published, demo first</td><td>Manual entry</td></tr>
+            <tr><td>Bar Patrol</td><td>iPhone, Android</td><td>$49&ndash;$69/month, dollars</td><td>Visual tenths, ounces</td></tr>
+            <tr><td>Partender</td><td>iPhone, Android</td><td>Not published for the UK</td><td>Tap-the-bottle tenths</td></tr>
+            <tr><td>BarBrain</td><td>iPhone, Android</td><td>&euro;52&ndash;&euro;99/month</td><td>Visual estimate</td></tr>
+            <tr><td>StockTap</td><td>Any phone with a browser</td><td>&pound;19/month founding rate, &pound;39 standard</td><td>Bottle weighing, plus tenths and dipstick</td></tr>
+          </tbody>
+        </table>
+
+        <p>Three of six publish a price. Two of six do anything other than ask your eye to guess. Draw your own conclusion about where the effort goes in this market.</p>
+
+        <h2>Why StockTap isn't in the App Store</h2>
+
+        <p>StockTap is a progressive web app, a PWA. In plain English: you open stocktap.net on your phone, tap install, and it sits on your home screen and runs full screen like any other app. On Android that's Chrome offering the install. On iPhone it's Share, then Add to Home Screen.</p>
+
+        <p>I went that way for reasons that show up in the price. There's no app store taking a cut of every subscription, and that cut would otherwise be inside your &pound;19. When I fix something, the fix is live the same day, not queued behind a store review. And one build runs on your iPhone, your relief manager's Android, and the tablet in the office, without me maintaining anything twice.</p>
+
+        <p>The bit that actually matters in the cellar: it's built offline-first. The cellar is a concrete box, mine has no signal past the second step, and the count carries on regardless and syncs when you're back upstairs. A stock app that needs signal in a cellar is an app built by someone who's never been in one.</p>
+
+        <h2>The honest downsides of a PWA</h2>
+
+        <p>Fair's fair. There's no App Store page full of ratings to reassure you before you commit, and that store listing is a trust signal I don't get to show you. The iPhone install is two taps that Apple doesn't advertise, so I have to tell every new user about Share, then Add to Home Screen, and some people never quite believe a browser can install an app until they've watched it happen. And if you want the truly native feel, Face ID gating and all, a store app still feels a shade slicker. That's the trade. I took the lower price and the same-day fixes.</p>
+
+        <h2>What to actually test before you commit</h2>
+
+        <ul>
+          <li>Take the phone into the cellar, turn the signal off, and try to finish a count. Offline that works beats a feature list every time.</li>
+          <li>Weigh one bottle of spirits and see if the app can turn grams into millilitres against a known empty weight. If it can't weigh, your eye is the instrument, and your eye is kind.</li>
+          <li>Check draught handling. Cask and keg calibration, and an allowance for froth, or the tool will invent shrinkage weekly. The <a href="/guides/keg-calibration-guide-pub-cellar">calibration guide</a> covers why.</li>
+          <li>Count one shelf one-handed. If the app needs two thumbs and a flat surface, it fails the Sunday night exam.</li>
+          <li>Find the export. Your numbers should leave as a CSV whenever you want them, no ransom.</li>
+          <li>Read the contract. Monthly and cancel-anytime, or a term. Anyone confident in their product lets you leave.</li>
+        </ul>
+
+        <p>Run that test on anything in the table, mine included. StockTap's trial is 14 days, no card, so the test costs you one count and nothing else. If another app passes the cellar exam better for how you run your bar, buy that one, you'll get no argument from me.</p>
+
+        <div class="article-sources">
+          <h2>Sources</h2>
+          <ul>
+            <li><a href="https://www.365pubstocktaking.com/" rel="nofollow noopener" target="_blank">365 Pub Stocktaking</a> &mdash; platforms and positioning, no public pricing shown, checked 24 August 2026.</li>
+            <li><a href="https://apps.apple.com/gb/app/365-pub-stocktaking/id6738840647" rel="nofollow noopener" target="_blank">App Store</a> and <a href="https://play.google.com/store/apps/details?id=com.pubstocktaking.app" rel="nofollow noopener" target="_blank">Google Play</a> listings &mdash; store availability, checked 24 August 2026.</li>
+            <li>Bar Patrol, Partender and BarBrain vendor websites &mdash; published pricing and counting methods as stated in the table, checked 24 August 2026.</li>
+            <li>Author&rsquo;s own experience running a wet-led site in Washington, Tyne and Wear, counting on a phone in a cellar with no signal.</li>
+          </ul>
+        </div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/stocktaking-software-for-pubs">Stocktaking software for pubs: what it does, what it costs, and how to pick one</a></li>
+          <li><a href="/guides/best-pub-stocktaking-software-2026">Best pub stocktaking software 2026: an honest shortlist</a></li>
+          <li><a href="/guides/free-pub-stocktaking-software-what-you-get">Free pub stocktaking software: what free actually gets you</a></li>
+          <li><a href="/guides/keg-calibration-guide-pub-cellar">Why your keg and cask calibration is probably wrong, and how to fix it</a></li>
+          <li><a href="/guides/barbrain-alternative-uk-pub">BarBrain alternative for UK pubs</a></li>
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself, properly, without a stocktaker</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

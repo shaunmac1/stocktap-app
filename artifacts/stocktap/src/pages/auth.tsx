@@ -22,6 +22,24 @@ type AuthMode =
   | "set_password"
   | "otp_verify";
 
+// Onboarding intent flag: sessionStorage timestamp with a 90-second TTL.
+const ONBOARDING_FLAG = "st_onb";
+const ONBOARDING_TTL_MS = 90_000;
+function readOnboardingFlag(): boolean {
+  try {
+    const t = Number(sessionStorage.getItem(ONBOARDING_FLAG) || 0);
+    return !!t && Date.now() - t < ONBOARDING_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+function setOnboardingFlag() {
+  try { sessionStorage.setItem(ONBOARDING_FLAG, String(Date.now())); } catch { /* private mode */ }
+}
+function clearOnboardingFlag() {
+  try { sessionStorage.removeItem(ONBOARDING_FLAG); } catch { /* private mode */ }
+}
+
 export default function Auth() {
   const {
     user,
@@ -45,7 +63,12 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [mode, setMode] = useState<AuthMode>(() => {
+    // Onboarding intent survives the provider remount that happens after venue
+    // setup (refreshVenue → AuthProvider re-renders → this page remounts).
+    if (readOnboardingFlag()) return "onboarding_import";
+    return new URLSearchParams(window.location.search).get("mode") === "signup" ? "signup" : "login";
+  });
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -150,7 +173,7 @@ export default function Auth() {
       });
       if (error) throw error;
       setMode("otp_verify");
-      toast({ title: "Code sent", description: `Check ${email} for your 6-digit sign-in code.` });
+      toast({ title: "Code sent", description: `Check ${email} for your sign-in link.` });
     } catch (err: any) {
       toast({
         title: "Error",
@@ -167,7 +190,7 @@ export default function Auth() {
     setAuthError(null);
     const code = normaliseOtpCode(otpCode);
     if (code.length !== 6) {
-      setAuthError("Enter the 6-digit code from your email.");
+      setAuthError("Tap the link in your email, or enter the 6-digit code if it shows one.");
       return;
     }
     setLoading(true);
@@ -319,8 +342,14 @@ export default function Auth() {
         }
       }
 
-      await refreshVenue();
+      // Set the flag and the mode BEFORE refreshVenue: the venue refresh remounts
+      // this page and the flag is what brings the onboarding step back.
+      setOnboardingFlag();
       setMode("onboarding_import");
+      // Make sure the remounted app lands on this page, not on Home, whatever
+      // URL the user reached venue setup from.
+      setLocation("/auth");
+      await refreshVenue();
     } catch (err: any) {
       // eslint-disable-next-line no-console
       console.error("Venue setup error:", err);
@@ -393,8 +422,9 @@ export default function Auth() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center leading-relaxed">
-              We've sent a 6-digit code to{" "}
-              <strong className="text-foreground">{email}</strong>. Enter it below to sign in.
+              We've sent a sign-in email to{" "}
+              <strong className="text-foreground">{email}</strong>. Tap the link in it to sign in, or if
+              the email shows a 6-digit code, enter it below.
             </p>
             <form onSubmit={handleOtpVerify} className="space-y-4">
               <div className="space-y-2">
@@ -551,33 +581,35 @@ export default function Auth() {
           <CardHeader>
             <CardTitle className="text-xl font-bold text-center text-primary">Import your bottle library</CardTitle>
             <p className="text-center text-sm text-muted-foreground mt-1">
-              Start with the full UK pub catalogue — sizes, weights and densities included — or upload
-              your own CSV.
+              Start with the full UK pub catalogue: 80 pre-weighed bottles and 60 common packaged lines,
+              sizes, weights and densities included. Untick anything you don't stock.
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground bg-muted rounded-lg p-3 leading-relaxed">
-              CSV columns: <strong>name, type, size_ml, cost_price, pour_price</strong>
-              <br />
-              Types: spirit, gin, vodka, whisky, rum, liqueur, wine, sparkling, vermouth, syrup, cordial,
-              packaged
+              You can add your own lines, prices and locations afterwards from the Library. Cost and pour
+              prices can wait until your first count is done.
             </p>
             <Button
               className="w-full h-12"
-              onClick={() => setLocation("/library?starter=1")}
+              onClick={() => {
+                clearOnboardingFlag();
+                setLocation("/library?starter=1");
+              }}
               data-testid="button-onboarding-starter"
             >
-              Import UK pub starter catalogue (346 products)
+              Import UK pub starter catalogue (140+ products)
             </Button>
+            {/* "Import my own CSV" is hidden until the importer matches rows to the
+                calibrated catalogue; the catalogue is the reliable path for now. */}
             <Button
-              variant="outline"
-              className="w-full h-12"
-              onClick={() => setLocation("/library?import=1")}
-              data-testid="button-onboarding-csv"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                clearOnboardingFlag();
+                setMode("onboarding_weigh");
+              }}
             >
-              Import my own CSV
-            </Button>
-            <Button variant="ghost" className="w-full" onClick={() => setMode("onboarding_weigh")}>
               Skip — add bottles manually
             </Button>
           </CardContent>

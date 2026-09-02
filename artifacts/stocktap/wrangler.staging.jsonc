@@ -2,7 +2,7 @@
   // StockTap on Cloudflare Workers: static assets + /api/stripe/* + invoice-scan proxy + nightly tier reconcile.
   // Deploy: pnpm run build, then `npx wrangler deploy --keep-vars` from this directory (see DEPLOY_RUNBOOK).
   // Secrets (STRIPE_SECRET_KEY, SUPABASE_SERVICE_ROLE_KEY, ...) live on the Worker; --keep-vars keeps dashboard vars.
-  "name": "gentle-silence-f69f",
+  "name": "stocktap-staging-src",
   "account_id": "ddd4631249f3f41628ec56d107aab51c",
   "main": "worker/index.js",
   "compatibility_date": "2025-01-01",
@@ -12,7 +12,6 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": true
   },
-  "triggers": { "crons": ["0 3 * * *"] },
   "vars": {
     "STRIPE_PRO_PRODUCT": "prod_UoHXMoAghixUdU",
     "STRIPE_PREMIUM_PRODUCT": "prod_UoPOCK4ofTQVhB",

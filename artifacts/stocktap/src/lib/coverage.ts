@@ -36,14 +36,17 @@ export function calcDailyConsumption(readings: ReadingPoint[]): number {
     const t1 = new Date(sorted[i].reading_at).getTime();
     const t2 = new Date(sorted[i + 1].reading_at).getTime();
     const days = (t2 - t1) / 86_400_000;
-    if (days <= 0 || days > 60) continue; // ignore same-day or huge gaps
+    // Ignore same-day recounts (a stocktake followed by a spot check an hour
+    // later would otherwise read as a whole day's usage) and huge gaps.
+    if (days < 0.5 || days > 60) continue;
     const consumed = sorted[i].ml_remaining - sorted[i + 1].ml_remaining;
     if (consumed <= 0) continue; // delivery or no change
     totalConsumedMl += consumed;
     totalDays += days;
   }
 
-  return totalDays > 0 ? totalConsumedMl / totalDays : 0;
+  // Need at least a day of observation before quoting a rate at all.
+  return totalDays >= 1 ? totalConsumedMl / totalDays : 0;
 }
 
 /**

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bar inventory management: what actually works in a UK bar | StockTap</title>
+  <meta name="description" content="A UK licensee's guide to bar inventory: weekly counts, weighing spirits not guessing tenths, free pour drift, real software prices, and where tools stop helping." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/bar-inventory-management" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Bar inventory management: what actually works in a UK bar | StockTap" />
+  <meta property="og:description" content="A UK licensee's guide to bar inventory: weekly counts, weighing spirits not guessing tenths, free pour drift, real software prices, and where tools stop helping." />
+  <meta property="og:url" content="https://stocktap.net/guides/bar-inventory-management" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bar inventory management: what actually works in a UK bar | StockTap" />
+  <meta name="twitter:description" content="A UK licensee's guide to bar inventory: weekly counts, weighing spirits not guessing tenths, free pour drift, real software prices, and where tools stop helping." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Bar inventory management: what actually works in a UK bar",
+      "description": "A UK licensee's guide to bar inventory: weekly counts, weighing spirits not guessing tenths, free pour drift, real software prices, and where tools stop helping.",
+      "datePublished": "2026-08-22",
+      "dateModified": "2026-08-22",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/bar-inventory-management"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is bar inventory management?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A weekly loop with four steps: count what stock you physically hold, add what was delivered, subtract what the till says you sold, and investigate the gap. The gap is your variance, expressed in pounds, and it is the number that tells you whether the bar is leaking money through over-pouring, unlogged waste or till errors."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How often should a bar count its stock?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Weekly for your top lines by value, with a full count monthly or quarterly. A weekly count of your thirty most valuable lines finds a problem within days of it starting. A quarterly-only count means a leak can run for ninety days before anyone sees it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the best bar inventory software in the UK?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Check three things before any feature list: does it work in millilitres and UK measures rather than ounces, does it cost stock ex VAT so your GP% is honest, and can you count offline in a cellar with no signal. Most of the well-known tools are American, ounce-based and priced in dollars. StockTap is built UK-first around weighing bottles; Backbar has a free ounce-based tier; WISK and MarketMan suit larger groups with bigger budgets."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need special hardware to weigh bottles for a stocktake?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. A domestic kitchen scale accurate to a gram, typically around £15, is enough. The software holds each product's full and empty bottle weights and converts the reading on the scale to millilitres remaining, which removes the guesswork of counting spirits in tenths by eye."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Bar inventory management: what actually works in a UK bar",
+          "item": "https://stocktap.net/guides/bar-inventory-management"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Bar inventory management: what actually works in a UK bar</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-08-22">22 August 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+        <p><strong>Bar inventory management comes down to four jobs: know what stock you hold, know what it cost, know what you sold, and chase the gap between them in pounds. Weekly, not quarterly. Weigh the spirits instead of guessing tenths, cost every pour ex VAT, and treat the variance number as the whole point. Everything else the software brochures list is admin.</strong></p>
+
+        <p>I'm a licensee in Washington, Tyne and Wear, running a wet-led site: draught, a long back bar of spirits, and fridges. I built StockTap because the counting tools I tried either guessed, cost silly money, or were built for American bars measuring in ounces. So yes, I sell one of the tools in this guide. I'll be straight about where each one fits, including where mine doesn't.</p>
+
+        <h2>What bar inventory management actually means</h2>
+
+        <p>Strip the jargon and it's a loop you run every week. Count what's physically there. Add what was delivered. Subtract what the till says you sold. Whatever's left over or missing is your variance, and variance is money: stock you paid for that never became a sale. The £200m a year that beer wastage alone costs UK hospitality is variance nobody chased.</p>
+
+        <p>A bar that runs this loop weekly finds a problem inside seven days of it starting. A bar that counts quarterly finds out after ninety, by which point the habit that caused it has a season ticket.</p>
+
+        <h2>Bars leak differently to pubs</h2>
+
+        <p>Most stock advice online is written for pubs or for American cocktail bars, and a UK bar sits between the two. The spirits share of sales is higher than a pub's, which changes where the money leaks.</p>
+
+        <p>Free pour is the big one. A UK single is 25ml. Pour it heavy at 35ml, which is nothing with a speed pourer in your hand and a queue three deep, and you've given away 40% extra on that serve. The till still says one single was sold. No theft, no waste bin, nothing to see. Just a bottle that empties faster than the till says it should. Multiply by a busy Saturday and a full speed rail and that's your variance right there.</p>
+
+        <p>Cocktails leak in their own way: batching that nobody wrote down, syrups and juices that never get counted, the splash of this and dash of that which no spec sheet covers. And comps. Every bar comps drinks. The leak isn't the comping, it's the not logging, because an unlogged comp is indistinguishable from theft in your numbers, and that poisons the one report you need to trust.</p>
+
+        <p>To be clear on where I stand: none of this is about calling your staff thieves. Nearly all of it is over-pour, unlogged waste and till mistakes, done by good people on busy shifts. The numbers are how you fix the process, not how you build a case.</p>
+
+        <h2>Count spirits by weight, not by eye</h2>
+
+        <p>The industry default is eyeballing bottles in tenths. Your eye is a generous instrument. A bottle you'd call half full is often four tenths, and across sixty spirit lines that flattery compounds into a stock figure that's fiction. Weighing fixes it: put the bottle on a kitchen scale, and software that knows the full and empty weights converts grams to millilitres exactly. It's the method StockTap is built around, it needs no hardware beyond a £15 scale, and it turns the slowest, most error-prone part of a bar count into the most accurate.</p>
+
+        <p>You don't weigh everything. Weigh the back bar and anything expensive. Count packaged fridge stock by the case and loose singles. A weekly count of your top thirty lines by value beats a monthly count of all four hundred, because the top thirty is where the money is.</p>
+
+        <h2>The tools, with real prices</h2>
+
+        <p>Real prices as published in 2026, converted to nothing, dressed up as nothing.</p>
+
+        <table>
+          <caption>Bar inventory software with published pricing, August 2026. Quote-only vendors excluded on principle: if the price needs a sales call, the price is negotiable and so is your patience.</caption>
+          <thead>
+            <tr><th>Tool</th><th>Published price</th><th>Trial</th><th>Built for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>StockTap</td><td>£19/month founding rate (first 50), £39/month standard</td><td>Free trial, no card</td><td>UK pubs and bars, weight-based counts, ml and UK measures</td></tr>
+            <tr><td>Backbar</td><td>Free basic tier, then $79&ndash;149/month</td><td>Free tier</td><td>US bars, ounce-based</td></tr>
+            <tr><td>Bar Patrol</td><td>$49&ndash;69/month</td><td>No free trial</td><td>US bars, ounce-based</td></tr>
+            <tr><td>WISK</td><td>$249&ndash;399/month plus $750 setup</td><td>Paid onboarding</td><td>Larger venues and groups</td></tr>
+            <tr><td>MarketMan</td><td>$199&ndash;249/month</td><td>Demo-led</td><td>Restaurants and groups, procurement-heavy</td></tr>
+          </tbody>
+        </table>
+
+        <p>The pattern to notice: the American tools think in ounces and dollars, and their pricing assumes American bar revenues. If your till rings in pounds and your measures are 25ml and 50ml, check the tool actually speaks that language before you're three weeks into setup. Ex VAT costing matters too. UK VAT is 20%, and a GP% calculated on till prices with the VAT still in flatters every line by a fifth. I've written a fuller comparison of the pub-side tools in <a href="/guides/pub-stocktaking-software-compared">my pub stocktaking software comparison</a>.</p>
+
+        <h2>Par levels and ordering, the unglamorous half</h2>
+
+        <p>Inventory management isn't only about what leaks. It's also about the £800 of slow-moving liqueurs a rep talked someone into that will still be on the shelf at Christmas. Set a par level per line based on what a normal week actually sells, order to par, and review the pars when the season turns. Dead stock is money sleeping on a shelf, and it's the easiest cash win in the building: run the report, find what hasn't moved in ninety days, and put it on a promo before it goes out of date.</p>
+
+        <h2>Where software won't save you</h2>
+
+        <p>Honest limits. No inventory system fixes a free-pour culture on its own: that takes jiggers or measured pourers and a manager willing to be boring about it. It won't stop a leak it can't see, so if the batching and comps never get logged, the report is fiction with a dashboard. And the first count is always the worst one, because building the product library with full and empty bottle weights takes a real afternoon. Anyone who tells you setup is ten minutes has never done a setup.</p>
+
+        <p>What it does do is turn "I think we're alright" into a number, every week, in pounds. After that the fixes are usually obvious and usually free.</p>
+
+        <h2>Start this week</h2>
+
+        <p>Pick your top thirty lines by value. Weigh the spirits among them, case-count the rest, write down the total. Log every comp and every smashed bottle for seven days. Count again next week and look at the gap between what the till says left the building and what actually did. That one number will tell you more about your bar than any article, including this one.</p>
+
+        <div class="article-sources">
+          <h2>Sources</h2>
+          <ul>
+            <li><a href="https://www.foodservicefootprint.com/" rel="nofollow noopener" target="_blank">Foodservice Footprint / The Drinks Business</a>, March 2025 &mdash; beer wastage costs UK hospitality around £200m a year.</li>
+            <li>Vendor pricing pages for Backbar, Bar Patrol, WISK and MarketMan, checked 2026 &mdash; figures as published by each vendor.</li>
+            <li><a href="https://www.gov.uk/" rel="nofollow noopener" target="_blank">HMRC</a> &mdash; UK standard VAT rate, 20%.</li>
+            <li>Author&rsquo;s own experience running a wet-led site in Washington, Tyne and Wear, and five independent liquor audits, December 2025 to July 2026.</li>
+          </ul>
+        </div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/stocktaking-software-for-pubs">Stocktaking software for pubs: what it does, what it costs, and how to pick one</a></li>
+          <li><a href="/guides/best-pub-stocktaking-software-2026">Best pub stocktaking software 2026: an honest shortlist</a></li>
+          <li><a href="/guides/pub-stocktaking-software-compared">Pub stocktaking software compared: StockTap, BevSpot, BarBrain, StockLens AI and Growyze</a></li>
+          <li><a href="/guides/staff-pours-margin-cost">What staff pours actually cost your margin</a></li>
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself, properly, without a stocktaker</a></li>
+          <li><a href="/guides/acceptable-stocktake-variance">What is an acceptable stocktake variance in a UK pub?</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

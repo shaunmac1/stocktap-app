@@ -1,3 +1,4 @@
+import { isVolumeCountingMethod } from "@/lib/inventory-reporting";
 import React, { useState, useMemo, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts, useAddProduct, useLocations, useProductReadingsMap, useDeleteProduct } from "@/hooks/api";
@@ -3006,6 +3007,9 @@ export default function Library() {
     const groups = new Map<string, any[]>();
     for (const p of products) {
       const brand = p.name.trim().toLowerCase().split(/\s+/)[0];
+      // "Generic vodka" and "Generic lager" share a first word but are not
+      // variants of one brand; draught lines are legitimately counted differently.
+      if (brand === "generic" || isVolumeCountingMethod((p as any).counting_method)) continue;
       if (!groups.has(brand)) groups.set(brand, []);
       groups.get(brand)!.push(p);
     }

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPOS integration for pub stock control: what it does, what it doesn't | StockTap</title>
+  <meta name="description" content="Till integration moves one number: what the till says sold. It counts nothing and fixes no mapping. Who links to which UK tills, plus a one-hour test." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/epos-integration-pub-stock-control" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="EPOS integration for pub stock control: what it does, what it doesn't | StockTap" />
+  <meta property="og:description" content="Till integration moves one number: what the till says sold. It counts nothing and fixes no mapping. Who links to which UK tills, plus a one-hour test." />
+  <meta property="og:url" content="https://stocktap.net/guides/epos-integration-pub-stock-control" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="EPOS integration for pub stock control: what it does, what it doesn't | StockTap" />
+  <meta name="twitter:description" content="Till integration moves one number: what the till says sold. It counts nothing and fixes no mapping. Who links to which UK tills, plus a one-hour test." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "EPOS integration for pub stock control: what it actually does, what it doesn't, and when a CSV is all you need",
+      "description": "Till integration moves one number: what the till says sold. It counts nothing and fixes no mapping. Who links to which UK tills, plus a one-hour test.",
+      "datePublished": "2026-09-01",
+      "dateModified": "2026-09-01",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/epos-integration-pub-stock-control"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What does EPOS integration actually do in stocktaking software?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It moves your sales figures from the till into the stock system without you typing them. That is the whole job. The software still needs an opening count, your deliveries and a closing count from you. Integration does not count anything, and it does not fix a till button that rings the wrong product or the wrong measure."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need EPOS integration to use stocktaking software?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Every mainstream till exports a product sales report as a CSV or spreadsheet, and most stock systems accept that file. For a single site counting weekly or monthly, an export takes a couple of minutes and gives the same sum as a live link. Integration earns its money when you are checking variance daily, or running several sites, or have hundreds of lines."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which pub stocktaking software integrates with which tills?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "As of September 2026, Jelly lists Square, Epos Now, Lightspeed and Toast. Growyze lists Square, ICRTouch, Clover, GoEpos, Newbridge and Squirrel. Access sells stock control as part of its own hospitality suite. StockTap takes a sales CSV export from any till and lets you key till figures against a spot check; it has no live till link yet. Always check the vendor's current list, because these change."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "My till is supplied by my pub company. Can I integrate it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sometimes, and it depends on who controls the back office. If you cannot add third-party connections to the till yourself, ask what reports you can export before you buy stock software on the promise of integration. A product sales export is almost always available even where an API link is not."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does my variance look wrong even though the till is integrated?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nearly always mapping. Each till button has to point at one stock item and one measure. Half pints, doubles, bottles rung as pints, promotions and a catch-all misc drink button all break that. Integration moves whatever the till says, wrong or right, so fix the buttons first."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "EPOS integration for pub stock control: what it actually does, what it doesn't, and when a CSV is all you need",
+          "item": "https://stocktap.net/guides/epos-integration-pub-stock-control"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>EPOS integration for pub stock control: what it actually does, what it doesn't, and when a CSV is all you need</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-01">1 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+
+        <p><strong>EPOS integration moves exactly one number into your stock system: what the till says you sold. It doesn't count a bottle, it doesn't calibrate a cask, and it doesn't know that the Hobgoblin button is next to the Hobgoblin Gold button. For a single pub counting monthly, a two-minute CSV export from the till gets you the same sum. Integration starts earning its keep when you check variance every day, when you run more than one site, or when you have more lines than you can type. Here's what it really does, who connects to what, and how to test it for an hour before you pay for it.</strong></p>
+
+        <p>I run a pub in Washington, Tyne and Wear, and I've been sold "seamless EPOS integration" more times than I've been sold beer. Every stock software page promises it. Almost none of them explain what it is. So this is the explanation, from someone who has typed the sales in, uploaded them, and sat through the demos for the wired-in kind.</p>
+
+        <h2>The sum integration feeds</h2>
+
+        <p>Every stock system on earth does the same arithmetic. Opening stock, plus deliveries, minus sales, equals what should be on the shelf. What you counted minus that is your variance. Three of those four inputs come from you: the two counts and the delivery notes. The fourth, sales, comes from the till. Integration is just the pipe for that fourth number.</p>
+
+        <p>That's it. That's the feature. Everything else on the brochure is either the maths, which every tool does, or a dashboard on top of the maths.</p>
+
+        <h2>Three ways sales get from the till to the stock system</h2>
+
+        <p>The word "integration" covers three very different things, and the sales pages tend to blur them.</p>
+
+        <table>
+          <caption>The three ways sales data reaches a stock system, and what each one actually costs you in time and setup.</caption>
+          <thead><tr><th>Method</th><th>How it works</th><th>Your time per count</th><th>What can go wrong</th></tr></thead>
+          <tbody>
+            <tr><td>Typed in</td><td>You read the till's product report and key the figures</td><td>15 to 30 minutes for 100 lines</td><td>Typos, skipped lines, doing it late</td></tr>
+            <tr><td>CSV export and upload</td><td>Till back office exports a product sales report, you upload the file</td><td>2 to 5 minutes</td><td>Date range wrong, product names not matching</td></tr>
+            <tr><td>Live API link</td><td>Till pushes each sale, or a nightly total, to the stock system automatically</td><td>Nothing after setup</td><td>Mapping drift, a link that silently stops, vendor changes</td></tr>
+          </tbody>
+        </table>
+
+        <p>Every mainstream till does the middle one. Epos Now's back office exports its sales reports, Square's dashboard exports item sales, and the rest have a product sales report of some kind you can pull for a date range. Nobody mentions this when they're selling you the live link, because the export is free and the link is the upsell.</p>
+
+        <p>The live link is real and it's useful. It is also the third-best thing about a stock system, behind a count you can actually finish and a product list that's mapped properly. Which brings me to the bit nobody says out loud.</p>
+
+        <h2>Integration moves wrong numbers just as fast as right ones</h2>
+
+        <p>Your till has buttons. Your stock system has products. They are not the same list, and someone has to marry them up: this button, this product, this measure. A pint of lager button maps to the lager keg at 568ml. A half maps to the same keg at 284ml. A double maps to the vodka at 50ml. So far so easy.</p>
+
+        <p>Now do it for the bottle of lager that gets rung as a pint when it's busy. The "2 for £10" promo button that doesn't say which two. The house double that's been set up as a single since the last menu change. The "misc drink" button with a few hundred quid a month going through it that belongs to nothing. And the two ales next to each other on the screen where a busy thumb lands on the wrong one more often than anyone admits.</p>
+
+        <p>Five audits in eight months taught me that my <a href="/guides/stock-variance-till-buttons">variance was mostly buttons</a>. Not pouring, not waste. Buttons. A live link would have delivered those wrong numbers into my stock system at the speed of light, with a green tick next to them. Integration doesn't fix mapping. It launders it.</p>
+
+        <p>So the first question isn't "does it integrate with my till". It's "how does it show me a till line that doesn't map to anything, and how does it show me a product that sold on the till but never moved on the shelf". If the demo can't answer that, the link is decoration.</p>
+
+        <h2>When the live link is worth paying for</h2>
+
+        <p>I'm not against it. There are three situations where it changes the job.</p>
+
+        <p>Daily spot checks. If you weigh ten lines every morning and want the variance the same morning, typing yesterday's sales is the bit that kills the habit. A link, or a nightly export, keeps the check to five minutes. That's the difference between doing it and meaning to.</p>
+
+        <p>More than one site. Once you're collecting sales from three tills, the exports pile up and someone's job becomes uploading files. I covered the per-venue maths in the <a href="/guides/multi-site-pub-stocktaking-software-uk">multi-site guide</a>; integration is one of the few extras that pays for itself past site two.</p>
+
+        <p>Hundreds of lines with food. A wet-led pub with 120 lines can live on an export. A food-heavy site with recipes, where a burger depletes a bun, a patty, 30g of cheese and a portion of chips, cannot. Recipe depletion only works if sales arrive per item, automatically, every day.</p>
+
+        <p>If you're a single wet-led site counting monthly and spot-checking weekly, which is <a href="/guides/how-often-should-a-pub-do-a-stocktake">the cadence I'd argue for</a>, none of those apply. Export, upload, done.</p>
+
+        <h2>Who connects to what, September 2026</h2>
+
+        <p>Checked against the vendors' own pages this week. These lists change, so treat it as a starting point and ask for the current one before you sign.</p>
+
+        <table>
+          <caption>UK-facing stock systems and the tills they list. Prices from the vendors' published pages; where a vendor is quote-only that's what it says.</caption>
+          <thead><tr><th>Stock system</th><th>Tills listed</th><th>Sales in by</th><th>Published price</th></tr></thead>
+          <tbody>
+            <tr><td>Jelly</td><td>Square, Epos Now, Lightspeed, Toast</td><td>Live link or import</td><td>&pound;129 per location per month</td></tr>
+            <tr><td>Growyze</td><td>Square, ICRTouch, Clover, GoEpos, Newbridge, Squirrel</td><td>Link, method not stated</td><td>&pound;79 to &pound;139 per venue per month</td></tr>
+            <tr><td>Access (Procure Wizard suite)</td><td>Its own hospitality suite; no third-party list on the stock page</td><td>Within the suite</td><td>Quote only</td></tr>
+            <tr><td>StockTap</td><td>Any till with a sales export</td><td>CSV upload, or key till figures against a spot check</td><td>&pound;19 a month (Pro), &pound;39 a month (Premium)</td></tr>
+          </tbody>
+        </table>
+
+        <p>On StockTap, since it's mine: there is no live till link today. You export a sales CSV from whatever till you have and upload it, or on a spot check you type what the till says sold for the lines you weighed and it gives you the variance in measures and pounds there and then. I built it that way because the count is the hard part and the export is two minutes. If a live link becomes the thing that stops people using it, I'll build the link. I'd rather tell you that than put a logo wall on the page.</p>
+
+        <h2>Tied tenants: check what you can export before you buy</h2>
+
+        <p>A lot of tenanted and leased pubs run a till that came with the agreement, and the back office isn't always yours to fiddle with. That can rule out a third-party API connection entirely, whatever the stock vendor's website says. It almost never rules out a report. Before you buy any stock system on the strength of "integrates with your till", log into the till's back office, find the product sales report, and export a week of it. If you can get that file, every method on this page is open to you. If you can't, the shiniest integration in the world is a brochure.</p>
+
+        <h2>The one-hour test before you pay for a link</h2>
+
+        <p>You can find out whether integration will help you before you've spent a penny on it, using the export you already have.</p>
+
+        <ol>
+          <li>Export last week's product sales from the till. Date range Monday to Sunday, every product.</li>
+          <li>Pick your top 20 lines by value. Spirits and the fast draught, usually.</li>
+          <li>Count those 20 lines today and match them against the same 20 on the export. Weigh the spirits, dip the casks.</li>
+          <li>Look for till lines that don't match a product, and products that sold with no shelf movement. Write them down. That list is your mapping problem, and no link will shrink it.</li>
+          <li>Time the whole thing. If the export and matching took under ten minutes, integration is buying you ten minutes a week. Decide if that's worth the price difference.</li>
+        </ol>
+
+        <p>The export is minutes. The mapping list is the hour. That hour is the real work, and it's a one-off, and no subscription does it for you.</p>
+
+        <h2>What to ask a vendor about integration</h2>
+
+        <p>Skip "which tills do you integrate with" and ask these instead. Does the link push every sale or a nightly total? What happens when a till product has no stock match, does it flag it or drop it? Can I still upload a CSV if the link breaks? Who fixes the mapping when I change the menu, me or you, and is that in the price? And the one that ends most demos: show me a sale that went through the wrong button, and show me how your system tells me.</p>
+
+        <p>The rest of the buying questions, contracts, exports, ex-VAT pricing, are in the <a href="/guides/pub-stocktaking-software-buyers-checklist-2026">buyer's checklist</a>. Integration is one line on it. It shouldn't be the reason you sign.</p>
+
+        <h2>Common questions</h2>
+        <h3>What does EPOS integration actually do in stocktaking software?</h3>
+        <p>It moves your sales figures from the till into the stock system without you typing them. That is the whole job. The software still needs an opening count, your deliveries and a closing count from you. Integration does not count anything, and it does not fix a till button that rings the wrong product or the wrong measure.</p>
+        <h3>Do I need EPOS integration to use stocktaking software?</h3>
+        <p>No. Every mainstream till exports a product sales report as a CSV or spreadsheet, and most stock systems accept that file. For a single site counting weekly or monthly, an export takes a couple of minutes and gives the same sum as a live link. Integration earns its money when you are checking variance daily, or running several sites, or have hundreds of lines.</p>
+        <h3>Which pub stocktaking software integrates with which tills?</h3>
+        <p>As of September 2026, Jelly lists Square, Epos Now, Lightspeed and Toast. Growyze lists Square, ICRTouch, Clover, GoEpos, Newbridge and Squirrel. Access sells stock control as part of its own hospitality suite. StockTap takes a sales CSV export from any till and lets you key till figures against a spot check; it has no live till link yet. Always check the vendor's current list, because these change.</p>
+        <h3>My till is supplied by my pub company. Can I integrate it?</h3>
+        <p>Sometimes, and it depends on who controls the back office. If you cannot add third-party connections to the till yourself, ask what reports you can export before you buy stock software on the promise of integration. A product sales export is almost always available even where an API link is not.</p>
+        <h3>Why does my variance look wrong even though the till is integrated?</h3>
+        <p>Nearly always mapping. Each till button has to point at one stock item and one measure. Half pints, doubles, bottles rung as pints, promotions and a catch-all misc drink button all break that. Integration moves whatever the till says, wrong or right, so fix the buttons first.</p>
+
+        <div class="article-sources">
+          <h2>Sources</h2>
+          <ul>
+            <li><a href="https://blog.getjelly.co.uk/real-time-bar-stock-tracking/" rel="nofollow noopener" target="_blank">Jelly, Real-time bar stock tracking (30 August 2026)</a> &mdash; named till integrations (Square, Epos Now, Lightspeed, Toast) and &pound;129 per location per month.</li>
+            <li><a href="https://www.growyze.com/integrations" rel="nofollow noopener" target="_blank">Growyze, Integrations</a> &mdash; named POS integrations; pricing from <a href="https://www.growyze.com/pricing" rel="nofollow noopener" target="_blank">growyze.com/pricing</a>, checked August 2026.</li>
+            <li><a href="https://www.theaccessgroup.com/en-gb/hospitality/sectors/pubs-and-bars/stock-control/" rel="nofollow noopener" target="_blank">The Access Group, pub and bar stock control</a> &mdash; suite-based EPoS integration, no published pricing.</li>
+            <li><a href="https://support.eposnow.com/s/article/Reporting-Sales-Report?language=en_US" rel="nofollow noopener" target="_blank">Epos Now support, Sales Report</a> &mdash; back-office sales reporting and export.</li>
+            <li>Author&rsquo;s own experience running a wet-led site in Washington, Tyne and Wear, and five independent liquor audits, December 2025 to July 2026.</li>
+          </ul>
+        </div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/stock-variance-till-buttons">Your stock variance is probably the button next to the right one</a></li>
+          <li><a href="/guides/pub-stocktaking-software-buyers-checklist-2026">The pub stocktaking software buyer's checklist: 12 questions to ask before you pay</a></li>
+          <li><a href="/guides/how-often-should-a-pub-do-a-stocktake">How often should a pub do a stocktake? By takings, with what to check between counts</a></li>
+          <li><a href="/guides/switching-from-spreadsheet-to-stocktaking-software">Switching from a spreadsheet to stocktaking software: what breaks, what it costs, and when not to bother</a></li>
+          <li><a href="/guides/multi-site-pub-stocktaking-software-uk">Multi-site pub stocktaking software: what changes at site two, and the pricing trap nobody mentions</a></li>
+          <li><a href="/guides/pub-stocktaking-software-compared">Pub stocktaking software compared: StockTap, BevSpot, BarBrain, StockLens AI and Growyze</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

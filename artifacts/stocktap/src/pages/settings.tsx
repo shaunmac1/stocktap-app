@@ -829,16 +829,16 @@ const PRO_FEATURES = [
 ];
 
 const PREMIUM_EXTRA_FEATURES = [
-  "AI insight engine — variance explained",
-  "Demand forecasting + reorder alerts",
-  "Multi-venue consolidated reports",
+  "Insight alerts: GP drift, variance trends, reorder nudges",
+  "Days-of-cover reorder alerts on every line",
+  "Scan delivery notes into stock and prices",
   "Priority support",
 ];
 
 function PlanCard({
   name,
   price,
-  period = "/mo ex-VAT",
+  period = "/mo",
   features,
   extraFeatures,
   badge,
@@ -1007,7 +1007,7 @@ function SubscriptionTab({ venueId, stripeCustomerId, email }: { venueId: string
         <PlanCard
           name="Pro"
           price={proPrice ? fmt(proPrice.unit_amount, proPrice.currency) : billingInterval === "year" ? "£190" : "£19"}
-          period={billingInterval === "year" ? "/yr ex-VAT" : "/mo ex-VAT"}
+          period={billingInterval === "year" ? "/yr" : "/mo"}
           features={PRO_FEATURES}
           accentClass="border-border"
           badge={undefined}
@@ -1020,7 +1020,7 @@ function SubscriptionTab({ venueId, stripeCustomerId, email }: { venueId: string
         <PlanCard
           name="Premium"
           price={premiumPrice ? fmt(premiumPrice.unit_amount, premiumPrice.currency) : billingInterval === "year" ? "£390" : "£39"}
-          period={billingInterval === "year" ? "/yr ex-VAT" : "/mo ex-VAT"}
+          period={billingInterval === "year" ? "/yr" : "/mo"}
           features={PRO_FEATURES}
           extraFeatures={PREMIUM_EXTRA_FEATURES}
           accentClass="border-[#E0A343]/40 bg-[#E0A343]/5"

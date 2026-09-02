@@ -57,3 +57,23 @@ describe("report GP cost", () => {
     expect(gpPercentForProduct(product, 25)).toBeGreaterThan(70);
   });
 });
+
+describe("GP rules ported from the live bundle patches (Aug/Sep 2026)", () => {
+  it("prices a 750ml wine by a 175ml glass when no measure is set", () => {
+    const wine = { type: "wine", unit: "weigh", size_ml: 750, cost_price: 6, pour_price: 4.5 };
+    expect(costPerSoldUnit(wine, 25)).toBeCloseTo(1.4, 8);
+    expect(gpPercentForProduct(wine, 25)).toBeCloseTo(68.888, 2);
+  });
+  it("sells a 200ml single-serve prosecco as a whole bottle", () => {
+    const mini = { type: "sparkling", unit: "weigh", size_ml: 200, cost_price: 1.6, pour_price: 6 };
+    expect(costPerSoldUnit(mini, 25)).toBeCloseTo(1.6, 8);
+  });
+  it("treats non-draught packaged lines as per-unit even when unit is weigh", () => {
+    const peroni = { type: "packaged", unit: "weigh", size_ml: 330, cost_price: 1.15, pour_price: 3.9 };
+    expect(costPerSoldUnit(peroni, 25)).toBeCloseTo(1.15, 8);
+  });
+  it("treats counting_method each as per-unit", () => {
+    const bag = { type: "spirit", unit: "weigh", counting_method: "each", size_ml: 700, cost_price: 2, pour_price: 3 };
+    expect(costPerSoldUnit(bag, 25)).toBeCloseTo(2, 8);
+  });
+});

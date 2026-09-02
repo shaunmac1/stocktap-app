@@ -64,7 +64,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-base font-semibold text-[#F3F1EC] mb-2">Contact</h2>
-          <p>Privacy questions or requests: <a href="mailto:mac_tattoo@hotmail.co.uk" className="text-[#E0A343]">mac_tattoo@hotmail.co.uk</a>. You can also complain to the UK Information Commissioner's Office (ico.org.uk) if you're unhappy with how we've handled your data.</p>
+          <p>Privacy questions or requests: <a href="mailto:hello@stocktap.net" className="text-[#E0A343]">hello@stocktap.net</a>. You can also complain to the UK Information Commissioner's Office (ico.org.uk) if you're unhappy with how we've handled your data.</p>
         </section>
       </div>
     </div>

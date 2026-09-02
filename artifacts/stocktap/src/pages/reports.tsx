@@ -214,7 +214,10 @@ export default function Reports() {
         if (!reading) return false;
         const hasStock = p.unit === "count" ? (reading.count ?? 0) > 0 : reading.ml_remaining > 0;
         if (!hasStock) return false;
-        return !outboundInPeriod.has(p.id) && !soldInPeriod.has(p.id);
+        // A product created inside the lookback window hasn't had a chance to
+        // move yet, so it isn't "unused", it's new.
+        const createdInPeriod = !!(p as any).created_at && String((p as any).created_at).slice(0, 10) >= lookbackStart;
+        return !outboundInPeriod.has(p.id) && !soldInPeriod.has(p.id) && !createdInPeriod;
       })
       .map(p => {
         const reading = latestByProduct[p.id]!;
@@ -680,7 +683,7 @@ export default function Reports() {
                 <div>
                   <div className="font-bold mb-1">Premium feature</div>
                   <div className="text-sm text-muted-foreground max-w-xs">
-                    The AI insight engine flags variance, over-pouring and GP drift automatically. Available on the Premium plan.
+                    Insight alerts flag variance trends, over-pouring and GP drift automatically. Available on the Premium plan.
                   </div>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => setLocation("/settings?tab=subscription")}>Upgrade to Premium</Button>

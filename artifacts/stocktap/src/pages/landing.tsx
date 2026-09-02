@@ -76,11 +76,11 @@ function ComparisonCell({ value }: { value: string | boolean }) {
 
 const CONFIGURATOR_STEPS = [
   { icon: ShieldQuestion, title: "Tell us where the leak is", body: "Spirits behind the bar, draught lines, wine, or all of the above — we'll set your library up to match." },
-  { icon: Upload, title: "Bring your lines in", body: "Import a CSV, start from our full UK pub catalogue (76 pre-weighed bottles plus 270 more common lines), or add products manually as you go." },
+  { icon: Upload, title: "Bring your lines in", body: "Import a CSV, start from our full UK pub catalogue (80 pre-weighed bottles plus 60 common packaged lines), or add products manually as you go." },
   { icon: UserPlus, title: "Create your account", body: "Free to start, no card required. You're weighing your first bottle in under two minutes." },
 ];
 
-const IMPORT_OPTIONS = ["Import CSV", "Starter catalogue (346 products)", "Add manually"];
+const IMPORT_OPTIONS = ["Import CSV", "Starter catalogue (140+ products)", "Add manually"];
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -171,7 +171,7 @@ export default function Landing() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button
             className="h-12 px-8 text-base font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90 w-full sm:w-auto"
-            onClick={() => setLocation("/auth")}
+            onClick={() => setLocation("/auth?mode=signup")}
             data-testid="button-hero-start"
           >
             Start free trial
@@ -388,14 +388,14 @@ export default function Landing() {
         <div className="text-center">
           <Button
             className="h-12 px-8 text-base font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90"
-            onClick={() => setLocation("/auth")}
+            onClick={() => setLocation("/auth?mode=signup")}
             data-testid="button-configurator-start"
           >
             Create my account — {importChoice}
           </Button>
           <div className="mt-3">
             <button
-              onClick={() => setLocation("/auth")}
+              onClick={() => setLocation("/auth?mode=signup")}
               className="text-xs text-[#8A9099] hover:text-[#F3F1EC] underline underline-offset-2"
               data-testid="link-configurator-skip"
             >
@@ -412,7 +412,7 @@ export default function Landing() {
           <p className="text-sm text-[#8A9099] mb-6">Free trial, no card required. Cancel anytime.</p>
           <Button
             className="h-12 px-8 text-base font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90"
-            onClick={() => setLocation("/auth")}
+            onClick={() => setLocation("/auth?mode=signup")}
             data-testid="button-footer-start"
           >
             Start free trial

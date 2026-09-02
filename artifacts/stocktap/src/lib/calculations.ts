@@ -1,3 +1,5 @@
+import { gpPercentForProduct } from "./inventory-reporting";
+
 /**
  * StockTap Core Calculations — UK pub stock-taking by weight
  * All calculations are exact as specified.
@@ -186,8 +188,10 @@ export function calcGpPercent(pourPrice: number, costPerMeasure: number): number
  */
 export function calcProductGpPercent(
   p: {
+    type?: string | null;
     unit?: string | null;
     counting_method?: string | null;
+    container_l?: number | null;
     pack_size?: number | null;
     cost_price?: number | null;
     pour_price?: number | null;
@@ -196,22 +200,10 @@ export function calcProductGpPercent(
   },
   defaultMeasureMl: number,
 ): number | null {
-  if (p.cost_price == null || p.pour_price == null || p.pour_price <= 0) return null;
-  if (p.unit === "count") {
-    // Dozen/case products: cost_price is per PACK but pour_price is per single
-    // unit, so the per-unit cost is cost_price / pack_size. Using the pack cost
-    // directly gives a wildly wrong (often hugely negative) GP.
-    if (p.counting_method === "dozen") {
-      const packSize = p.pack_size && p.pack_size > 0 ? p.pack_size : 12;
-      return calcGpPercent(p.pour_price, p.cost_price / packSize);
-    }
-    return calcGpPercent(p.pour_price, p.cost_price);
-  }
-  if (!p.size_ml || p.size_ml <= 0) return null;
-  const measure = p.measure_ml ?? defaultMeasureMl;
-  if (!measure || measure <= 0) return null;
-  const cpm = calcCostPerMeasure(p.cost_price, p.size_ml, measure);
-  return calcGpPercent(p.pour_price, cpm);
+  // One GP definition everywhere: the Reports helper handles dozen packs,
+  // per-unit packaged lines, draught pints and wine glasses correctly, so the
+  // Library and Home must agree with it rather than carry a second formula.
+  return gpPercentForProduct(p, defaultMeasureMl);
 }
 
 /**

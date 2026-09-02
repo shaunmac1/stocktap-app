@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Is pub stocktaking software worth it? The payback maths, done honestly | StockTap</title>
+  <meta name="description" content="A working licensee runs the actual payback numbers on pub stocktaking software: what the apps cost, what stock loss costs, a payback table by weekly takings, and when the honest answer is don't bother." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/pub-stocktaking-software-roi-payback-time" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Is pub stocktaking software worth it? The payback maths, done honestly | StockTap" />
+  <meta property="og:description" content="A working licensee runs the actual payback numbers on pub stocktaking software: what the apps cost, what stock loss costs, a payback table by weekly takings, and when the honest answer is don't bother." />
+  <meta property="og:url" content="https://stocktap.net/guides/pub-stocktaking-software-roi-payback-time" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Is pub stocktaking software worth it? The payback maths, done honestly | StockTap" />
+  <meta name="twitter:description" content="A working licensee runs the actual payback numbers on pub stocktaking software: what the apps cost, what stock loss costs, a payback table by weekly takings, and when the honest answer is don't bother." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Is pub stocktaking software worth it? The payback maths, done honestly",
+      "description": "A working licensee runs the actual payback numbers on pub stocktaking software: what the apps cost, what stock loss costs, a payback table by weekly takings, and when the honest answer is don't bother.",
+      "datePublished": "2026-08-27",
+      "dateModified": "2026-08-27",
+      "author": { "@type": "Person", "name": "Shaun McManus", "jobTitle": "Licensee", "url": "https://stocktap.net/about" },
+      "publisher": { "@type": "Organization", "name": "StockTap", "url": "https://stocktap.net" },
+      "mainEntityOfPage": "https://stocktap.net/guides/pub-stocktaking-software-roi-payback-time"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Is pub stocktaking software worth it for a small pub?", "acceptedAnswer": { "@type": "Answer", "text": "Usually, but not always. A pub taking £5,000 a week over the bar loses about £90 a month at a 0.5% variance and about £181 at 1%, measured against ex-VAT sales. An app at £19 to £79 a month pays back if it helps you find even part of that. If your variance already sits inside about ±0.3% of sales and you genuinely keep a spreadsheet up to date, the payback is thin and you can reasonably not bother." } },
+        { "@type": "Question", "name": "How quickly does stocktaking software pay for itself?", "acceptedAnswer": { "@type": "Answer", "text": "In most pubs the first month, because the first proper count usually surfaces something specific: a miscoded till button, a drifting optic, a keg being sold as the wrong product. At £19 a month the subscription is covered by catching just under five average-priced pints of lager a month, valued ex VAT. What takes longer is fixing the habits the count uncovers." } },
+        { "@type": "Question", "name": "Is stocktaking software cheaper than hiring a stocktaker?", "acceptedAnswer": { "@type": "Answer", "text": "On pure cost, yes. Published independent stocktaker rates run about £125 to £320 a visit, so monthly wet visits cost roughly £1,500 to £3,840 a year against about £228 to £948 a year for a monthly app. But they are different jobs. A stocktaker brings independent judgement a few times a year; software lets you count weekly yourself so problems show up in days, not quarters. Plenty of sites sensibly run both." } },
+        { "@type": "Question", "name": "What return should I expect from stocktaking software?", "acceptedAnswer": { "@type": "Answer", "text": "Do not expect the software itself to save you anything. It finds the leak, it does not plug it. The return comes from what you do after the count, like fixing the till button or the pour habit it uncovers. Measured honestly, a wet-led pub that moves its unexplained variance from around 1% of sales to under 0.5% keeps roughly £1,000 to £4,300 a year depending on turnover, less the subscription and your counting time." } }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "Is pub stocktaking software worth it?", "item": "https://stocktap.net/guides/pub-stocktaking-software-roi-payback-time"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Money &amp; margins
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Money &amp; margins</div>
+        <h1>Is pub stocktaking software worth it? The payback maths, done honestly</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-08-27">27 August 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+        <p><strong>Here's the short version. A pub taking £8,000 a week over the bar loses about £144 a month at a 0.5% stock variance and about £289 a month at 1%, measured properly against ex-VAT sales. The apps cost £19 to £79 a month. So the sum works if the software helps you find even a slice of that, and it doesn't work if you sign up and never count. This is the full payback maths, including the bits vendors leave out: your own time, what a stocktaker costs instead, and when the honest answer is don't bother.</strong></p>
+
+        <p>I run a pub in Washington, Tyne and Wear. I've had five independent liquor audits in eight months, one of which ended in a £755 chargeback, so I've done this arithmetic with real money on the table rather than in a vendor's spreadsheet. Nobody selling stock software publishes an honest payback calculation. The ones I found while writing this were either generic ROI calculators with no pub in them or "book a demo and we'll tell you". So here's mine, workings shown.</p>
+
+        <h2>What the software actually costs</h2>
+
+        <p>Start with the easy side of the equation. I've priced the whole market in <a href="/guides/pub-stocktaking-software-cost-2026">the software cost guide</a>, but the short version: StockTap is £19 a month on the founding-member rate. Growyze is £948 a year, which is £79 a month. Nory starts at £2,148 a year. StockTake Online is £1,530 a year plus a £699 setup fee. Access Procure Wizard starts around £10,800 a year on a 36-month term, which is group money for a group product.</p>
+
+        <p>So call it £228 to £948 a year for the tier a single pub actually shops in. That's the cost you're trying to beat.</p>
+
+        <h2>What stock loss actually costs you</h2>
+
+        <p>This is the side nobody gives you straight, because the honest number depends on your takings and your variance, not on a scary industry headline. So work it from your own bar.</p>
+
+        <p>Take your weekly wet takings from the till. That figure includes VAT, and stock reports run ex VAT, so knock the 20% off first or your sums will flatter you. I've written up <a href="/guides/ex-vat-vs-inc-vat-stock-value">why that VAT trap catches so many licensees</a> separately. £8,000 a week through the till is £6,667 a week of ex-VAT sales, which is £28,889 a month.</p>
+
+        <p>Now the variance. From my own audits and every operator report I've compared notes on, <a href="/guides/acceptable-stocktake-variance">most pub companies treat anything inside ±0.5% of sales as normal and start asking questions around 1%</a>. Four of my five audits landed inside three tenths of a per cent. The fifth came back at minus 1.08%, and that's the one that cost me £755.</p>
+
+        <p>Put those together and you get the number that matters:</p>
+
+        <table>
+          <caption>Monthly cost of unexplained stock variance by weekly wet takings. Sales converted to ex VAT (takings ÷ 1.2), month = weekly × 52 ÷ 12. Author's arithmetic.</caption>
+          <thead>
+            <tr><th>Weekly wet takings (inc VAT)</th><th>Monthly ex-VAT sales</th><th>Loss at 0.5% variance</th><th>Loss at 1% variance</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>£5,000</td><td>£18,056</td><td>£90/month</td><td>£181/month</td></tr>
+            <tr><td>£8,000</td><td>£28,889</td><td>£144/month</td><td>£289/month</td></tr>
+            <tr><td>£12,000</td><td>£43,333</td><td>£217/month</td><td>£433/month</td></tr>
+            <tr><td>£20,000</td><td>£72,222</td><td>£361/month</td><td>£722/month</td></tr>
+          </tbody>
+        </table>
+
+        <p>Read your own row. If you're a £8,000-a-week wet-led site running at 1%, there's roughly £3,500 a year leaving the building unexplained. Against a £228-a-year app, the software doesn't need to be a miracle. It needs to help you find a fraction of the leak.</p>
+
+        <h2>The five pints a month test</h2>
+
+        <p>If the table feels abstract, here's the version I actually use. The average UK pint of lager was £4.89 in the Morning Advertiser's 2026 survey. Ex VAT that's £4.08. StockTap at £19 a month is covered by finding just under five of those pints a month. Not five a day. Five a month, across every optic and keg in the building.</p>
+
+        <p>One till button ringing a premium lager through as standard covers that on its own. One optic pouring generous covers it. I found both in my first month of weighing bottles instead of eyeballing them, which is <a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">the counting method I'd use whether you buy software or not</a>.</p>
+
+        <h2>Count your own time in, because vendors won't</h2>
+
+        <p>Every ROI page skips this. Counting takes time and your time isn't free. Call a weekly count 90 minutes once you're practised. Even priced at the £12.71 National Living Wage, that's about £83 a month of labour. Price it at what your own hour is actually worth and it's more.</p>
+
+        <p>Two honest things follow from that. First, the real cost of weekly counting is your time, not the subscription, so the software's job is to make the count fast enough that you keep doing it. That's the whole argument for counting on a phone with the maths done for you instead of a clipboard and a calculator at midnight. Second, if a system takes so long that you quietly stop counting, its payback time is infinite. The most expensive stock system is the one you don't use, whatever it costs.</p>
+
+        <h2>Software against a stocktaker, on pure money</h2>
+
+        <p>The other thing your subscription competes with is a human. I've priced that market too, in <a href="/guides/pub-stocktaker-cost-2026">the stocktaker cost guide</a>: published independent rates run about £125 to £320 a visit, so monthly wet visits cost roughly £1,500 to £3,840 a year. Against £228 to £948 for an app, software wins the arithmetic easily.</p>
+
+        <p>But that's not the whole truth, and I'd rather you heard it from me. A stocktaker brings independent judgement, and when you're disputing an audit with your pub company, independent is the word that matters. Software gives you frequency instead: a count every week means a problem shows up in days rather than surfacing at the quarterly visit three months after it started. My £755 deficit built up over a whole audit period before anyone counted. On weekly numbers it would have shown its face inside a fortnight, at a fraction of the size.</p>
+
+        <p>Plenty of sensible sites run both, an app weekly and a professional twice a year. The combined cost is still less than monthly professional visits alone.</p>
+
+        <h2>When it is not worth it</h2>
+
+        <p>The vendors won't write this section, so I will.</p>
+
+        <p>If your variance already sits inside about ±0.3% of sales, audit after audit, and you keep a spreadsheet honestly and actually enjoy it, the payback on paid software is thin. You'd be buying convenience, not recovered stock. That's a fine reason to buy things, but it's not ROI, and I'm not going to pretend it is.</p>
+
+        <p>Same if you know you won't count. Software doesn't count your cellar for you. If the count isn't going to happen weekly whoever presses the buttons, save the subscription and book a quarterly stocktaker instead, because a professional four times a year beats an app used never.</p>
+
+        <p>And if your leak is one known thing, a till programming mess, say, you may not need a system to tell you. <a href="/guides/stock-variance-till-buttons">Fix the till buttons first</a>. It's the cheapest stock improvement in the trade.</p>
+
+        <h2>How fast the payback actually lands</h2>
+
+        <p>In my experience the return isn't a smooth £50 a month drip. It arrives in lumps, and the first lump usually lands in month one, because the first proper count is when you discover the specific things nobody knew: the miscoded button, the keg on the wrong line, the drifting optic, the delivery that was signed for and never arrived in full.</p>
+
+        <p>The first count gives you a baseline. The second, a week later, gives you a direction. By the fourth you know whether your gap is froth and paperwork or something that walks. From there the return depends entirely on whether you fix what the numbers point at. The software finds the leak. You still have to plug it. If you want a feel for the size of yours before spending anything, put your own figures into the <a href="/tools/pub-gp-profit-leak-calculator">free GP profit leak calculator</a> on this site.</p>
+
+        <p>That's the honest sum. Not "save 3% of turnover guaranteed". A cheap subscription plus a real cost in your own time, set against a leak that in most pubs is bigger than both put together, and findable.</p>
+
+        <div class="article-sources">
+          <h2>Sources</h2>
+          <ul>
+            <li>Published vendor pricing: Growyze £948/year; Nory from £2,148/year; StockTake Online £1,530/year plus £699 setup; Access Procure Wizard from £10,800/year on 36-month minimum &mdash; respective vendors&rsquo; published pricing, collected in the StockTap software cost guide, 2026.</li>
+            <li>Independent stocktaker published rates, £125 to £320 a visit (Roslyns, OSN, InnStock, Dales, RW Book-Keeping) &mdash; collected in the StockTap stocktaker cost guide, 2026.</li>
+            <li>Average UK lager pint £4.89 &mdash; Morning Advertiser pint price survey, 21 May 2026.</li>
+            <li>National Living Wage £12.71/hour from April 2026 &mdash; UK Government.</li>
+            <li>Acceptable variance benchmarks: ±0.5% of sales treated as normal, questions around 1% &mdash; operator practice, examined against Backbar Academy&rsquo;s US 1&ndash;2% figure in the StockTap variance guide.</li>
+            <li>Author&rsquo;s own five independent liquor audits, December 2025 to July 2026, including a &minus;1.08% deficit charged back at £755. Payback tables are the author&rsquo;s arithmetic on the stated inputs.</li>
+          </ul>
+        </div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Run the sum on your own bar</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/pub-stocktaking-software-cost-2026">How much does pub stocktaking software actually cost in 2026?</a></li>
+          <li><a href="/guides/pub-stocktaker-cost-2026">What a pub stocktaker actually costs in 2026</a></li>
+          <li><a href="/guides/acceptable-stocktake-variance">What is an acceptable stocktake variance in a UK pub?</a></li>
+          <li><a href="/guides/ex-vat-vs-inc-vat-stock-value">Ex-VAT vs inc-VAT stock values: the trap in your reports</a></li>
+          <li><a href="/guides/stocktaking-software-for-pubs">Stocktaking software for pubs: what it does, what it costs, and how to pick one</a></li>
+          <li><a href="/guides/best-pub-stocktaking-software-2026">The best pub stocktaking software in 2026</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

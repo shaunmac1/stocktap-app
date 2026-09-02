@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pub stock loss: pouring, unrecorded waste, or a measuring error? How to tell from the numbers | StockTap</title>
+  <meta name="description" content="A stocktake says what's missing, not why. Pouring, unrecorded waste and measuring error each leave a different fingerprint. A table to tell them apart." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/pub-stock-loss-pouring-waste-or-measuring-error" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Pub stock loss: pouring, unrecorded waste, or a measuring error? How to tell from the numbers | StockTap" />
+  <meta property="og:description" content="A stocktake says what's missing, not why. Pouring, unrecorded waste and measuring error each leave a different fingerprint. A table to tell them apart." />
+  <meta property="og:url" content="https://stocktap.net/guides/pub-stock-loss-pouring-waste-or-measuring-error" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pub stock loss: pouring, unrecorded waste, or a measuring error? How to tell from the numbers | StockTap" />
+  <meta name="twitter:description" content="A stocktake says what's missing, not why. Pouring, unrecorded waste and measuring error each leave a different fingerprint. A table to tell them apart." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Pub stock loss: pouring, unrecorded waste, or a measuring error? How to tell from the numbers",
+      "description": "A stocktake says what's missing, not why. Pouring, unrecorded waste and measuring error each leave a different fingerprint. A table to tell them apart.",
+      "datePublished": "2026-08-31",
+      "dateModified": "2026-08-31",
+      "author": { "@type": "Person", "name": "Shaun McManus", "jobTitle": "Licensee", "url": "https://stocktap.net/about" },
+      "publisher": { "@type": "Organization", "name": "StockTap", "url": "https://stocktap.net" },
+      "mainEntityOfPage": "https://stocktap.net/guides/pub-stock-loss-pouring-waste-or-measuring-error"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What are the main causes of stock loss in a pub?", "acceptedAnswer": { "@type": "Answer", "text": "Three, in practice: pouring loss (over-measures, topped-up heads, generous doubles, draught froth), unrecorded waste (casks gone off, line cleans, breakages, ullage that nobody logged) and measuring error, where the stock was never missing and the count itself was wrong. Theft is the last thing to consider, not the first." } },
+        { "@type": "Question", "name": "How do I tell pouring loss from a counting error?", "acceptedAnswer": { "@type": "Answer", "text": "Pouring loss is smeared across the busy lines, scales with volume and repeats at a similar percentage each count. Measuring error flips: a line that is down this count is up the next, the average across two counts is near zero, and it concentrates in eyeballed open bottles and part containers rather than case-counted stock." } },
+        { "@type": "Question", "name": "Why do my draught lines always show a loss?", "acceptedAnswer": { "@type": "Answer", "text": "A pint served with a head only has to be 95% liquid under British Beer and Pub Association guidance, so up to 5% of every pint is froth that never rings through the till as volume. A stock system that does not allow for the head reports it as missing. Line cleans and cask changes add to the draught-only hole." } },
+        { "@type": "Question", "name": "Should I suspect theft if stock is missing?", "acceptedAnswer": { "@type": "Answer", "text": "Not first. Tighten the count (weigh spirits, calibrate containers, check the VAT setting), start a wastage log and give it a month. A genuine problem shows as concentrated, repeated loss on specific high-value lines that does not move after that, usually alongside till patterns such as voids and no-sales, not stock alone." } },
+        { "@type": "Question", "name": "What should I do first when a stocktake shows a big loss?", "acceptedAnswer": { "@type": "Answer", "text": "Get the variance per line for two consecutive counts and look at the shape before the total. Fix the counting method first, then log waste for a month, then treat whatever steady loss remains on the busy lines as a pouring and training issue." } }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocktap.net"},
+        {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://stocktap.net/guides"},
+        {"@type": "ListItem", "position": 3, "name": "Pub stock loss: pouring, waste or measuring error", "item": "https://stocktap.net/guides/pub-stock-loss-pouring-waste-or-measuring-error"}
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Stocktaking &amp; variance
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Stocktaking &amp; variance</div>
+        <h1>Pub stock loss: pouring, unrecorded waste, or a measuring error? How to tell from the numbers</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-08-31">31 August 2026</time>
+        </div>
+      </header>
+
+
+        <p><strong>A stocktake tells you how much is missing. It doesn't tell you why, and the why is the only thing you can act on. In my experience the missing pounds come from one of three places: pouring (over-measures, froth, top-ups, the free splash), waste that happened but never got written down, or a measuring error, where the stock was never missing at all and the count was wrong. Each one leaves a different fingerprint in the numbers. This is how to read them apart before you change anything, and definitely before you have a difficult conversation with anyone.</strong></p>
+
+        <p>I run a wet-led pub in Washington, Tyne and Wear. I've had five liquor audits in eight months, one of them £756 down, and the useful thing I learned from arguing about that one is that the total is nearly meaningless. The pattern underneath it is everything.</p>
+
+        <h2>Start with the shape, not the total</h2>
+
+        <p>Before you look at the bottom line, look at how the loss is spread. Get your variance per line, in pounds and in units, for at least two consecutive counts. One count can't tell you anything about cause. Two can. Three is better.</p>
+
+        <p>Then ask four questions of the spread. Is the loss concentrated in a few lines or smeared across everything? Is it proportional to volume, so the fastest lines lose the most? Does the same line lose every count, or does it lose this time and gain next time? And does it follow a calendar, spiking on a specific weekend or after a specific event? The answers point at the cause more reliably than any gut feeling.</p>
+
+        <h2>Fingerprint one: pouring</h2>
+
+        <p>Pouring loss is over-delivery. It's the 25ml measure that's really 28 because the optic's tired, the head that gets topped up on request, the double that's a bit generous for a regular, the cocktail spec nobody follows, and on draught, the froth. It is almost never one person and it is almost never deliberate. It's habit, and habit is proportional to volume.</p>
+
+        <p>So the fingerprint is: the loss is smeared across the busy lines, it scales with how much each line sells, it's roughly consistent from count to count, and it's expressed as a fairly steady percentage rather than a fixed number of bottles. House vodka and the main lager lose the most in pounds because they sell the most. Slow lines look fine.</p>
+
+        <p>Draught has its own wrinkle. British Beer and Pub Association guidance says a pint served with a head only has to be 95% liquid, so up to 5% of every pint is legally froth that never rings through the till as volume. A naive stock system reports that as missing. If your draught lines are all showing a loss of a few percent and your spirits aren't, that's not pouring, that's the head allowance and your tool not understanding British pubs. <a href="/guides/keg-calibration-guide-pub-cellar">The calibration guide</a> covers how to separate the two.</p>
+
+        <p>What you do about real pouring loss is boring and works: check the optics, standardise the measure on the busy spirits, agree the head, and re-count in a week. I wrote up what staff pours actually cost in <a href="/guides/staff-pours-margin-cost">the staff pours guide</a>, and it's a training problem, not a trust problem.</p>
+
+        <h2>Fingerprint two: unrecorded waste</h2>
+
+        <p>Waste is stock that really did leave the building without being sold: the cask that went off, the line clean, the bottle that got knocked over, the returned pint, the ullage you drew off, the wine that oxidised, the kitchen borrowing a bottle of brandy. All legitimate. All invisible to a stocktake unless somebody wrote it down at the time.</p>
+
+        <p>The fingerprint is lumpy. Waste loss is concentrated in specific lines, in specific counts. One cask ale shows an 18-pint hole and the other three are fine. The white wine by the glass is 2 bottles down after a quiet week. The loss doesn't scale with volume, it doesn't repeat evenly, and when you ask around, somebody usually remembers. "Oh, that one went cloudy on Sunday." If you keep a wastage book and the losses line up with the entries, it's waste. If you don't keep one, waste and pouring look identical on paper and you'll blame the wrong thing.</p>
+
+        <p>Draught deserves its own line here. A cask that's on for four days, a keg that gets changed mid-session with a foaming line, a line clean that pulls through two pints per line and nobody logs it, these add up to a persistent draught hole that looks like a pouring problem and isn't. If the hole is on draught only and it's biggest on the lines that get cleaned or changed most, look at the cellar before the bar.</p>
+
+        <p>The fix is a wastage log people will actually use, which means one that takes ten seconds. Line, amount, reason, initials. Then the next count nets it off and what's left is the real question.</p>
+
+        <h2>Fingerprint three: measuring error</h2>
+
+        <p>This is the one nobody wants to hear, and I'd bet it's the most common. The stock isn't missing. The count is wrong. The bottle was called at three tenths when it was four. The dip was read on a keg that was tilted. A case was counted twice. A delivery went in on the wrong date, so it landed in the wrong period. The sell price was put in inc-VAT against a cost price that's ex-VAT, so the whole GP% is seven points flattered. Or the opening stock was itself an estimate, so every count since inherits its error.</p>
+
+        <p>The fingerprint is a flip-flop. A line that's 6 units down this count is 5 units up the next. The total swings but the two-count average is near zero. Spirits that get eyeballed swing; packaged lines that get counted by the case don't. Part containers swing; full ones don't. If your variance report looks like a heart monitor rather than a slope, you don't have a loss, you have a counting method.</p>
+
+        <p>Two more tells. If the loss appeared the week you changed something (a new product line, a new price, a new person counting), it's probably the change, not the stock. And if the loss is in value but not in units, or vice versa, it's a price or a VAT setting. <a href="/guides/ex-vat-vs-inc-vat-stock-value">Ex-VAT versus inc-VAT</a> catches more people than anything else on this list.</p>
+
+        <p>The fix is to take the guessing out of the count. Weigh the open spirits instead of eyeballing them, calibrate the dip on every container size you use, count the same way every time, and check the opening stock once properly instead of inheriting it. Tighten the counting method first and a surprising amount of the "loss" goes away before anyone has changed how they pour.</p>
+
+        <h2>The diagnosis table</h2>
+
+        <table>
+          <caption>How the three causes show up across two or more consecutive counts. Author's own working model from the receiving end of audits; use it to decide where to look first, not as proof.</caption>
+          <thead>
+            <tr><th>What you see</th><th>Pouring</th><th>Unrecorded waste</th><th>Measuring error</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Spread across lines</td><td>Smeared across busy lines</td><td>Lumpy, a few lines</td><td>Lumpy, the eyeballed lines</td></tr>
+            <tr><td>Scales with volume?</td><td>Yes</td><td>No</td><td>No</td></tr>
+            <tr><td>Repeats each count?</td><td>Steady, similar %</td><td>Irregular</td><td>Flips sign, averages near zero</td></tr>
+            <tr><td>Draught vs spirits</td><td>Both, draught inflated by head</td><td>Draught-heavy if cellar</td><td>Part containers and open bottles</td></tr>
+            <tr><td>Follows a calendar?</td><td>Busy nights</td><td>Events, line cleans, cask changes</td><td>Whoever counted</td></tr>
+            <tr><td>Units vs value agree?</td><td>Yes</td><td>Yes</td><td>Often no (price or VAT)</td></tr>
+            <tr><td>First thing to do</td><td>Check optics, agree the head, retrain</td><td>Wastage log, check the cellar</td><td>Weigh, calibrate, recheck opening stock</td></tr>
+          </tbody>
+        </table>
+
+        <h2>What about theft?</h2>
+
+        <p>People ask. Here's my honest position after nineteen years behind the pumps: it's the last thing to consider, not the first, because the three causes above explain nearly everything and are fixable without accusing anyone. A genuine problem tends to look like concentrated, repeated loss on specific high-value lines that doesn't move when you fix the count and log the waste, and it's usually paired with till patterns, voids and no-sales, rather than stock alone. If you get there, you get there with two months of clean numbers and a wastage book, not a hunch after one bad audit. I'd rather find out it was the dip stick before I've said something I can't take back.</p>
+
+        <h2>The order to work in</h2>
+
+        <p>Fix the count first, because until the measuring is tight you can't trust the shape. Weigh the spirits, calibrate the containers, sort the VAT setting, count the same way twice a fortnight apart. Then start the wastage log and give it a month. Whatever loss is still there, smeared across the busy lines and steady, is pouring, and pouring is a training conversation you can have with a straight face because you've done the work.</p>
+
+        <p>That's the whole method. The <a href="/guides/acceptable-stocktake-variance">acceptable variance guide</a> tells you when the number left over is normal. This one tells you where it came from.</p>
+
+        <div class="article-sources">
+          <h2>Sources</h2>
+          <ul>
+            <li><a href="https://beerandpub.com/" rel="nofollow noopener" target="_blank">British Beer and Pub Association</a>, head-of-beer guidance, minimum 95% liquid in a measure served with a head.</li>
+            <li>UK VAT standard rate 20%, <a href="https://www.gov.uk/vat-rates" rel="nofollow noopener" target="_blank">GOV.UK</a>. The roughly seven-point GP% flattery from mixing inc- and ex-VAT figures is worked through in <a href="/guides/how-to-calculate-gp-percentage-pub-drinks">how to calculate GP% on pub drinks</a>.</li>
+            <li>Author's own experience as a licensee in Washington, Tyne and Wear, including five independent liquor audits between December 2025 and July 2026, one of which was £756 down.</li>
+          </ul>
+        </div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/acceptable-stocktake-variance">What is an acceptable stocktake variance in a UK pub?</a></li>
+          <li><a href="/guides/stocktake-net-vs-gross">How to read a pub stocktake report: net vs gross variance</a></li>
+          <li><a href="/guides/keg-calibration-guide-pub-cellar">Why your keg and cask calibration is probably wrong</a></li>
+          <li><a href="/guides/staff-pours-margin-cost">What staff pours actually cost your margin</a></li>
+          <li><a href="/guides/ex-vat-vs-inc-vat-stock-value">Ex-VAT or inc-VAT: reading your pub stock valuation correctly</a></li>
+          <li><a href="/guides/stock-variance-till-buttons">Stock variance and till buttons</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Search, Mail } from "lucide-react";
 
-const SUPPORT_EMAIL = "mac_tattoo@hotmail.co.uk";
+const SUPPORT_EMAIL = "hello@stocktap.net";
 
 interface FAQ {
   q: string;

@@ -5,6 +5,7 @@ import {
 } from "./calculations";
 
 export interface ReportProductLike {
+  type?: string | null;
   unit?: string | null;
   counting_method?: string | null;
   size_ml?: number | null;
@@ -84,12 +85,22 @@ export function costPerSoldUnit(
     return packSize > 0 ? costPrice / packSize : null;
   }
 
-  if (isDiscreteCountProduct(product)) return costPrice;
+  // Per-unit cost: discrete counts, anything counted "each", and packaged
+  // lines that are not draught (a bottle of Peroni is sold whole, not by measure).
+  if (
+    isDiscreteCountProduct(product) ||
+    product.counting_method === "each" ||
+    (product.type === "packaged" && !isVolumeCountingMethod(product.counting_method))
+  ) return costPrice;
 
   const capacityMl = productCapacityMl(product);
   if (capacityMl <= 0) return null;
+  // Wine and sparkling default to a 175ml glass, not the spirit measure.
+  const isWine = product.type === "wine" || product.type === "sparkling";
+  // Single-serve wine and prosecco (187ml, 200ml) is sold as the whole bottle.
+  if (isWine && capacityMl <= 250 && product.measure_ml == null) return costPrice;
   const measureMl = product.measure_ml
-    ?? (isVolumeCountingMethod(product.counting_method) ? ML_PER_PINT : defaultMeasureMl);
+    ?? (isVolumeCountingMethod(product.counting_method) ? ML_PER_PINT : isWine ? 175 : defaultMeasureMl);
   if (measureMl <= 0) return null;
   return (costPrice / capacityMl) * measureMl;
 }

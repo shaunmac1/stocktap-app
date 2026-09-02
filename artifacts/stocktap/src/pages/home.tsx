@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProducts, useLatestReadings, useLatestReadingsByProduct } from "@/hooks/api";
+import { useProducts, useLatestReadings, useLatestReadingsByProduct, useStocktakes } from "@/hooks/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -13,6 +13,7 @@ import {
   formatGBP,
   productCapacityMl,
 } from "@/lib/calculations";
+import { isVolumeCountingMethod } from "@/lib/inventory-reporting";
 import { formatDistanceToNow } from "date-fns";
 import { TrendingDown, TrendingUp, Settings } from "lucide-react";
 import { StocktakeTasksCard } from "@/components/StocktakeTasksCard";
@@ -24,6 +25,8 @@ export default function Home() {
   const { data: allReadings } = useLatestReadings(venue?.id);
   // Full latest-per-product map for accurate value calculations — no 100-reading cap
   const { data: latestByProduct = {} } = useLatestReadingsByProduct(venue?.id);
+  const { data: stocktakes } = useStocktakes(venue?.id);
+  const openStocktake = (stocktakes ?? []).find((s: any) => s.status === "open");
 
   const measureMl = venue?.measure_ml ?? 25;
 
@@ -33,7 +36,9 @@ export default function Home() {
     return products.reduce((sum, p) => {
       const r = latestByProduct[p.id];
       if (!r || !p.cost_price) return sum;
-      if (p.unit === "count") {
+      // Draught is stored as unit "count" but read in ml (keg weight, dipstick),
+      // so it has to be valued by volume like a bottle, not by count.
+      if (p.unit === "count" && !isVolumeCountingMethod(p.counting_method)) {
         return sum + calcCountValuation(r.count ?? 0, p.cost_price);
       }
       return sum + calcWeighValuation(r.ml_remaining, productCapacityMl(p), p.cost_price);
@@ -121,9 +126,30 @@ export default function Home() {
 
         {/* Quick actions */}
         <div className="space-y-3">
+          {openStocktake && (
+            <Link href="/stocktake" className="block">
+              <div
+                className="rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-900/20 p-4 flex items-center justify-between gap-3"
+                data-testid="banner-open-stocktake"
+              >
+                <div>
+                  <div className="font-bold text-sm">Count in progress</div>
+                  <div className="text-xs text-muted-foreground">
+                    Started{" "}
+                    {new Date(openStocktake.opened_at || openStocktake.created_at).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                    . Pick up where you left off.
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-amber-700 dark:text-amber-300 whitespace-nowrap">Resume →</span>
+              </div>
+            </Link>
+          )}
           <Link href="/stocktake" className="block">
             <Button size="lg" className="w-full h-16 text-lg font-bold shadow-md" data-testid="button-home-stocktake">
-              New Stocktake
+              {openStocktake ? "Continue stocktake" : "New Stocktake"}
             </Button>
           </Link>
           <div className="grid grid-cols-2 gap-3">
