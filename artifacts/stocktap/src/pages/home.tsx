@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProducts, useLatestReadings, useLatestReadingsByProduct, useStocktakes } from "@/hooks/api";
+import { useProducts, useLatestReadings, useLatestReadingsByProduct, useStocktakes, useLineEntries } from "@/hooks/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -28,7 +28,12 @@ export default function Home() {
   const { data: latestByProduct = {} } = useLatestReadingsByProduct(venue?.id);
   const { data: stocktakes } = useStocktakes(venue?.id);
   const openStocktake = (stocktakes ?? []).find((s: any) => s.status === "open");
+  const hasClosedCount = (stocktakes ?? []).some((s: any) => s.status === "closed");
   const trial = venueTrial(venue);
+  // "8 of 20 done" on the resume banner
+  const { data: openEntries = [] } = useLineEntries(openStocktake?.id ?? null);
+  const openTotal = (openStocktake as any)?.product_ids?.length ?? (products?.length ?? 0);
+  const openDone = new Set(openEntries.map(e => e.product_id)).size;
 
   const measureMl = venue?.measure_ml ?? 25;
 
@@ -142,28 +147,44 @@ export default function Home() {
 
         {/* Quick actions */}
         <div className="space-y-3">
+          {!openStocktake && !hasClosedCount && (
+            <Link href="/first-count" className="block">
+              <div
+                className="rounded-xl border-2 border-primary/40 bg-primary/5 p-4 flex items-center justify-between gap-3"
+                data-testid="banner-first-count"
+              >
+                <div>
+                  <div className="font-bold text-sm">Do your first count</div>
+                  <div className="text-xs text-muted-foreground">
+                    Pick your 20 biggest sellers and weigh them. About twenty minutes to your first real number.
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-primary whitespace-nowrap">Start →</span>
+              </div>
+            </Link>
+          )}
           {openStocktake && (
-            <Link href="/stocktake" className="block">
+            <Link href="/stocktake?open=1" className="block">
               <div
                 className="rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-900/20 p-4 flex items-center justify-between gap-3"
                 data-testid="banner-open-stocktake"
               >
                 <div>
-                  <div className="font-bold text-sm">Count in progress</div>
+                  <div className="font-bold text-sm">Count in progress{openTotal > 0 ? ` — ${openDone} of ${openTotal} done` : ""}</div>
                   <div className="text-xs text-muted-foreground">
                     Started{" "}
                     {new Date(openStocktake.opened_at || openStocktake.created_at).toLocaleDateString("en-GB", {
                       day: "numeric",
                       month: "short",
                     })}
-                    . Pick up where you left off.
+                    . {openTotal > 0 && openTotal - openDone > 0 ? `${openTotal - openDone} left — a couple of minutes each.` : "Pick up where you left off."}
                   </div>
                 </div>
                 <span className="text-sm font-semibold text-amber-700 dark:text-amber-300 whitespace-nowrap">Resume →</span>
               </div>
             </Link>
           )}
-          <Link href="/stocktake" className="block">
+          <Link href={openStocktake ? "/stocktake?open=1" : "/stocktake"} className="block">
             <Button size="lg" className="w-full h-16 text-lg font-bold shadow-md" data-testid="button-home-stocktake">
               {openStocktake ? "Continue stocktake" : "New Stocktake"}
             </Button>

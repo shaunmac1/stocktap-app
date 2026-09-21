@@ -277,6 +277,7 @@ export interface Database {
           opened_at: string;
           closed_at: string | null;
           total_value: number | null;
+          product_ids: string[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -288,6 +289,7 @@ export interface Database {
           opened_at?: string;
           closed_at?: string | null;
           total_value?: number | null;
+          product_ids?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -296,6 +298,7 @@ export interface Database {
           status?: "open" | "closed";
           closed_at?: string | null;
           total_value?: number | null;
+          product_ids?: string[] | null;
           updated_at?: string;
         };
         Relationships: [];

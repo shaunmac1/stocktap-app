@@ -10,6 +10,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSaveStocktakeSchedule } from "@/hooks/useStocktakeCadence";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NumberPad } from "@/components/NumberPad";
@@ -60,6 +61,30 @@ export default function Stocktake() {
 
   // Core navigation
   const [step, setStep] = useState<Step>("list");
+  const [showSecondCountPrompt, setShowSecondCountPrompt] = useState(false);
+  const [bookingSecondCount, setBookingSecondCount] = useState(false);
+  const saveSchedule = useSaveStocktakeSchedule();
+  const bookSecondCount = async () => {
+    if (!venue?.id) return;
+    setBookingSecondCount(true);
+    try {
+      await saveSchedule.mutateAsync({
+        p_venue_id: venue.id,
+        p_count_location_id: null,
+        p_cadence_days: 7,
+        p_preferred_weekday: new Date().getDay(),
+        p_reminder_time: "10:00",
+        p_assigned_user_id: null,
+        p_enabled: true,
+      });
+      toast({ title: "Next count booked", description: "Same day next week. You'll see it on Home, and you can change it in Settings." });
+      setShowSecondCountPrompt(false);
+    } catch (err: any) {
+      toast({ title: "Couldn't book it", description: err.message, variant: "destructive" });
+    } finally {
+      setBookingSecondCount(false);
+    }
+  };
   const [selectedLocationId, setSelectedLocationId] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedVendor, setSelectedVendor] = useState("all");
@@ -344,6 +369,9 @@ export default function Stocktake() {
         location_id: selectedLocationId === "all" ? null : selectedLocationId,
         status: "open",
         opened_at: new Date().toISOString(),
+        // Remember which lines this count covers, so Resume shows the same 20
+        // (not the whole library) and Home can say "8 of 20 done".
+        product_ids: selectedProductIds.length > 0 && selectedProductIds.length < (products?.length ?? 0) ? selectedProductIds : null,
       });
       setActiveStocktakeId(st.id);
       setLegacyReadings([]);
@@ -380,13 +408,31 @@ export default function Stocktake() {
       setSelectedProductIds(rs.map(r => r.product_id));
       setStep("summary");
     } else {
-      setSelectedProductIds(products?.map(p => p.id) ?? []);
+      const remembered = (st as { product_ids?: string[] | null }).product_ids;
+      setSelectedProductIds(remembered && remembered.length > 0 ? remembered : (products?.map(p => p.id) ?? []));
       setLegacyReadings([]);
       setCountingView("products");
       setActiveProductId(null);
       setStep("counting");
     }
   };
+
+  // /stocktake?open=1 (from the first-count flow or the Home banner) drops
+  // straight into the open count instead of the list.
+  const autoOpened = React.useRef(false);
+  useEffect(() => {
+    if (autoOpened.current || !stocktakes || !products) return;
+    if (new URLSearchParams(window.location.search).get("open") !== "1") return;
+    // The list can be a stale cache for a moment after the count was just
+    // created (React Query refetches in the background), so keep the param
+    // until an open count actually shows up rather than giving up on first render.
+    const open = stocktakes.find(s => s.status === "open");
+    if (!open) return;
+    autoOpened.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+    void openStocktake(open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stocktakes, products]);
 
   const resetEntryForm = () => {
     setEntryWeightStr("0"); setEntryNumStr("0"); setEntryFullContainersStr("0");
@@ -540,6 +586,10 @@ export default function Stocktake() {
       setStep("list");
       setActiveStocktakeId(null); setLegacyReadings([]);
       setSelectedProductIds([]); setCountingView("products"); setActiveProductId(null);
+      // The variance only exists once there's a second count to compare with.
+      // After the first close, offer to book it.
+      const closedBefore = (stocktakes ?? []).filter(s => s.status === "closed" && s.id !== activeStocktakeId).length;
+      if (closedBefore === 0) setShowSecondCountPrompt(true);
     } catch (err: any) {
       toast({
         title: "Stocktake not closed",
@@ -558,6 +608,24 @@ export default function Stocktake() {
           <h1 className="text-2xl font-bold text-primary">Stocktake</h1>
         </div>
         <div className="p-4 space-y-4 flex-1 overflow-auto pb-24">
+          {showSecondCountPrompt && (
+            <Card className="border-[#3FAE74]/40 bg-[#3FAE74]/10" data-testid="card-second-count-prompt">
+              <CardContent className="p-4 space-y-3">
+                <div className="font-bold text-sm">First count done. The number that matters comes next.</div>
+                <p className="text-sm text-muted-foreground">
+                  A single count tells you what you've got. The second one, a week from now, tells you what moved — and that's where the missing money shows up. Book it and StockTap will remind you.
+                </p>
+                <div className="flex gap-2">
+                  <Button className="flex-1 h-11 font-semibold" onClick={bookSecondCount} disabled={bookingSecondCount} data-testid="button-book-second-count">
+                    {bookingSecondCount ? "Booking…" : "Count again next week"}
+                  </Button>
+                  <Button variant="ghost" className="h-11" onClick={() => setShowSecondCountPrompt(false)} data-testid="button-skip-second-count">
+                    Not now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Button size="lg" className="w-full h-16 text-lg font-bold shadow-md" onClick={() => setStep("select")} data-testid="button-new-stocktake">
             Start New Stocktake
           </Button>

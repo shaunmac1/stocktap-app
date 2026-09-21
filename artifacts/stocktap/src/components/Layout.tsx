@@ -36,7 +36,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex-1 flex flex-col items-center py-1"
+              className="flex-1 min-w-0 flex flex-col items-center py-1"
             >
               <div className="relative">
                 <Icon
@@ -49,7 +49,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 )}
               </div>
               <span
-                className={`text-[10px] ${
+                className={`text-[10px] leading-none whitespace-nowrap ${
                   isActive ? "text-primary font-medium" : "text-muted-foreground"
                 }`}
               >

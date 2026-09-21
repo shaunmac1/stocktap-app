@@ -647,26 +647,33 @@ export default function Auth() {
       <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-center text-primary">Import your bottle library</CardTitle>
+            <CardTitle className="text-xl font-bold text-center text-primary">Your first count, in twenty minutes</CardTitle>
             <p className="text-center text-sm text-muted-foreground mt-1">
-              Start with the full UK pub catalogue: 80 pre-weighed bottles and 60 common packaged lines,
-              sizes, weights and densities included. Untick anything you don't stock.
+              Pick your 20 biggest sellers, put each open bottle on the scale, and you'll have your first real
+              number. Prices and the rest of the range can come after.
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-xs text-muted-foreground bg-muted rounded-lg p-3 leading-relaxed">
-              You can add your own lines, prices and locations afterwards from the Library. Cost and pour
-              prices can wait until your first count is done.
-            </p>
             <Button
               className="w-full h-12"
+              onClick={() => {
+                clearOnboardingFlag();
+                setLocation("/first-count");
+              }}
+              data-testid="button-onboarding-first-count"
+            >
+              Pick my 20 biggest sellers and count them
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-11"
               onClick={() => {
                 clearOnboardingFlag();
                 setLocation("/library?starter=1");
               }}
               data-testid="button-onboarding-starter"
             >
-              Import UK pub starter catalogue (140+ products)
+              Import the full UK pub catalogue instead (140+ lines)
             </Button>
             {/* "Import my own CSV" is hidden until the importer matches rows to the
                 calibrated catalogue; the catalogue is the reliable path for now. */}

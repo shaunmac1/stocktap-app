@@ -825,6 +825,7 @@ export function useCreateStocktake() {
           opened_at: stocktake.opened_at ?? now,
           closed_at: null,
           total_value: null,
+          product_ids: stocktake.product_ids ?? null,
           created_at: now,
           updated_at: now,
           _temp: 1 as const,

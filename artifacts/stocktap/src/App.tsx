@@ -18,6 +18,7 @@ import Privacy from "@/pages/privacy";
 import Home from "@/pages/home";
 import Library from "@/pages/library";
 import Stocktake from "@/pages/stocktake";
+import FirstCount from "@/pages/first-count";
 import SpotCheck from "@/pages/spot-check";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
@@ -86,6 +87,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 const HomeRouteAuth    = () => <ProtectedRoute component={Home} />;
 const LibraryRoute     = () => <ProtectedRoute component={Library} />;
 const StocktakeRoute   = () => <ProtectedRoute component={Stocktake} />;
+const FirstCountRoute  = () => <ProtectedRoute component={FirstCount} />;
 const SpotCheckRoute   = () => <ProtectedRoute component={SpotCheck} />;
 const ReportsRoute     = () => <ProtectedRoute component={Reports} />;
 const SettingsRoute    = () => <ProtectedRoute component={Settings} />;
@@ -112,6 +114,7 @@ function AppRouter({ authenticated }: { authenticated: boolean }) {
       <Route path="/rota"          component={RotaRoute} />
       <Route path="/library"       component={LibraryRoute} />
       <Route path="/stocktake"     component={StocktakeRoute} />
+      <Route path="/first-count"   component={FirstCountRoute} />
       <Route path="/spot-check"    component={SpotCheckRoute} />
       <Route path="/reports"       component={ReportsRoute} />
       <Route path="/settings"      component={SettingsRoute} />
