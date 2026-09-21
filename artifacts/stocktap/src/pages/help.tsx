@@ -135,6 +135,13 @@ export default function Help() {
         </div>
       </div>
 
+      <div className="max-w-3xl mx-auto px-6 pb-4">
+        <a href="/videos/" className="block rounded-xl border border-[#E0A343]/30 bg-[#E0A343]/10 p-4" data-testid="link-help-videos">
+          <div className="font-semibold text-[#F3F1EC]">Watch how it works (16 short videos)</div>
+          <div className="text-sm text-[#8A9099] mt-0.5">Set-up, weighing, stocktakes, spot checks, daily board, checks, delivery scanning, finances, reports, offers, team, rota, staff access.</div>
+        </a>
+      </div>
+
       <div className="max-w-3xl mx-auto px-6 pb-16 space-y-8">
         {grouped.length === 0 && (
           <p className="text-sm text-[#8A9099] text-center py-10">No questions matched "{query}".</p>

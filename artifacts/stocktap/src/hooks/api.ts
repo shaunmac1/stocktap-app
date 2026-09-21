@@ -1395,7 +1395,11 @@ export async function addLineEntry(entry: LocalLineEntry): Promise<void> {
     .then(
       ({ error }) => {
         if (!error) {
-          db.line_entries.update(entry.id, { sync_status: "uploaded", updated_at: new Date().toISOString() });
+          db.line_entries
+            .update(entry.id, { sync_status: "uploaded", updated_at: new Date().toISOString() })
+            .then(() => {
+              try { window.dispatchEvent(new Event("stocktap:line-entry-synced")); } catch { /* noop */ }
+            });
         }
         // If error (table missing / offline) leave as 'pending' — counting continues
       },

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useProducts, useLocations, useStocktakes,
@@ -25,7 +25,7 @@ import {
   type CountingMethod, type ProductCategory, type CategoryReadingInput,
 } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, CheckCircle, Plus, Trash2, Cloud, CloudOff, MapPin, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, Plus, Trash2, Cloud, CloudOff, MapPin, X, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import type { Database } from "@/lib/database.types";
 import {
@@ -69,6 +69,8 @@ export default function Stocktake() {
 
   // Counting step
   const [countingView, setCountingView] = useState<CountingView>("products");
+  const [countingSearch, setCountingSearch] = useState("");
+  const [leftOnly, setLeftOnly] = useState(false);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [entryStep, setEntryStep] = useState<"location" | "value">("location");
@@ -84,11 +86,22 @@ export default function Stocktake() {
   // Photo-tap: y-position of the liquid line (fraction from bottom, 0=empty 1=full)
   const [photoTapY, setPhotoTapY] = useState(0.5);
 
+  // Per-product Weigh/Tenths choice for this count (see bottleMethodChoice below)
+  const [bottleMethodOverride, setBottleMethodOverride] = useState<Record<string, "weigh" | "tenths">>({});
+
   // Legacy readings for closed stocktakes opened from list
   const [legacyReadings, setLegacyReadings] = useState<LegacyReading[]>([]);
 
   // Line entries for the active in-progress stocktake
   const { data: lineEntries, refetch: refetchEntries } = useLineEntries(activeStocktakeId);
+
+  // When the sync queue lands a line entry, refresh so "Not synced" badges clear immediately.
+  useEffect(() => {
+    if (!activeStocktakeId) return;
+    const onSynced = () => { refetchEntries(); };
+    window.addEventListener("stocktap:line-entry-synced", onSynced);
+    return () => window.removeEventListener("stocktap:line-entry-synced", onSynced);
+  }, [activeStocktakeId, refetchEntries]);
 
   // Bottle shapes (for photo-tap counting method)
   const { data: bottleShapes = [] } = useBottleShapes(venue?.id);
@@ -142,21 +155,36 @@ export default function Stocktake() {
     ? ((activeProduct.counting_method as CountingMethod) ?? CATEGORY_METHODS[activeProduct.category as ProductCategory].default)
     : null;
 
-  // Bug 1: weigh product with no bottle-weight calibration — show a notice, not the tenths pad.
-  // Falling back silently caused grams to be interpreted as tenths (1000g → 1000.0 tenths).
+  // Bottle lines (weigh / tenths / photo-tap) get a one-tap Weigh ⇄ Tenths
+  // switch on the count screen. The choice is remembered per product for this
+  // count only; the Library setting is untouched.
+  const isBottleLine = entryResolvedMethod === "weigh" || entryResolvedMethod === "tenths" || entryResolvedMethod === "photo_tap";
+  const canWeigh = !!activeProduct && activeProduct.empty_weight_g != null;
+  const bottleMethodChoice: "weigh" | "tenths" | null =
+    isBottleLine && activeProduct
+      ? (bottleMethodOverride[activeProduct.id] ??
+          (entryResolvedMethod === "tenths" ? "tenths" : entryResolvedMethod === "weigh" ? (canWeigh ? "weigh" : "tenths") : null))
+      : null;
+  const bottleMethodResolved: CountingMethod | null =
+    bottleMethodChoice === "weigh" ? (canWeigh ? "weigh" : "tenths") : bottleMethodChoice === "tenths" ? "tenths" : null;
+
+  // Weigh product with no bottle-weight calibration and no tenths fallback chosen —
+  // show a notice, not the tenths pad. Falling back silently caused grams to be
+  // interpreted as tenths (1000g → 1000.0 tenths).
   const isUncalibratedWeigh =
-    entryResolvedMethod === "weigh" && activeProduct?.empty_weight_g == null;
+    bottleMethodResolved == null && entryResolvedMethod === "weigh" && activeProduct?.empty_weight_g == null;
 
   const entryActiveMethod: CountingMethod | null =
-    isUncalibratedWeigh
+    bottleMethodResolved ||
+    (isUncalibratedWeigh
       ? null
       // photo_tap requires a bottle shape — fall back gracefully if none is set
       : entryResolvedMethod === "photo_tap" && !activeShape
-        ? (activeProduct?.empty_weight_g != null ? "weigh" : null)
-        // Bug 2: count-unit products (packaged, minerals) must never land on the litres pad
+        ? (activeProduct?.empty_weight_g != null ? "weigh" : "tenths")
+        // count-unit products (packaged, minerals) must never land on the litres pad
         : activeProduct?.unit === "count" && entryResolvedMethod === "litre"
           ? "each"
-          : entryResolvedMethod;
+          : entryResolvedMethod);
 
   const entryCategoryInput: CategoryReadingInput | null = useMemo(() => {
     if (!entryActiveMethod) return null;
@@ -223,6 +251,19 @@ export default function Stocktake() {
     const rawFraction = (weightG - ew) / range;
     if (rawFraction > 1.05) {
       return `This reading implies ${(rawFraction * 100).toFixed(0)}% full — above the calibrated full weight. Check bottle weights in the Library.`;
+    }
+    return null;
+  }, [entryActiveMethod, entryWeightStr, activeProduct]);
+
+  // A scale reading below the empty-bottle weight can't be right: either the
+  // scale was misread or the bottle weights in the Library are wrong.
+  const underEmptyWarning = useMemo(() => {
+    if (entryActiveMethod !== "weigh") return null;
+    const ew = activeProduct?.empty_weight_g;
+    if (ew == null) return null;
+    const weightG = parseFloat(entryWeightStr) || 0;
+    if (weightG > 0 && weightG < ew * 0.97) {
+      return `${weightG}g is lighter than the empty bottle (${Math.round(ew)}g). Check the scale reading or the bottle weights in the Library.`;
     }
     return null;
   }, [entryActiveMethod, entryWeightStr, activeProduct]);
@@ -377,6 +418,10 @@ export default function Stocktake() {
     // Bug 1: block save entirely for uncalibrated weigh products
     if (isUncalibratedWeigh) {
       toast({ title: "Cannot save", description: "Set bottle weights in the Library before counting this product by weight.", variant: "destructive" });
+      return;
+    }
+    if (underEmptyWarning) {
+      toast({ title: "Check the weight", description: underEmptyWarning, variant: "destructive" });
       return;
     }
 
@@ -644,6 +689,10 @@ export default function Stocktake() {
     // ── products list view
     if (countingView === "products") {
       const enteredCount = Array.from(entriesByProduct.keys()).filter(pid => selectedProductIds.includes(pid)).length;
+      const q = countingSearch.trim().toLowerCase();
+      const searched = q ? filteredProducts.filter(p => p.name.toLowerCase().includes(q)) : filteredProducts;
+      const leftCount = filteredProducts.length - enteredCount;
+      const visibleProducts = searched.filter(p => !leftOnly || !(entriesByProduct.get(p.id) ?? []).length);
       return (
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-border bg-card sticky top-0 z-10">
@@ -666,11 +715,30 @@ export default function Stocktake() {
                 Review &amp; Close
               </Button>
             </div>
+            <div className="mt-3 flex gap-2">
+              <Input
+                placeholder="Find a product…"
+                value={countingSearch}
+                onChange={e => setCountingSearch(e.target.value)}
+                data-testid="input-counting-search"
+              />
+              <Button
+                variant={leftOnly ? "default" : "outline"}
+                size="sm"
+                className="shrink-0 h-10"
+                onClick={() => setLeftOnly(v => !v)}
+                data-testid="button-toggle-remaining"
+              >
+                {leftOnly ? "All" : `Left (${leftCount})`}
+              </Button>
+            </div>
           </div>
           <div className="flex-1 overflow-auto p-4 pb-24 space-y-2">
             {filteredProducts.length === 0 ? (
               <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No products selected</CardContent></Card>
-            ) : filteredProducts.map(p => {
+            ) : visibleProducts.length === 0 ? (
+              <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">{q ? "No products match that search" : "Everything is counted"}</CardContent></Card>
+            ) : visibleProducts.map(p => {
               const entries = entriesByProduct.get(p.id) ?? [];
               const totalMl = entries.reduce((s, e) => s + e.ml_remaining, 0);
               const isKeg = p.counting_method === "keg_weight";
@@ -948,6 +1016,37 @@ export default function Stocktake() {
                         {entryActiveMethod ? METHOD_LABELS[entryActiveMethod] : "Enter amount"}
                       </div>
 
+                      {isBottleLine && activeProduct && entryResolvedMethod !== "photo_tap" && (
+                        <div className="space-y-1">
+                          <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1" role="radiogroup" aria-label="How to count this bottle">
+                            <button
+                              type="button"
+                              role="radio"
+                              aria-checked={entryActiveMethod === "weigh"}
+                              disabled={!canWeigh}
+                              onClick={() => { setBottleMethodOverride(prev => ({ ...prev, [activeProduct.id]: "weigh" })); setEntryNumStr("0"); }}
+                              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${entryActiveMethod === "weigh" ? "bg-primary text-primary-foreground" : "text-muted-foreground"} disabled:opacity-40`}
+                              data-testid="button-bottle-method-weigh"
+                            >
+                              Weigh
+                            </button>
+                            <button
+                              type="button"
+                              role="radio"
+                              aria-checked={entryActiveMethod === "tenths"}
+                              onClick={() => { setBottleMethodOverride(prev => ({ ...prev, [activeProduct.id]: "tenths" })); setEntryWeightStr("0"); }}
+                              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${entryActiveMethod === "tenths" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                              data-testid="button-bottle-method-tenths"
+                            >
+                              Tenths
+                            </button>
+                          </div>
+                          {!canWeigh && (
+                            <p className="text-[11px] text-muted-foreground text-center">Weigh needs the empty-bottle weight — add it in the Library. Tenths works now.</p>
+                          )}
+                        </div>
+                      )}
+
                       {/* Photo tap fallback notice — shown when product has photo_tap method but no shape calibrated */}
                       {entryResolvedMethod === "photo_tap" && !activeShape && (
                         <div className="rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40 p-2 text-xs text-amber-700 dark:text-amber-400 text-center">
@@ -969,6 +1068,11 @@ export default function Stocktake() {
                       {entryActiveMethod === "weigh" && overCalibrationWarning && (
                         <div className="rounded-xl border border-[#E5544B]/40 bg-[#E5544B]/10 p-3 text-sm text-[#E5544B]">
                           {overCalibrationWarning}
+                        </div>
+                      )}
+                      {entryActiveMethod === "weigh" && underEmptyWarning && (
+                        <div className="rounded-xl border border-[#E5544B]/40 bg-[#E5544B]/10 p-3 text-sm text-[#E5544B]" data-testid="warning-under-weight">
+                          {underEmptyWarning}
                         </div>
                       )}
                       {(entryActiveMethod === "tenths" || entryActiveMethod === "tenths_pints") && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />}
@@ -1151,6 +1255,7 @@ export default function Stocktake() {
     // not legacyReadings.length (which can be 0 if readings hadn't synced to Dexie).
     const activeStocktakeStatus = stocktakes?.find(s => s.id === activeStocktakeId)?.status;
     const isViewingClosed = activeStocktakeStatus === "closed";
+    const uncounted = isViewingClosed ? [] : filteredProducts.filter(p => !(entriesByProduct.get(p.id) ?? []).length);
     return (
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-border bg-card sticky top-0 z-10 flex items-center gap-3">
@@ -1171,6 +1276,23 @@ export default function Stocktake() {
               <div className="text-sm text-primary-foreground/70 mt-0.5">{summaryLines.length} products counted</div>
             </CardContent>
           </Card>
+          {uncounted.length > 0 && (
+            <button
+              type="button"
+              onClick={() => { setLeftOnly(true); setStep("counting"); setCountingView("products"); }}
+              className="w-full flex items-start gap-3 rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-left"
+              data-testid="banner-uncounted"
+            >
+              <AlertCircle className="w-4 h-4 text-[#E0A343] shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium text-[#E0A343]">{uncounted.length} of {filteredProducts.length} lines not counted</span>
+                <span className="text-xs text-[#E0A343]/80 block">
+                  {uncounted.slice(0, 3).map(p => p.name).join(", ")}{uncounted.length > 3 ? ` and ${uncounted.length - 3} more` : ""}. They keep their last reading. Tap to count them, or close anyway.
+                </span>
+              </div>
+              <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">Count</span>
+            </button>
+          )}
           <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Per Product</h2>
           {summaryLines.map((line, i) => (
             <Card key={i}>

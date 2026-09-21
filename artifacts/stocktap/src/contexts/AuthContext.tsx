@@ -179,6 +179,8 @@ interface AuthContextType {
   passwordRecoveryPending: boolean;
   /** Clear the recovery flag after a successful password update. */
   clearPasswordRecovery: () => void;
+  /** Mark a recovery flow as started (a token_hash recovery link landed on our own domain). */
+  beginPasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -388,6 +390,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearPasswordRecovery = () => setPasswordRecoveryPending(false);
+  const beginPasswordRecovery = () => setPasswordRecoveryPending(true);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -395,7 +398,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, profile, venue, role, loading, venueFetchFailed, bypassError, retryBypass, signOut, refreshVenue, passwordRecoveryPending, clearPasswordRecovery }}
+      value={{ user, session, profile, venue, role, loading, venueFetchFailed, bypassError, retryBypass, signOut, refreshVenue, passwordRecoveryPending, clearPasswordRecovery, beginPasswordRecovery }}
     >
       {children}
     </AuthContext.Provider>

@@ -46,6 +46,7 @@ export interface Database {
           order_cycle_days: number;
           pro_since: string | null;
           founding_landlord: boolean;
+          trial_ends_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -61,12 +62,14 @@ export interface Database {
           order_cycle_days?: number;
           pro_since?: string | null;
           founding_landlord?: boolean;
+          trial_ends_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           name?: string;
           tier?: "free" | "pro" | "premium";
+          trial_ends_at?: string | null;
           stripe_customer_id?: string | null;
           measure_ml?: number;
           measure_system?: "uk" | "ie" | "us" | "eu" | "free_pour";
@@ -156,6 +159,8 @@ export interface Database {
           sku: string | null;
           notes: string | null;
           bottle_shape_id: string | null;
+          cost_price_estimated: boolean;
+          pour_price_estimated: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -189,6 +194,8 @@ export interface Database {
           sku?: string | null;
           notes?: string | null;
           bottle_shape_id?: string | null;
+          cost_price_estimated?: boolean;
+          pour_price_estimated?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -220,6 +227,8 @@ export interface Database {
           sku?: string | null;
           notes?: string | null;
           bottle_shape_id?: string | null;
+          cost_price_estimated?: boolean;
+          pour_price_estimated?: boolean;
           updated_at?: string;
         };
         Relationships: [

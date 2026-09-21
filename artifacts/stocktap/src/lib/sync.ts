@@ -269,6 +269,8 @@ export async function flushPendingLineEntries(): Promise<number> {
     }
   }
   if (flushed && typeof window !== "undefined") {
+    // Lets open count/spot-check screens drop their "Not synced" badges at once.
+    try { window.dispatchEvent(new Event("stocktap:line-entry-synced")); } catch { /* noop */ }
     try { window.dispatchEvent(new Event("stocktap:pending-changed")); } catch { /* noop */ }
   }
   return flushed;

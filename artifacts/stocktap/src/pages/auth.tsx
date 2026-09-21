@@ -23,6 +23,19 @@ type AuthMode =
   | "otp_verify";
 
 // Onboarding intent flag: sessionStorage timestamp with a 90-second TTL.
+/**
+ * Auth links (sign-in code, password reset, confirm, invite) land on
+ * stocktap.net with `?token_hash=…&type=…` and are exchanged here, rather than
+ * pointing at Supabase's verify endpoint. Gmail's link scanner prefetches
+ * links; Supabase's endpoint burns the token on that prefetch, ours doesn't.
+ * Module-level so a React StrictMode double-mount can't exchange it twice.
+ */
+type PendingLink =
+  | { kind: "token"; type: string; tokenHash: string; started?: boolean }
+  | { kind: "error"; type: string; message: string };
+let pendingLink: PendingLink | null = null;
+const EXPIRED_LINK_MESSAGE = "That link has expired or has already been used. Request a new one below.";
+
 const ONBOARDING_FLAG = "st_onb";
 const ONBOARDING_TTL_MS = 90_000;
 function readOnboardingFlag(): boolean {
@@ -48,6 +61,7 @@ export default function Auth() {
     refreshVenue,
     passwordRecoveryPending,
     clearPasswordRecovery,
+    beginPasswordRecovery,
   } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -71,6 +85,61 @@ export default function Auth() {
   });
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+
+  // Exchange a token_hash link that landed on our own domain (see pendingLink).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hash.get("error")) {
+      const code = hash.get("error_code") || "";
+      pendingLink = {
+        kind: "error",
+        type: params.get("type") || hash.get("type") || "",
+        message: code === "otp_expired"
+          ? EXPIRED_LINK_MESSAGE
+          : hash.get("error_description")?.replace(/\+/g, " ") || "That link didn't work. Request a new one below.",
+      };
+      window.history.replaceState(null, "", window.location.pathname);
+    } else if (params.get("token_hash") && params.get("type")) {
+      pendingLink = { kind: "token", type: params.get("type")!, tokenHash: params.get("token_hash")! };
+      window.history.replaceState(null, "", window.location.pathname);
+      if (pendingLink.type === "recovery") beginPasswordRecovery();
+    }
+    const link = pendingLink;
+    if (!link) return;
+    if (link.kind === "error") {
+      pendingLink = null;
+      setAuthError(link.message);
+      setMode(link.type === "recovery" ? "forgot_password" : "login");
+      return;
+    }
+    if (link.kind === "token" && !link.started) {
+      link.started = true;
+      (async () => {
+        setLoading(true);
+        try {
+          if (link.type === "recovery") {
+            const { error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: "recovery" });
+            if (error) throw error;
+            pendingLink = null;
+            setMode("set_password");
+          } else {
+            const { error } = await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: "email" });
+            if (error) throw error;
+            pendingLink = null;
+          }
+        } catch {
+          pendingLink = { kind: "error", type: link.type, message: EXPIRED_LINK_MESSAGE };
+          setAuthError(EXPIRED_LINK_MESSAGE);
+          setMode(link.type === "recovery" ? "forgot_password" : "login");
+          clearPasswordRecovery();
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // When a password-recovery token is detected by AuthContext, switch directly
   // to the set-password form regardless of what mode we were in.
@@ -190,7 +259,7 @@ export default function Auth() {
     setAuthError(null);
     const code = normaliseOtpCode(otpCode);
     if (code.length !== 6) {
-      setAuthError("Tap the link in your email, or enter the 6-digit code if it shows one.");
+      setAuthError("Enter the 6-digit code from your email.");
       return;
     }
     setLoading(true);
@@ -422,9 +491,8 @@ export default function Auth() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center leading-relaxed">
-              We've sent a sign-in email to{" "}
-              <strong className="text-foreground">{email}</strong>. Tap the link in it to sign in, or if
-              the email shows a 6-digit code, enter it below.
+              We've sent a 6-digit code to{" "}
+              <strong className="text-foreground">{email}</strong>. Enter it below, or tap the button in the email.
             </p>
             <form onSubmit={handleOtpVerify} className="space-y-4">
               <div className="space-y-2">

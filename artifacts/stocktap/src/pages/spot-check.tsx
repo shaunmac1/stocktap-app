@@ -111,6 +111,14 @@ export default function SpotCheck() {
   const activeSessionOpenedAt = sessionOpenedAt ?? openSession?.opened_at ?? null;
   const { data: spotEntries, refetch: refetchSpotEntries } = useSpotCheckLineEntries(activeSessionId);
 
+  // Clear "Not synced" badges the moment the sync queue lands an entry.
+  useEffect(() => {
+    if (!activeSessionId) return;
+    const onSynced = () => { refetchSpotEntries(); };
+    window.addEventListener("stocktap:line-entry-synced", onSynced);
+    return () => window.removeEventListener("stocktap:line-entry-synced", onSynced);
+  }, [activeSessionId, refetchSpotEntries]);
+
   // Which count_locations location the CURRENT entry is being counted at.
   // Defaults to the first active count location (spec condition 6).
   const [entryCountLocationId, setEntryCountLocationId] = useState<string | null>(null);
@@ -1346,7 +1354,11 @@ function VarianceDisplay({
       </div>
       {valueVariance !== null && (
         <div className={`text-2xl font-bold mt-1 ${textClass}`}>
-          {valueVariance > 0 ? "+" : ""}{formatGBP(valueVariance)}
+          {valueVariance > 0
+            ? `${formatGBP(valueVariance)} of sales missing`
+            : valueVariance < 0
+            ? `${formatGBP(Math.abs(valueVariance))} rung but not poured`
+            : formatGBP(0)}
         </div>
       )}
       <div className="text-xs text-muted-foreground mt-1">

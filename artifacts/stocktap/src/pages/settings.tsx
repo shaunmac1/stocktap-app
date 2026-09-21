@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generateReferralCode, MEASURE_PRESETS } from "@/lib/calculations";
 import { Plus, Trash2, Copy, ExternalLink, Mail, Gift, CheckCircle2, Lightbulb } from "lucide-react";
 import { Link } from "wouter";
-import { useStripePrices, useStripeSubscription, useStartCheckout, useOpenPortal } from "@/hooks/useSubscription";
+import { useStripePrices, useStripeSubscription, useStartCheckout, useOpenPortal, venueTrial } from "@/hooks/useSubscription";
 import { AFFILIATE_LINKS } from "@/lib/affiliates";
 import { useReferral, useReferralProgress, useCheckReferralQualification } from "@/hooks/useReferrals";
 import { StocktakeScheduleSettings } from "@/components/StocktakeScheduleSettings";
@@ -722,7 +722,13 @@ export default function Settings() {
               </CardContent>
             </Card>
           )}
-          <SubscriptionTab venueId={venue?.id} stripeCustomerId={venue?.stripe_customer_id ?? null} email={user?.email ?? ""} />
+          <SubscriptionTab
+            venueId={venue?.id}
+            stripeCustomerId={venue?.stripe_customer_id ?? null}
+            email={user?.email ?? ""}
+            trialEndsAt={(venue as any)?.trial_ends_at ?? null}
+            tier={venue?.tier ?? "free"}
+          />
           <a
             href={`mailto:${SUPPORT_EMAIL}?subject=StockTap%20billing%20question`}
             className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pt-2"
@@ -848,6 +854,7 @@ function PlanCard({
   isPending,
   disabled,
   testId,
+  trialNote = "14-day free trial — no card required upfront",
 }: {
   name: string;
   price: string;
@@ -861,6 +868,7 @@ function PlanCard({
   isPending: boolean;
   disabled: boolean;
   testId: string;
+  trialNote?: string;
 }) {
   return (
     <Card className={`border ${accentClass} flex flex-col`}>
@@ -888,7 +896,7 @@ function PlanCard({
           ))}
         </ul>
         <div className="text-xs text-center text-[#E0A343] bg-[#E0A343]/10 border border-[#E0A343]/20 rounded-lg px-3 py-2">
-          14-day free trial — no card required upfront
+          {trialNote}
         </div>
         <Button
           className="w-full h-12 font-bold bg-[#E0A343] hover:bg-[#E0A343]/90 text-black"
@@ -903,7 +911,14 @@ function PlanCard({
   );
 }
 
-function SubscriptionTab({ venueId, stripeCustomerId, email }: { venueId: string | undefined; stripeCustomerId: string | null; email: string }) {
+function SubscriptionTab({ venueId, stripeCustomerId, email, trialEndsAt, tier }: {
+  venueId: string | undefined;
+  stripeCustomerId: string | null;
+  email: string;
+  trialEndsAt: string | null;
+  tier: string;
+}) {
+  const localTrial = venueTrial({ tier, trial_ends_at: trialEndsAt });
   const [billingInterval, setBillingInterval] = useState<"month" | "year">("month");
   const { data: prices, isLoading: pricesLoading } = useStripePrices(billingInterval);
   const { data: sub, isLoading: subLoading } = useStripeSubscription(stripeCustomerId);
@@ -931,7 +946,7 @@ function SubscriptionTab({ venueId, stripeCustomerId, email }: { venueId: string
 
   const startCheckout = (price: typeof proPrice) => {
     if (!venueId || !price) return;
-    checkout.mutate({ email, venueId, priceId: price.id });
+    checkout.mutate({ email, venueId, priceId: price.id, trialEndsAt: localTrial.active ? trialEndsAt : null });
   };
 
   if (isLoading) {
@@ -985,6 +1000,24 @@ function SubscriptionTab({ venueId, stripeCustomerId, email }: { venueId: string
   // No active subscription — show both plan cards side by side
   return (
     <div className="space-y-4">
+      {localTrial.active && localTrial.endsAt && (
+        <Card className="border-[#E0A343]/30 bg-[#E0A343]/5" data-testid="card-local-trial">
+          <CardContent className="p-5 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold">Pro trial</span>
+              <Badge className="bg-[#E0A343] text-black font-semibold">{localTrial.daysLeft} {localTrial.daysLeft === 1 ? "day" : "days"} left</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              You have everything in Pro until {localTrial.endsAt.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}. Pick a plan below to keep it after that. You won't be charged before then.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+      {!localTrial.active && tier === "free" && trialEndsAt && (
+        <p className="text-sm text-muted-foreground text-center">
+          Your trial has ended. You're on Free: 50 products, 1 location. Pick a plan to get everything back.
+        </p>
+      )}
       <div className="flex items-center justify-center gap-3">
         <span className={`text-sm font-medium ${billingInterval === "month" ? "text-foreground" : "text-muted-foreground"}`}>Monthly</span>
         <button
@@ -1011,11 +1044,12 @@ function SubscriptionTab({ venueId, stripeCustomerId, email }: { venueId: string
           features={PRO_FEATURES}
           accentClass="border-border"
           badge={undefined}
-          buttonLabel="Start Pro trial"
+          buttonLabel={localTrial.active ? "Keep Pro after my trial" : "Start Pro trial"}
           onStart={() => startCheckout(proPrice)}
           isPending={checkout.isPending}
           disabled={!venueId || !proPrice}
           testId="button-start-trial-pro"
+          trialNote={localTrial.active ? "Nothing to pay until your trial ends" : "14-day free trial — no card required upfront"}
         />
         <PlanCard
           name="Premium"
@@ -1025,11 +1059,12 @@ function SubscriptionTab({ venueId, stripeCustomerId, email }: { venueId: string
           extraFeatures={PREMIUM_EXTRA_FEATURES}
           accentClass="border-[#E0A343]/40 bg-[#E0A343]/5"
           badge="Best value"
-          buttonLabel="Start Premium trial"
+          buttonLabel={localTrial.active ? "Keep Premium after my trial" : "Start Premium trial"}
           onStart={() => startCheckout(premiumPrice)}
           isPending={checkout.isPending}
           disabled={!venueId || !premiumPrice}
           testId="button-start-trial-premium"
+          trialNote={localTrial.active ? "Nothing to pay until your trial ends" : "14-day free trial — no card required upfront"}
         />
       </div>
       {billingInterval === "year" && !pricesLoading && !proPrice && !premiumPrice && (

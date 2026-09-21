@@ -87,8 +87,17 @@ async function handlePrices(env, url) {
 async function handleCheckout(env, request) {
   if (!env.STRIPE_SECRET_KEY)
     return json({ error: "Billing isn't switched on yet. Please try again shortly." }, 503);
-  const { email, venueId, priceId, successUrl, cancelUrl } = await request.json().catch(() => ({}));
+  const { email, venueId, priceId, successUrl, cancelUrl, trialEndsAt } = await request.json().catch(() => ({}));
   if (!venueId || !priceId) return json({ error: "Missing venue or plan." }, 400);
+  // Every new venue already gets an automatic 14-day Pro trial from the database
+  // (venues.trial_ends_at). If the customer picks a plan mid-trial, Stripe's trial
+  // must end on the SAME date, not restart a fresh 14 days. Stripe needs trial_end
+  // at least 48h out; nearer than that we just fall back to the default 14 days.
+  let trialEndUnix = null;
+  if (trialEndsAt) {
+    const ms = Date.parse(trialEndsAt);
+    if (Number.isFinite(ms) && ms - Date.now() > 48 * 3600 * 1000) trialEndUnix = Math.floor(ms / 1000);
+  }
   const sep = successUrl && successUrl.includes("?") ? "&" : "?";
   const successWithId = `${successUrl}${sep}session_id={CHECKOUT_SESSION_ID}`;
   const body = {
@@ -105,7 +114,7 @@ async function handleCheckout(env, request) {
     payment_method_collection: "if_required",
     subscription_data: {
       metadata: { venue_id: venueId },
-      trial_period_days: 14,
+      ...(trialEndUnix ? { trial_end: trialEndUnix } : { trial_period_days: 14 }),
       trial_settings: { end_behavior: { missing_payment_method: "cancel" } }
     }
   };
@@ -281,7 +290,24 @@ async function reconcileTiers(env) {
   for (const [venueId, { tier, customer }] of best) {
     try { await applyTier(env, venueId, tier, customer); applied++; } catch {}
   }
-  return { venues: best.size, applied };
+  return { venues: best.size, applied, paying: [...best.entries()].filter(([, v]) => v.tier !== "free").map(([id]) => id) };
+}
+// Every new venue gets 14 days of Pro from a DB trigger (venues.trial_ends_at).
+// Nightly, drop venues whose trial has run out back to Free -- except any that
+// now have a real Stripe subscription (reconcileTiers just told us who those are).
+async function expireTrials(env, keepVenueIds) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY || !env.STRIPE_BRIDGE_SECRET) return { skipped: true };
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/expire_venue_trials`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: env.SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`
+    },
+    body: JSON.stringify({ p_secret: env.STRIPE_BRIDGE_SECRET, p_keep: keepVenueIds || [] })
+  });
+  if (!res.ok) throw new Error(`expire_venue_trials ${res.status}: ${await res.text()}`);
+  return { expired: await res.json() };
 }
 var index_default = {
   async fetch(request, env, ctx) {
@@ -323,7 +349,11 @@ var index_default = {
     return env.ASSETS.fetch(request);
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(reconcileTiers(env));
+    ctx.waitUntil((async () => {
+      let paying = [];
+      try { const r = await reconcileTiers(env); paying = r.paying || []; } catch {}
+      try { await expireTrials(env, paying); } catch {}
+    })());
   }
 };
 export {

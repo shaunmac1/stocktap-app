@@ -49,6 +49,15 @@ import {
 } from "@/lib/csv-import-validation";
 import { gpPercentForProduct } from "@/lib/inventory-reporting";
 import { CataloguePickerSheet } from "@/components/CataloguePickerSheet";
+import {
+  estimateDefaultPrices,
+  findLikelyDuplicate,
+  findMethodMismatches,
+  inferCountingMethod,
+  inferSizeMl,
+  isLitreOnBottles,
+} from "@/lib/library-hygiene";
+import { matchKnownBottles } from "@/hooks/useCatalogue";
 
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 type ProductType = "spirit" | "gin" | "vodka" | "whisky" | "rum" | "liqueur" | "wine" | "sparkling" | "vermouth" | "syrup" | "cordial" | "packaged";
@@ -703,6 +712,37 @@ interface CsvRow {
   dipFullMm?: number | null;
   /** True once catalogue-matching has run and the row still has no full/empty weight. */
   needsWeighing?: boolean;
+  /** Price came from estimateDefaultPrices, not the file — written to the DB as *_estimated. */
+  costEstimated?: boolean;
+  sellEstimated?: boolean;
+  /** Name of an existing library product this row looks like (import preview unticks it). */
+  duplicateOf?: string | null;
+  /** Unticked rows are skipped on import. */
+  include?: boolean;
+}
+
+/** Fill any blank price from a typical UK trade price, flagged as estimated. */
+function applyPriceEstimates(row: CsvRow): CsvRow {
+  if (row.costPrice != null && row.sellPrice != null) return row;
+  const est = estimateDefaultPrices({
+    name: row.name,
+    category: row.category ?? null,
+    countingMethod: row.countingMethod ?? null,
+    sizeMl: row.size_ml,
+    containerL: row.containerL ?? null,
+  });
+  const next = { ...row };
+  if (next.costPrice == null && est.cost != null) { next.costPrice = est.cost; next.costEstimated = true; }
+  if (next.sellPrice == null && est.pour != null) { next.sellPrice = est.pour; next.sellEstimated = true; }
+  return next;
+}
+
+/** Untick rows that are the same product as one already in the library under another name. */
+function applyDuplicateCheck(row: CsvRow, existing: Array<{ id: string; name: string; category: ProductCategory | null; counting_method: CountingMethod | null; size_ml: number | null }>): CsvRow {
+  const dup = findLikelyDuplicate({ name: row.name, category: row.category ?? null, size_ml: row.size_ml }, existing);
+  return dup
+    ? { ...row, duplicateOf: dup.product.name, include: false }
+    : { ...row, duplicateOf: null, include: row.include ?? true };
 }
 
 /**
@@ -797,8 +837,12 @@ function mapFullBarRow(row: Record<string, string>): CsvRow {
   const category = parseCsvCategory(rawCategory);
   const unitType = (row["unit_type"] ?? "").trim().toLowerCase();
   const partUnitType = (row["part_unit_type"] ?? "").trim().toLowerCase();
+  const requestedMethod = category ? (CSV_UNIT_METHOD_MAP[partUnitType] ?? CSV_UNIT_METHOD_MAP[unitType] ?? null) : null;
+  const sizeFromFile = parseFloat(row["size_ml"] ?? row["size"] ?? "") || null;
+  const sizeMl = category ? (sizeFromFile ?? inferSizeMl(rawName, category, requestedMethod)) : sizeFromFile;
+  // A stocktaker's "litre" on a packaged bottle means "each"; see inferCountingMethod.
   const countingMethod = category
-    ? (CSV_UNIT_METHOD_MAP[partUnitType] ?? CSV_UNIT_METHOD_MAP[unitType] ?? CATEGORY_METHODS[category].default)
+    ? (inferCountingMethod(category, requestedMethod, rawName, sizeMl, CATEGORY_METHODS[category].default) ?? null)
     : null;
   const costPriceRaw = parseFloat(row["cost_price"] ?? "") || null;
   const sellPriceRaw = parseFloat(row["sell_price"] ?? "") || null;
@@ -819,7 +863,7 @@ function mapFullBarRow(row: Record<string, string>): CsvRow {
   return {
     name: rawName,
     type: mappedType,
-    size_ml: countingMethod === "weigh" || countingMethod === "tenths" ? 700 : null,
+    size_ml: sizeMl,
     full_weight_g: null,
     empty_weight_g: null,
     density: DEFAULT_DENSITIES[mappedType] ?? 0.948,
@@ -857,6 +901,7 @@ function mapLegacyRow(row: Record<string, string>): CsvRow {
 
   const mappedType: ProductType = CSV_TYPE_MAP[rawType] ?? "spirit";
   const category = legacyCategoryForType(mappedType);
+  const resolvedSizeMl = sizeMl ?? inferSizeMl(rawName, category, CATEGORY_METHODS[category].default);
   const weightWarn = emptyG === null ? "No tare weight — re-weigh empty bottle to use" : "";
   const negativePriceWarn = (costPriceRaw != null && costPriceRaw < 0) || (sellPriceRaw != null && sellPriceRaw < 0)
     ? "Negative price cleared — re-enter cost/sell" : "";
@@ -865,7 +910,7 @@ function mapLegacyRow(row: Record<string, string>): CsvRow {
   return {
     name: rawName,
     type: mappedType,
-    size_ml: sizeMl,
+    size_ml: resolvedSizeMl,
     full_weight_g: fullG,
     empty_weight_g: emptyG,
     density,
@@ -970,11 +1015,12 @@ function mapGenericRow(row: Record<string, string>, mapping: Partial<Record<Mapp
   const negativePriceWarn = (costPriceRaw != null && costPriceRaw < 0) || (sellPriceRaw != null && sellPriceRaw < 0)
     ? "Negative price cleared — re-enter cost/sell" : "";
   const warn = [categoryWarn, weightWarn, negativePriceWarn].filter(Boolean).join(" · ");
+  const resolvedSizeMl = sizeMl ?? (category ? inferSizeMl(name, category, null) : null);
 
   return {
     name,
     type,
-    size_ml: sizeMl,
+    size_ml: resolvedSizeMl,
     full_weight_g: fullG,
     empty_weight_g: emptyG,
     density,
@@ -983,7 +1029,7 @@ function mapGenericRow(row: Record<string, string>, mapping: Partial<Record<Mapp
     warn,
     externalId: (() => { const k = Object.keys(row).find(h => normalizeHeader(h) === "product_id"); return k ? (row[k] ?? "").trim() || null : null; })(),
     category,
-    countingMethod: category ? CATEGORY_METHODS[category].default : undefined,
+    countingMethod: category ? (inferCountingMethod(category, null, name, resolvedSizeMl, CATEGORY_METHODS[category].default) ?? undefined) : undefined,
     costPrice,
     sellPrice,
     parLevel,
@@ -1018,6 +1064,8 @@ async function insertCsvRows(rows: CsvRow[], venueId: string): Promise<ImportedP
       counting_method: r.countingMethod!,
       cost_price: r.costPrice ?? null,
       pour_price: r.sellPrice ?? null,
+      cost_price_estimated: !!r.costEstimated && r.costPrice != null,
+      pour_price_estimated: !!r.sellEstimated && r.sellPrice != null,
       par_level: r.parLevel ?? null,
       sku: r.externalId ?? null,
       container_l: r.containerL ?? null,
@@ -1059,14 +1107,17 @@ async function updateCsvRows(
     const patch: {
       cost_price?: number;
       pour_price?: number;
+      cost_price_estimated?: boolean;
+      pour_price_estimated?: boolean;
       par_level?: number;
       category?: ProductCategory;
       counting_method?: CountingMethod;
       container_l?: number;
       dip_full_mm?: number;
     } = {};
-    if (r.costPrice != null) patch.cost_price = r.costPrice;
-    if (r.sellPrice != null) patch.pour_price = r.sellPrice;
+    // Only real prices from the file overwrite an existing product; estimates never do.
+    if (r.costPrice != null && !r.costEstimated) { patch.cost_price = r.costPrice; patch.cost_price_estimated = false; }
+    if (r.sellPrice != null && !r.sellEstimated) { patch.pour_price = r.sellPrice; patch.pour_price_estimated = false; }
     if (r.parLevel != null) patch.par_level = r.parLevel;
     if (r.category) patch.category = r.category;
     if (r.countingMethod) patch.counting_method = r.countingMethod;
@@ -1087,7 +1138,7 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
   /** Remaining product slots on the current plan (Infinity on Pro/Premium). */
   maxNew?: number;
   /** Products already in this venue's library — used for dedup and SKU-match updates. */
-  existingProducts?: { id: string; name: string; sku: string | null }[];
+  existingProducts?: { id: string; name: string; sku: string | null; category: ProductCategory | null; counting_method: CountingMethod | null; size_ml: number | null }[];
 }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -1118,7 +1169,9 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
           return format === "fullbar" ? mapFullBarRow(norm) : mapLegacyRow(norm);
         })
         .filter(r => r.ok)
-        .map(applyCatalogueFallback);
+        .map(applyCatalogueFallback)
+        .map(applyPriceEstimates)
+        .map(r => applyDuplicateCheck(r, existingProducts ?? []));
 
       // Fall back to manual mapping if the format is unrecognized, or if a "recognized"
       // format still produced zero usable rows (e.g. no name column actually matched).
@@ -1142,7 +1195,9 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
     const parsed = rawCsv.rows
       .map(row => mapGenericRow(row, columnMapping))
       .filter(r => r.ok)
-      .map(applyCatalogueFallback);
+      .map(applyCatalogueFallback)
+      .map(applyPriceEstimates)
+      .map(r => applyDuplicateCheck(r, existingProducts ?? []));
     setRows(parsed);
     setNeedsMapping(false);
   };
@@ -1157,6 +1212,16 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
       if (patch.name !== undefined) {
         merged = applyCatalogueFallback(merged);
       }
+      // Anything that changes what the product IS re-derives its estimated prices
+      // and re-runs the duplicate check; a price typed by hand stops being an estimate.
+      if (patch.category !== undefined || patch.name !== undefined || patch.countingMethod !== undefined) {
+        if (merged.costEstimated) { merged.costPrice = null; merged.costEstimated = false; }
+        if (merged.sellEstimated) { merged.sellPrice = null; merged.sellEstimated = false; }
+        merged = applyPriceEstimates(merged);
+        if (patch.name !== undefined) merged = applyDuplicateCheck(merged, existingProducts ?? []);
+      }
+      if (patch.costPrice !== undefined) merged.costEstimated = false;
+      if (patch.sellPrice !== undefined) merged.sellEstimated = false;
       return merged;
     }));
   };
@@ -1188,18 +1253,24 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
   const handleImport = async () => {
     if (!rows.length) return;
     setImportBlockError(null);
-    const validationErrors = validateCsvImportRows(rows);
+    const ticked = rows.filter(r => r.include !== false);
+    const untickedCount = rows.length - ticked.length;
+    if (ticked.length === 0) {
+      toast({ title: "Nothing ticked", description: "Every row is unticked — tick the ones you want to import." });
+      return;
+    }
+    const validationErrors = validateCsvImportRows(ticked);
     if (validationErrors.length > 0) {
       setImportBlockError(validationErrors.slice(0, 3).join(" ") + (validationErrors.length > 3 ? ` ${validationErrors.length - 3} more error(s).` : ""));
       return;
     }
     // Rows whose externalId matches an existing SKU → update, not insert.
-    const toUpdate = rows.filter(r => {
+    const toUpdate = ticked.filter(r => {
       const key = (r.externalId ?? "").trim().toLowerCase();
       return key && existingSkuMap.has(key);
     });
     // Remaining rows: skip those already in library by name, insert the rest.
-    const toInsertRaw = rows.filter(r => {
+    const toInsertRaw = ticked.filter(r => {
       const key = (r.externalId ?? "").trim().toLowerCase();
       return !(key && existingSkuMap.has(key));
     });
@@ -1224,14 +1295,40 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
       let updatedCount = 0;
       if (toUpdate.length > 0) updatedCount = await updateCsvRows(toUpdate, existingSkuMap);
       const inserted = toInsert.length > 0 ? await insertCsvRows(toInsert, venueId) : [];
+      // Give unweighed bottles the catalogue's weights where it obviously knows the bottle.
+      let matchedNames = new Set<string>();
+      try {
+        const byName = new Map(toInsert.map(r => [r.name, r] as const));
+        const result = await matchKnownBottles(
+          venueId,
+          inserted.filter(p => p.needsWeighing).map(p => ({
+            id: p.id,
+            name: p.name,
+            category: byName.get(p.name)?.category ?? null,
+            size_ml: p.size_ml,
+            counting_method: byName.get(p.name)?.countingMethod ?? null,
+            full_weight_g: null,
+            empty_weight_g: null,
+          })),
+        );
+        matchedNames = new Set(result.matchedNames);
+        if (result.matched > 0) {
+          toast({
+            title: `${result.matched} bottle${result.matched === 1 ? "" : "s"} matched to known weights`,
+            description: "No need to weigh those — the catalogue already has them.",
+          });
+        }
+      } catch {
+        // matching is a nicety; the import already succeeded
+      }
       queryClient.invalidateQueries({ queryKey: ["products", venueId] });
       setImportedCount(inserted.length + updatedCount);
-      setUnweighedProducts(inserted.filter(p => p.needsWeighing));
+      setUnweighedProducts(inserted.filter(p => p.needsWeighing && !matchedNames.has(p.name)));
       setDone(true);
       const parts: string[] = [];
       if (inserted.length > 0) parts.push(`${inserted.length} added`);
       if (updatedCount > 0) parts.push(`${updatedCount} updated`);
-      if (nameSkipCount > 0) parts.push(`${nameSkipCount} skipped (already exist)`);
+      if (nameSkipCount + untickedCount > 0) parts.push(`${nameSkipCount + untickedCount} skipped (already in your library)`);
       toast({ title: "Library updated", description: parts.join(" · ") || "No changes made" });
     } catch (err: any) {
       toast({ title: "Import error", description: err.message, variant: "destructive" });
@@ -1384,8 +1481,17 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
                     const dupInFile = skuKey ? (fileSkuCounts.get(skuKey) ?? 0) > 1 : false;
                     const parHigh = r.parLevel != null && r.parLevel > 100;
                     const hasWarning = !!(r.warn || parHigh || dupInFile);
+                    const skipped = r.include === false;
                     return (
-                    <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-lg text-sm ${hasWarning ? "bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40" : updateTarget ? "bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-700/40" : "bg-muted/40"}`}>
+                    <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-lg text-sm ${skipped ? "bg-muted/30 opacity-70 border border-dashed border-border" : hasWarning ? "bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/40" : updateTarget ? "bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-700/40" : "bg-muted/40"}`}>
+                      <input
+                        type="checkbox"
+                        className="mt-2 h-4 w-4 shrink-0 accent-primary"
+                        checked={!skipped}
+                        onChange={e => updateRow(i, { include: e.target.checked })}
+                        aria-label={skipped ? "Include this row" : "Skip this row"}
+                        data-testid={`checkbox-preview-include-${i}`}
+                      />
                       <div className="flex-1 min-w-0 space-y-1.5">
                         <div className="flex items-center gap-2">
                           <Input
@@ -1422,8 +1528,9 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
                             type="number"
                             min="0"
                             step="0.01"
-                            className="h-8 w-20 text-xs"
+                            className={`h-8 w-20 text-xs ${r.costEstimated ? "border-dashed text-muted-foreground" : ""}`}
                             placeholder="Cost £"
+                            title={r.costEstimated ? "Estimated from category — type the real price to replace it" : undefined}
                             value={r.costPrice ?? ""}
                             onChange={e => updateRow(i, { costPrice: e.target.value === "" ? null : Math.max(0, parseFloat(e.target.value)) })}
                             data-testid={`input-preview-cost-${i}`}
@@ -1432,23 +1539,31 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
                             type="number"
                             min="0"
                             step="0.01"
-                            className="h-8 w-20 text-xs"
+                            className={`h-8 w-20 text-xs ${r.sellEstimated ? "border-dashed text-muted-foreground" : ""}`}
                             placeholder="Sell £"
+                            title={r.sellEstimated ? "Estimated from category — type the real price to replace it" : undefined}
                             value={r.sellPrice ?? ""}
                             onChange={e => updateRow(i, { sellPrice: e.target.value === "" ? null : Math.max(0, parseFloat(e.target.value)) })}
                             data-testid={`input-preview-sell-${i}`}
                           />
+                          {(r.costEstimated || r.sellEstimated) && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground" data-testid={`badge-price-estimated-${i}`}>
+                              est. price
+                            </span>
+                          )}
                           <span className="text-muted-foreground text-xs">{r.category ? (CATEGORY_LABELS[r.category as keyof typeof CATEGORY_LABELS] ?? r.category) : "—"} · {r.size_ml ?? "—"}ml</span>
-                          <span
-                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
-                              r.needsWeighing
-                                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                                : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            }`}
-                            data-testid={`badge-weigh-status-${i}`}
-                          >
-                            {r.needsWeighing ? "Needs Weighing" : "Weighed"}
-                          </span>
+                          {(r.countingMethod === "weigh" || r.countingMethod === "tenths" || r.countingMethod === "photo_tap" || !r.countingMethod) && (
+                            <span
+                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
+                                r.needsWeighing
+                                  ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                  : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              }`}
+                              data-testid={`badge-weigh-status-${i}`}
+                            >
+                              {r.needsWeighing ? "Needs Weighing" : "Weighed"}
+                            </span>
+                          )}
                         </div>
                         {r.warn && (
                           <div className="flex items-center gap-1 text-amber-700 dark:text-amber-400 text-xs mt-0.5">
@@ -1468,6 +1583,12 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
                             Duplicate Product_ID in this file — only the first match will be used
                           </div>
                         )}
+                        {r.duplicateOf && (
+                          <div className="flex items-center gap-1 text-muted-foreground text-xs mt-0.5" data-testid={`warning-duplicate-of-${i}`}>
+                            <AlertCircle className="w-3 h-3 shrink-0" />
+                            Looks like “{r.duplicateOf}”, already in your library — skipped. Tick the box to add it anyway.
+                          </div>
+                        )}
                       </div>
                       {hasWarning
                         ? <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-1" />
@@ -1484,18 +1605,21 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
                 </div>
 
                 {(() => {
-                  const uncategorized = rows.filter(r => !r.category).length;
-                  const skuUpdates = rows.filter(r => {
+                  const ticked = rows.filter(r => r.include !== false);
+                  const unticked = rows.length - ticked.length;
+                  const estimatedCount = ticked.filter(r => r.costEstimated || r.sellEstimated).length;
+                  const uncategorized = ticked.filter(r => !r.category).length;
+                  const skuUpdates = ticked.filter(r => {
                     const key = (r.externalId ?? "").trim().toLowerCase();
                     return key && existingSkuMap.has(key);
                   });
-                  const toInsertRaw = rows.filter(r => {
+                  const toInsertRaw = ticked.filter(r => {
                     const key = (r.externalId ?? "").trim().toLowerCase();
                     return !(key && existingSkuMap.has(key));
                   });
-                  const nameSkips = toInsertRaw.filter(r => existingNamesLower.has(r.name.trim().toLowerCase())).length;
-                  const newCount = toInsertRaw.length - nameSkips;
-                  const parHighCount = rows.filter(r => r.parLevel != null && r.parLevel > 100).length;
+                  const nameSkips = toInsertRaw.filter(r => existingNamesLower.has(r.name.trim().toLowerCase())).length + unticked;
+                  const newCount = toInsertRaw.length - (nameSkips - unticked);
+                  const parHighCount = ticked.filter(r => r.parLevel != null && r.parLevel > 100).length;
                   const buttonLabel = importing ? "Importing..." : [
                     newCount > 0 ? `Add ${newCount}` : "",
                     skuUpdates.length > 0 ? `Update ${skuUpdates.length}` : "",
@@ -1514,7 +1638,12 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
                       )}
                       {nameSkips > 0 && (
                         <p className="text-xs text-muted-foreground text-center py-1" data-testid="info-duplicates">
-                          {nameSkips} product{nameSkips === 1 ? "" : "s"} already in your library (no Product_ID match) — will be skipped.
+                          {nameSkips} product{nameSkips === 1 ? "" : "s"} already in your library — will be skipped.
+                        </p>
+                      )}
+                      {estimatedCount > 0 && (
+                        <p className="text-xs text-muted-foreground text-center py-1" data-testid="info-estimated-prices">
+                          {estimatedCount} row{estimatedCount === 1 ? "" : "s"} had no price, so a typical UK trade price has been filled in and marked “est.” — correct the ones that matter after importing.
                         </p>
                       )}
                       {parHighCount > 0 && (
@@ -1934,16 +2063,28 @@ function V21ImportCostPricesSheet({
   );
 }
 
-function BulkPriceEditorSheet({ open, onClose, venueId, products }: {
+function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, mode = "all" }: {
   open: boolean;
   onClose: () => void;
   venueId: string;
   products: any[];
+  /** "prices": only lines on an estimated price, dearest first ("Correct your prices"). */
+  mode?: "all" | "prices";
 }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [edits, setEdits] = useState<Record<string, { cost: string; sell: string; par: string; category: ProductCategory; countingMethod: CountingMethod; vendor: string }>>({});
   const [saving, setSaving] = useState(false);
+  const products = useMemo(
+    () =>
+      mode !== "prices"
+        ? allProducts
+        : allProducts
+            .filter((p: any) => p.cost_price_estimated || p.pour_price_estimated)
+            .slice()
+            .sort((a: any, b: any) => (b.cost_price ?? 0) - (a.cost_price ?? 0)),
+    [allProducts, mode],
+  );
 
   React.useEffect(() => {
     if (open) {
@@ -2008,23 +2149,40 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products }: {
           const sell = v.sell === "" ? null : parseFloat(v.sell);
           const par = v.par === "" ? null : parseFloat(v.par);
           const vendor = v.vendor.trim() === "" ? null : v.vendor.trim();
+          const costChanged = cost !== (product.cost_price ?? null);
+          const sellChanged = sell !== (product.pour_price ?? null);
           const changed =
-            cost !== (product.cost_price ?? null) ||
-            sell !== (product.pour_price ?? null) ||
+            costChanged ||
+            sellChanged ||
             par !== (product.par_level ?? null) ||
             v.category !== (product.category ?? "spirits") ||
             v.countingMethod !== (product.counting_method ?? CATEGORY_METHODS[v.category].default) ||
             vendor !== (product.vendor ?? null);
           return changed
-            ? { id, cost_price: cost, pour_price: sell, par_level: par, category: v.category, counting_method: v.countingMethod, vendor }
+            ? {
+                id, cost_price: cost, pour_price: sell, par_level: par, category: v.category, counting_method: v.countingMethod, vendor,
+                // A price typed by the landlord is no longer an estimate.
+                cost_price_estimated: costChanged ? false : !!(product as any).cost_price_estimated,
+                pour_price_estimated: sellChanged ? false : !!(product as any).pour_price_estimated,
+              }
             : null;
         })
-        .filter((u): u is { id: string; cost_price: number | null; pour_price: number | null; par_level: number | null; category: ProductCategory; counting_method: CountingMethod; vendor: string | null } => !!u);
+        .filter((u): u is { id: string; cost_price: number | null; pour_price: number | null; par_level: number | null; category: ProductCategory; counting_method: CountingMethod; vendor: string | null; cost_price_estimated: boolean; pour_price_estimated: boolean } => !!u);
 
       for (const u of updates) {
         const { error } = await supabase
           .from("products")
-          .update({ cost_price: u.cost_price, pour_price: u.pour_price, par_level: u.par_level, category: u.category, counting_method: u.counting_method, vendor: u.vendor })
+          .update({
+            cost_price: u.cost_price,
+            pour_price: u.pour_price,
+            par_level: u.par_level,
+            category: u.category,
+            counting_method: u.counting_method,
+            unit: u.counting_method === "weigh" || u.counting_method === "tenths" || u.counting_method === "photo_tap" ? "weigh" : "count",
+            vendor: u.vendor,
+            cost_price_estimated: u.cost_price_estimated,
+            pour_price_estimated: u.pour_price_estimated,
+          })
           .eq("id", u.id);
         if (error) throw error;
       }
@@ -2042,7 +2200,12 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products }: {
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="bottom" className="h-[90dvh] overflow-y-auto rounded-t-2xl">
         <SheetHeader className="mb-4">
-          <SheetTitle>Bulk Editor</SheetTitle>
+          <SheetTitle>{mode === "prices" ? "Correct your prices" : "Bulk Editor"}</SheetTitle>
+          {mode === "prices" && (
+            <p className="text-sm text-muted-foreground">
+              {products.length} product{products.length === 1 ? " is" : "s are"} on a typical UK trade price, dearest first. Overwrite the ones you know; leave the rest for now.
+            </p>
+          )}
         </SheetHeader>
 
         <div className="space-y-3 pb-24">
@@ -2050,10 +2213,17 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products }: {
             const gp = gpFor(p);
             const e = edits[p.id];
             if (!e) return null;
+            const costIsEstimate = !!p.cost_price_estimated && e.cost === (p.cost_price != null ? String(p.cost_price) : "");
+            const sellIsEstimate = !!p.pour_price_estimated && e.sell === (p.pour_price != null ? String(p.pour_price) : "");
             return (
               <div key={p.id} className="bg-card border border-border rounded-lg p-3 space-y-2" data-testid={`row-price-${p.id}`}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium truncate">{p.name}</span>
+                  <span className="text-sm font-medium truncate">
+                    {p.name}
+                    {(costIsEstimate || sellIsEstimate) && (
+                      <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border border-dashed border-border align-middle">est.</span>
+                    )}
+                  </span>
                   <span className={`text-sm font-bold shrink-0 ${gp === null ? "text-muted-foreground" : gp < 50 ? "text-red-500" : "text-green-500"}`}>
                     {gp === null ? "GP —" : `GP ${gp.toFixed(0)}%`}
                   </span>
@@ -2086,20 +2256,20 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products }: {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Cost £</Label>
+                    <Label className="text-xs text-muted-foreground">Cost £{costIsEstimate ? " (est.)" : ""}</Label>
                     <Input
                       type="number"
-                      className="mt-1 h-9 text-sm"
+                      className={`mt-1 h-9 text-sm ${costIsEstimate ? "border-dashed text-muted-foreground" : ""}`}
                       value={e.cost}
                       onChange={ev => setEdits(prev => ({ ...prev, [p.id]: { ...prev[p.id], cost: ev.target.value } }))}
                       data-testid={`input-cost-${p.id}`}
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Sell £</Label>
+                    <Label className="text-xs text-muted-foreground">Sell £{sellIsEstimate ? " (est.)" : ""}</Label>
                     <Input
                       type="number"
-                      className="mt-1 h-9 text-sm"
+                      className={`mt-1 h-9 text-sm ${sellIsEstimate ? "border-dashed text-muted-foreground" : ""}`}
                       value={e.sell}
                       onChange={ev => setEdits(prev => ({ ...prev, [p.id]: { ...prev[p.id], sell: ev.target.value } }))}
                       data-testid={`input-sell-${p.id}`}
@@ -2261,12 +2431,26 @@ interface ProductFieldRepairSheetProps {
   unit: string;
   placeholder: string;
   quickSizes?: Array<{ label: string; value: number }>;
-  products: Array<{ id: string; name: string; container_l?: number | null; dip_full_mm?: number | null }>;
+  /** Per-product preset chips (e.g. keg vs cask sizes based on the line's category). */
+  presetsFor?: (p: RepairableProduct) => Array<{ label: string; value: number }>;
+  products: RepairableProduct[];
   venueId: string;
 }
 
+type RepairableProduct = {
+  id: string;
+  name: string;
+  category?: string | null;
+  counting_method?: string | null;
+  container_type?: string | null;
+  container_l?: number | null;
+  dip_full_mm?: number | null;
+  cost_price?: number | null;
+  pour_price?: number | null;
+};
+
 function ProductFieldRepairSheet({
-  open, onClose, title, description, field, unit, placeholder, quickSizes, products, venueId,
+  open, onClose, title, description, field, unit, placeholder, quickSizes, presetsFor, products, venueId,
 }: ProductFieldRepairSheetProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -2306,9 +2490,30 @@ function ProductFieldRepairSheet({
     setSaving(true);
     try {
       await Promise.all(
-        toUpdate.map(({ id, val }) =>
-          supabase.from("products").update({ [field]: val } as any).eq("id", id)
-        )
+        toUpdate.map(({ id, val }) => {
+          const patch: Record<string, unknown> = { [field]: val };
+          const product = products.find(p => p.id === id);
+          // Setting a container size implies a container type if none is set yet.
+          if (field === "container_l" && product && !product.container_type && presetsFor) {
+            patch.container_type =
+              product.counting_method === "dipstick" ? "cask"
+              : product.counting_method === "keg_weight" ? "keg"
+              : product.category === "draught_ale" ? "cask"
+              : "keg";
+          }
+          // A container size is enough to estimate a keg/cask cost (flagged est.).
+          if (field === "container_l" && product && product.cost_price == null) {
+            const est = estimateDefaultPrices({
+              name: product.name,
+              category: product.category as any,
+              countingMethod: product.counting_method as any,
+              containerL: val,
+            });
+            if (est.cost != null) { patch.cost_price = est.cost; patch.cost_price_estimated = true; }
+            if (product.pour_price == null && est.pour != null) { patch.pour_price = est.pour; patch.pour_price_estimated = true; }
+          }
+          return supabase.from("products").update(patch as any).eq("id", id);
+        })
       );
       queryClient.invalidateQueries({ queryKey: ["products", venueId] });
       toast({ title: `${toUpdate.length} product${toUpdate.length === 1 ? "" : "s"} updated` });
@@ -2349,23 +2554,44 @@ function ProductFieldRepairSheet({
         )}
 
         <div className="flex-1 overflow-auto min-h-0 space-y-2 pr-1">
-          {products.map(p => (
-            <div key={p.id} className="flex items-center gap-3">
-              <span className="flex-1 text-sm truncate">{p.name}</span>
-              <div className="flex items-center gap-1 shrink-0">
-                <Input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  className="w-24 h-9 text-right tabular-nums"
-                  placeholder={placeholder}
-                  value={values[p.id] ?? ""}
-                  onChange={e => setOne(p.id, e.target.value)}
-                />
-                <span className="text-sm text-muted-foreground w-8">{unit}</span>
+          {products.map(p => {
+            const presets = presetsFor?.(p) ?? [];
+            const current = parseFloat(values[p.id] ?? "");
+            return (
+              <div key={p.id} className="space-y-1 py-1 border-b border-border/60 last:border-0" data-testid={`repair-row-${p.id}`}>
+                <div className="flex items-center gap-3">
+                  <span className="flex-1 text-sm truncate">{p.name}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.1}
+                      className="w-24 h-9 text-right tabular-nums"
+                      placeholder={placeholder}
+                      value={values[p.id] ?? ""}
+                      onChange={e => setOne(p.id, e.target.value)}
+                    />
+                    <span className="text-sm text-muted-foreground w-8">{unit}</span>
+                  </div>
+                </div>
+                {presets.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {presets.map(preset => (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        onClick={() => setOne(p.id, String(preset.value))}
+                        className={`text-xs px-2.5 py-1 rounded-md border ${Math.abs(current - preset.value) < 0.05 ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}
+                        data-testid={`repair-preset-${p.id}-${preset.value}`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="shrink-0 pt-3 border-t border-border mt-3">
@@ -2678,6 +2904,60 @@ function BottleShapeSheet({ open, onClose, product, venueId }: {
 
 // ─── INDIVIDUAL PRODUCT EDIT SHEET ───────────────────────────────────────────
 
+const CONTAINER_PRESETS: Record<string, Array<{ label: string; value: number }>> = {
+  keg: [
+    { label: "20L", value: 20 },
+    { label: "30L", value: 30 },
+    { label: "50L (11 gal)", value: 50 },
+    { label: "100L (22 gal)", value: 100 },
+  ],
+  cask: [
+    { label: "Pin 4.5 gal (20.5L)", value: 20.5 },
+    { label: "Firkin 9 gal (40.9L)", value: 40.9 },
+    { label: "Kilderkin 18 gal (81.8L)", value: 81.8 },
+    { label: "Barrel 36 gal (163.7L)", value: 163.7 },
+    { label: "Hogshead 54 gal (245.5L)", value: 245.5 },
+  ],
+  bag_in_box: [
+    { label: "10L", value: 10 },
+    { label: "18L", value: 18 },
+    { label: "20L", value: 20 },
+  ],
+};
+
+/** Keg/cask/bag-in-box size: one-tap presets plus a free "Other size" box. */
+function ContainerSizeField({ id, containerType, value, onChange }: {
+  id: string;
+  containerType: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const presets = CONTAINER_PRESETS[containerType] ?? CONTAINER_PRESETS.keg;
+  const current = parseFloat(value);
+  return (
+    <div>
+      <Label htmlFor={id}>Size</Label>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {presets.map(preset => (
+          <button
+            key={preset.value}
+            type="button"
+            onClick={() => onChange(String(preset.value))}
+            className={`text-xs px-2.5 py-1.5 rounded-md border ${Math.abs(current - preset.value) < 0.05 ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}
+            data-testid={`preset-container-${preset.value}`}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <Input id={id} type="number" step="0.1" value={value} onChange={e => onChange(e.target.value)} className="h-9" placeholder="Other size" />
+        <span className="text-xs text-muted-foreground whitespace-nowrap">litres</span>
+      </div>
+    </div>
+  );
+}
+
 function EditProductSheet({ open, onClose, product, venueId }: {
   open: boolean;
   onClose: () => void;
@@ -2696,9 +2976,20 @@ function EditProductSheet({ open, onClose, product, venueId }: {
   const [pourPrice, setPourPrice] = useState("");
   const [parLevel, setParLevel] = useState("");
   const [barcode, setBarcode] = useState("");
+  const [containerL, setContainerL] = useState("");
+  const [containerType, setContainerType] = useState("keg");
+  const isDraughtLine = !!product && (isDraughtCategory(product.category) || ["keg_weight", "dipstick", "tenths_pints"].includes(product.counting_method));
 
   React.useEffect(() => {
     if (open && product) {
+      setContainerL(product.container_l != null ? String(product.container_l) : "");
+      setContainerType(
+        product.container_type ||
+          (product.counting_method === "dipstick" ? "cask"
+            : product.counting_method === "keg_weight" ? "keg"
+            : product.category === "draught_ale" ? "cask"
+            : "keg"),
+      );
       setName(product.name ?? "");
       setVendor(product.vendor ?? "");
       setSku(product.sku ?? "");
@@ -2716,6 +3007,24 @@ function EditProductSheet({ open, onClose, product, venueId }: {
       return;
     }
     try {
+      const containerLitres = isDraughtLine && containerL !== "" ? parseFloat(containerL) : null;
+      let cost = costPrice !== "" ? parseFloat(costPrice) : null;
+      let pour = pourPrice !== "" ? parseFloat(pourPrice) : null;
+      // Typing a price clears its "estimated" flag; leaving an estimate untouched keeps it.
+      const costTouched = cost !== (product.cost_price ?? null) || !product.cost_price_estimated;
+      const pourTouched = pour !== (product.pour_price ?? null) || !product.pour_price_estimated;
+      let costEstimated = cost != null && !costTouched;
+      let pourEstimated = pour != null && !pourTouched;
+      if (isDraughtLine && cost == null && containerLitres != null) {
+        const est = estimateDefaultPrices({
+          name: name.trim(),
+          category: product.category,
+          countingMethod: product.counting_method,
+          containerL: containerLitres,
+        });
+        if (est.cost != null) { cost = est.cost; costEstimated = true; }
+        if (pour == null && est.pour != null) { pour = est.pour; pourEstimated = true; }
+      }
       await updateProduct.mutateAsync({
         id: product.id,
         venue_id: venueId,
@@ -2723,11 +3032,14 @@ function EditProductSheet({ open, onClose, product, venueId }: {
         vendor: vendor.trim() || null,
         sku: sku.trim() || null,
         notes: notes.trim() || null,
-        cost_price: costPrice !== "" ? parseFloat(costPrice) : null,
-        pour_price: pourPrice !== "" ? parseFloat(pourPrice) : null,
+        cost_price: cost,
+        pour_price: pour,
+        cost_price_estimated: costEstimated,
+        pour_price_estimated: pourEstimated,
         par_level: parLevel !== "" ? parseFloat(parLevel) : null,
         barcode: barcode.trim() || null,
-      });
+        ...(isDraughtLine ? { container_l: containerLitres, container_type: containerType as any } : {}),
+      } as any);
       toast({ title: "Product updated" });
       onClose();
     } catch (err: any) {
@@ -2768,14 +3080,44 @@ function EditProductSheet({ open, onClose, product, venueId }: {
             <Label htmlFor="ep-notes">Notes</Label>
             <Input id="ep-notes" value={notes} onChange={e => setNotes(e.target.value)} className="mt-1" placeholder="e.g. Check date on delivery" />
           </div>
+          {isDraughtLine && (
+            <div className="space-y-3">
+              <div>
+                <Label>Container</Label>
+                <Select value={containerType} onValueChange={v => setContainerType(v)}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="keg">Keg</SelectItem>
+                    <SelectItem value="cask">Cask</SelectItem>
+                    <SelectItem value="bag_in_box">Bag-in-box</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <ContainerSizeField id="ep-container-l" containerType={containerType} value={containerL} onChange={setContainerL} />
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="ep-cost">Cost price £ <span className="text-muted-foreground text-xs">(ex-VAT)</span></Label>
-              <Input id="ep-cost" type="number" step="0.01" value={costPrice} onChange={e => setCostPrice(e.target.value)} className="mt-1" />
+              <Label htmlFor="ep-cost">Cost price £ <span className="text-muted-foreground text-xs">(ex-VAT{product?.cost_price_estimated ? ", estimated" : ""})</span></Label>
+              <Input
+                id="ep-cost"
+                type="number"
+                step="0.01"
+                value={costPrice}
+                onChange={e => setCostPrice(e.target.value)}
+                className={`mt-1 ${product?.cost_price_estimated && costPrice === (product.cost_price != null ? String(product.cost_price) : "") ? "border-dashed text-muted-foreground" : ""}`}
+              />
             </div>
             <div>
-              <Label htmlFor="ep-pour">Pour price £ <span className="text-muted-foreground text-xs">(ex-VAT)</span></Label>
-              <Input id="ep-pour" type="number" step="0.01" value={pourPrice} onChange={e => setPourPrice(e.target.value)} className="mt-1" />
+              <Label htmlFor="ep-pour">Pour price £ <span className="text-muted-foreground text-xs">(ex-VAT{product?.pour_price_estimated ? ", estimated" : ""})</span></Label>
+              <Input
+                id="ep-pour"
+                type="number"
+                step="0.01"
+                value={pourPrice}
+                onChange={e => setPourPrice(e.target.value)}
+                className={`mt-1 ${product?.pour_price_estimated && pourPrice === (product.pour_price != null ? String(product.pour_price) : "") ? "border-dashed text-muted-foreground" : ""}`}
+              />
             </div>
           </div>
           <div>
@@ -2845,6 +3187,7 @@ export default function Library() {
   const [catalogueOpen, setCatalogueOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
+  const [correctPricesOpen, setCorrectPricesOpen] = useState(false);
   const [deliveryOpen, setDeliveryOpen] = useState(false);
   const [v21ImportOpen, setV21ImportOpen] = useState(false);
   const [bulkCapacityOpen, setBulkCapacityOpen] = useState(false); // kept for any legacy refs — driven by repairKegOpen now
@@ -2854,6 +3197,43 @@ export default function Library() {
   const queryClient = useQueryClient();
   const isPro = venue?.tier === "pro" || venue?.tier === "premium";
   const orderCycleDays = venue?.order_cycle_days ?? 21;
+
+  // "Fill in prices": give every unpriced line a typical UK trade price, flagged est.
+  const [fillingPrices, setFillingPrices] = useState(false);
+  const handleFillPrices = async () => {
+    if (!venue?.id || !products) return;
+    setFillingPrices(true);
+    try {
+      let count = 0;
+      for (const p of products) {
+        if (p.cost_price != null && p.pour_price != null) continue;
+        const est = estimateDefaultPrices({
+          name: p.name,
+          category: p.category,
+          countingMethod: p.counting_method,
+          sizeMl: p.size_ml,
+          containerL: p.container_l,
+          packSize: p.pack_size,
+        });
+        const patch: Record<string, unknown> = {};
+        if (p.cost_price == null && est.cost != null) { patch.cost_price = est.cost; patch.cost_price_estimated = true; }
+        if (p.pour_price == null && est.pour != null) { patch.pour_price = est.pour; patch.pour_price_estimated = true; }
+        if (Object.keys(patch).length === 0) continue;
+        const { error } = await supabase.from("products").update(patch as any).eq("id", p.id);
+        if (error) throw error;
+        count++;
+      }
+      queryClient.invalidateQueries({ queryKey: ["products", venue.id] });
+      toast({
+        title: `${count} product${count === 1 ? "" : "s"} given a typical price`,
+        description: "They're marked \u201cest.\u201d in the list. Correct the dear ones first \u2014 kegs and premium spirits.",
+      });
+    } catch (err: any) {
+      toast({ title: "Couldn't fill prices", description: err.message, variant: "destructive" });
+    } finally {
+      setFillingPrices(false);
+    }
+  };
 
   const handleImportStarterLibrary = () => {
     setCatalogueOpen(true);
@@ -2940,15 +3320,15 @@ export default function Library() {
   const { data: nullCapacityKegs = [] } = useQuery({
     queryKey: ["null-capacity-kegs", venue?.id],
     queryFn: async () => {
-      if (!venue?.id) return [] as Array<{ id: string; name: string; container_l: number | null }>;
+      if (!venue?.id) return [] as RepairableProduct[];
       const { data } = await supabase
         .from("products")
-        .select("id, name, container_l")
+        .select("id, name, container_l, category, counting_method, container_type, cost_price, pour_price")
         .eq("venue_id", venue.id)
         .is("container_l", null)
         .like("category", "draught_%")
         .order("name");
-      return (data ?? []) as Array<{ id: string; name: string; container_l: number | null }>;
+      return (data ?? []) as RepairableProduct[];
     },
     enabled: !!venue?.id,
     staleTime: 10_000,
@@ -2999,28 +3379,113 @@ export default function Library() {
     return groups;
   }, [filtered, groupBy]);
 
-  // ── Task 3: data quality flags ────────────────────────────────────────────
-  // Flag products whose first-word brand name is shared by siblings that use a
-  // different counting method — same physical bottle, inconsistent variance.
-  const inconsistentMethodIds = useMemo(() => {
-    if (!products) return new Set<string>();
-    const groups = new Map<string, any[]>();
-    for (const p of products) {
-      const brand = p.name.trim().toLowerCase().split(/\s+/)[0];
-      // "Generic vodka" and "Generic lager" share a first word but are not
-      // variants of one brand; draught lines are legitimately counted differently.
-      if (brand === "generic" || isVolumeCountingMethod((p as any).counting_method)) continue;
-      if (!groups.has(brand)) groups.set(brand, []);
-      groups.get(brand)!.push(p);
+  // ── Data quality flags ─────────────────────────────────────────────────────
+  // Same brand + category + size bucket counted in two different method
+  // families (weigh vs each, say). Prefix-aware, so "Gordons" and "Gordons
+  // Pink" don't collide, and weigh/tenths/photo count as one family.
+  const inconsistentMethodIds = useMemo(
+    () => (products ? findMethodMismatches(products) : new Set<string>()),
+    [products],
+  );
+
+  // Stocktaker-style "litre" on packaged bottles that should be counted each.
+  const litreOnBottleIds = useMemo(
+    () => (products ? new Set(products.filter(p => isLitreOnBottles(p)).map(p => p.id)) : new Set<string>()),
+    [products],
+  );
+
+  const estimatedPriceIds = useMemo(
+    () => (products ? new Set(products.filter(p => p.cost_price_estimated || p.pour_price_estimated).map(p => p.id)) : new Set<string>()),
+    [products],
+  );
+
+  // Lines with no price at all (kegs with no size can't be priced until sized).
+  const unpricedCount = useMemo(
+    () =>
+      (products ?? []).filter(
+        p =>
+          !(String(p.category ?? "").startsWith("draught_") && p.container_l == null) &&
+          (p.cost_price == null || (p.pour_price == null && p.category !== "minerals")),
+      ).length,
+    [products],
+  );
+
+  // Wines imported at a spirit's 700ml when the name doesn't say so.
+  const wrongSizeWines = useMemo(
+    () => (products ?? []).filter(p => p.category === "wines" && p.size_ml === 700 && inferSizeMl(p.name, "wines", null) !== 700),
+    [products],
+  );
+  const [fixingWines, setFixingWines] = useState(false);
+  const handleFixWineSizes = async () => {
+    if (!venue?.id || wrongSizeWines.length === 0) return;
+    setFixingWines(true);
+    try {
+      for (const p of wrongSizeWines) {
+        const sizeMl = inferSizeMl(p.name, "wines", null) ?? 750;
+        const { error } = await supabase.from("products").update({ size_ml: sizeMl }).eq("id", p.id);
+        if (error) throw error;
+      }
+      queryClient.invalidateQueries({ queryKey: ["products", venue.id] });
+      toast({
+        title: `${wrongSizeWines.length} wine size${wrongSizeWines.length === 1 ? "" : "s"} fixed`,
+        description: "75cl unless the name says otherwise (187ml, 200ml).",
+      });
+    } catch (err: any) {
+      toast({ title: "Couldn't fix wine sizes", description: err.message, variant: "destructive" });
+    } finally {
+      setFixingWines(false);
     }
-    const flagged = new Set<string>();
-    for (const [, prods] of groups) {
-      if (prods.length < 2) continue;
-      const methods = new Set(prods.map((p: any) => p.counting_method).filter(Boolean));
-      if (methods.size > 1) prods.forEach((p: any) => flagged.add(p.id));
+  };
+
+  // Spirits and wines with no bottle weights: try the shared catalogue first.
+  const unweighedBottles = useMemo(
+    () => (products ?? []).filter(p => (p.category === "spirits" || p.category === "wines") && (p.full_weight_g == null || p.empty_weight_g == null)),
+    [products],
+  );
+  const [matchingBottles, setMatchingBottles] = useState(false);
+  const handleMatchKnownBottles = async () => {
+    if (!venue?.id || unweighedBottles.length === 0) return;
+    setMatchingBottles(true);
+    try {
+      const result = await matchKnownBottles(venue.id, unweighedBottles);
+      queryClient.invalidateQueries({ queryKey: ["products", venue.id] });
+      toast({
+        title: result.matched > 0 ? `${result.matched} bottle${result.matched === 1 ? "" : "s"} given known weights` : "No new matches",
+        description:
+          result.unmatched > 0
+            ? `${result.unmatched} still need weighing \u2014 a minute each with the kitchen scale.`
+            : "Every spirit and wine now has bottle weights.",
+      });
+    } catch (err: any) {
+      toast({ title: "Couldn't match bottles", description: err.message, variant: "destructive" });
+    } finally {
+      setMatchingBottles(false);
     }
-    return flagged;
-  }, [products]);
+  };
+
+  const [fixingMethods, setFixingMethods] = useState(false);
+  const handleCountEach = async () => {
+    if (!venue?.id || litreOnBottleIds.size === 0) return;
+    setFixingMethods(true);
+    try {
+      let count = 0;
+      for (const p of products ?? []) {
+        if (!litreOnBottleIds.has(p.id)) continue;
+        const sizeMl = p.size_ml ?? inferSizeMl(p.name, p.category, null) ?? null;
+        const patch: Record<string, unknown> = { counting_method: "each", unit: "count" };
+        if (sizeMl != null) patch.size_ml = sizeMl;
+        const { error } = await supabase.from("products").update(patch as any).eq("id", p.id);
+        if (error) throw error;
+        count++;
+      }
+      queryClient.invalidateQueries({ queryKey: ["products", venue.id] });
+      toast({ title: `${count} product${count === 1 ? "" : "s"} now counted each`, description: "Bottle and can sizes taken from the names." });
+    } catch (err: any) {
+      toast({ title: "Couldn't change counting method", description: err.message, variant: "destructive" });
+    } finally {
+      setFixingMethods(false);
+    }
+  };
 
   // Flag par levels in (0, 1) — almost always a mis-entry (e.g. 0.3 instead of 3).
   const suspectParIds = useMemo(() => {
@@ -3188,13 +3653,117 @@ export default function Library() {
             <AlertCircle className="w-4 h-4 text-[#E0A343] shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <span className="text-sm font-medium text-[#E0A343]">
-                {nullCapacityKegs.length} keg {nullCapacityKegs.length === 1 ? "product has" : "products have"} no capacity set
+                {nullCapacityKegs.length} draught {nullCapacityKegs.length === 1 ? "line has" : "lines have"} no keg or cask size
               </span>
               <span className="text-xs text-[#E0A343]/80 block">
-                Full barrel counts will save as zero until fixed. Tap to set sizes.
+                Counts save as zero until each line has a size. Tap a size per line — takes a minute.
               </span>
             </div>
             <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">Fix now</span>
+          </button>
+        )}
+
+        {unweighedBottles.length > 0 && (
+          <button
+            type="button"
+            onClick={handleMatchKnownBottles}
+            disabled={matchingBottles}
+            className="w-full flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3 text-left"
+            data-testid="banner-match-known-bottles"
+          >
+            <Scale className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium">
+                {unweighedBottles.length} spirit{unweighedBottles.length === 1 ? " or wine has" : "s and wines have"} no bottle weights
+              </span>
+              <span className="text-xs text-muted-foreground block">
+                Tap to copy weights for the bottles StockTap already knows. Whatever's left, weigh once with the kitchen scale.
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-primary shrink-0 self-center">{matchingBottles ? "Matching…" : "Match"}</span>
+          </button>
+        )}
+
+        {litreOnBottleIds.size > 0 && (
+          <button
+            type="button"
+            onClick={handleCountEach}
+            disabled={fixingMethods}
+            className="w-full flex items-start gap-3 rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-left"
+            data-testid="banner-fix-litre-bottles"
+          >
+            <AlertCircle className="w-4 h-4 text-[#E0A343] shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-[#E0A343]">
+                {litreOnBottleIds.size} bottle{litreOnBottleIds.size === 1 ? " or can is" : "s and cans are"} set to be counted in litres
+              </span>
+              <span className="text-xs text-[#E0A343]/80 block">
+                That's how a stocktaker's sheet totals them; in the cellar you count them each. Tap to switch them to “each” with sizes from the names.
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">{fixingMethods ? "Fixing…" : "Count each"}</span>
+          </button>
+        )}
+
+        {wrongSizeWines.length > 0 && (
+          <button
+            type="button"
+            onClick={handleFixWineSizes}
+            disabled={fixingWines}
+            className="w-full flex items-start gap-3 rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-left"
+            data-testid="banner-fix-wine-sizes"
+          >
+            <AlertCircle className="w-4 h-4 text-[#E0A343] shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-[#E0A343]">
+                {wrongSizeWines.length} wine{wrongSizeWines.length === 1 ? " is" : "s are"} set to 700ml
+              </span>
+              <span className="text-xs text-[#E0A343]/80 block">
+                Wine is 75cl unless the name says 187ml or 200ml. Tenths and value are out by 7% until fixed. Tap to correct them.
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">{fixingWines ? "Fixing…" : "Fix sizes"}</span>
+          </button>
+        )}
+
+        {unpricedCount > 0 && (
+          <button
+            type="button"
+            onClick={handleFillPrices}
+            disabled={fillingPrices}
+            className="w-full flex items-start gap-3 rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-left"
+            data-testid="banner-fill-prices"
+          >
+            <AlertCircle className="w-4 h-4 text-[#E0A343] shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-[#E0A343]">
+                {unpricedCount} product{unpricedCount === 1 ? " has" : "s have"} no price
+              </span>
+              <span className="text-xs text-[#E0A343]/80 block">
+                Stock value and GP% can't be worked out without one. Tap to fill in typical UK trade prices, then correct the ones that matter.
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">{fillingPrices ? "Filling…" : "Fill in"}</span>
+          </button>
+        )}
+
+        {estimatedPriceIds.size > 0 && (
+          <button
+            type="button"
+            onClick={() => setCorrectPricesOpen(true)}
+            className="w-full flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3 text-left"
+            data-testid="banner-correct-prices"
+          >
+            <AlertCircle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium">
+                {estimatedPriceIds.size} product{estimatedPriceIds.size === 1 ? " is" : "s are"} on an estimated price
+              </span>
+              <span className="text-xs text-muted-foreground block">
+                Typical UK trade prices, so the numbers mean something today. Correct your dearest lines first — kegs, then spirits.
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-primary shrink-0 self-center">Correct</span>
           </button>
         )}
 
@@ -3282,6 +3851,17 @@ export default function Library() {
                               : null
                           }
                           {p.pour_price && <span className="text-xs text-muted-foreground">{formatGBP(p.pour_price)}</span>}
+                          {estimatedPriceIds.has(p.id) && (
+                            <button
+                              type="button"
+                              onClick={() => setEditProduct(p)}
+                              className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border border-dashed border-border"
+                              title="Typical UK trade price filled in for you — tap to put in your real price"
+                              data-testid={`badge-price-estimated-${p.id}`}
+                            >
+                              est. price
+                            </button>
+                          )}
                           {/* Calibration status badge — varies by method */}
                           {p.counting_method === "keg_weight" ? (
                             p.container_l ? (
@@ -3355,10 +3935,20 @@ export default function Library() {
                               {coverageDays}d cover
                             </span>
                           )}
-                          {inconsistentMethodIds.has(p.id) && (
+                          {litreOnBottleIds.has(p.id) ? (
+                            <button
+                              type="button"
+                              onClick={() => setEditProduct(p)}
+                              className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                              title="This is a bottle or can but it is set to be counted in litres. Bottles are counted each."
+                              data-testid={`badge-litre-on-bottles-${p.id}`}
+                            >
+                              Counted in litres?
+                            </button>
+                          ) : inconsistentMethodIds.has(p.id) && (
                             <span
                               className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                              title="Counting method differs from other variants with the same brand name — gives inconsistent variance on identical bottles"
+                              title="Same brand and size as another product but counted a different way (each vs litres) — variance won't add up between them"
                             >
                               Method mismatch
                             </span>
@@ -3467,6 +4057,16 @@ export default function Library() {
       )}
 
       {venue?.id && (
+        <BulkPriceEditorSheet
+          open={correctPricesOpen}
+          onClose={() => setCorrectPricesOpen(false)}
+          venueId={venue.id}
+          products={products ?? []}
+          mode="prices"
+        />
+      )}
+
+      {venue?.id && (
         <DeliveryEntrySheet
           open={deliveryOpen}
           onClose={() => setDeliveryOpen(false)}
@@ -3488,12 +4088,16 @@ export default function Library() {
         <ProductFieldRepairSheet
           open={repairKegOpen}
           onClose={() => setRepairKegOpen(false)}
-          title="Set keg capacities"
-          description={`${nullCapacityKegs.length} keg product${nullCapacityKegs.length === 1 ? "" : "s"} have no capacity set. Full barrel counts save as zero until fixed.`}
+          title="Set keg and cask sizes"
+          description={`${nullCapacityKegs.length} draught line${nullCapacityKegs.length === 1 ? "" : "s"} ${nullCapacityKegs.length === 1 ? "has" : "have"} no size. Tap the size under each line; a missing cost is estimated from the size and marked "est." until you correct it.`}
           field="container_l"
           unit="L"
           placeholder="litres"
           quickSizes={KEG_QUICK_SIZES}
+          presetsFor={p => {
+            const type = p.container_type ?? (p.counting_method === "dipstick" ? "cask" : p.counting_method === "keg_weight" ? "keg" : p.category === "draught_ale" ? "cask" : "keg");
+            return CONTAINER_PRESETS[type] ?? CONTAINER_PRESETS.keg;
+          }}
           products={nullCapacityKegs}
           venueId={venue.id}
         />

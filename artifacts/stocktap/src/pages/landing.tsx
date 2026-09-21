@@ -20,6 +20,39 @@ import { useFoundingLandlordCount } from "@/hooks/api";
 
 const FOUNDING_LANDLORD_CAP = 20;
 
+const PLANS = [
+  {
+    name: "Free",
+    price: "£0",
+    note: "for ever",
+    items: ["50 products, 1 location", "Stocktakes by weight", "Valuation and GP% reports"],
+    cta: "Start free",
+    best: false,
+  },
+  {
+    name: "Pro",
+    price: "£19",
+    note: "a month, £190 a year",
+    items: [
+      "Unlimited products and locations",
+      "Daily spot checks against the till",
+      "Order guide, dead-stock and coverage alerts",
+      "Team, rota and daily checks",
+      "Offline in the cellar, CSV export",
+    ],
+    cta: "Start 14-day trial",
+    best: true,
+  },
+  {
+    name: "Premium",
+    price: "£39",
+    note: "a month, £390 a year",
+    items: ["Everything in Pro", "Insight alerts: GP drift, variance trends", "Scan delivery notes into stock and prices", "Priority support"],
+    cta: "Start 14-day trial",
+    best: false,
+  },
+];
+
 const FEATURES = [
   {
     icon: Scale,
@@ -129,14 +162,20 @@ export default function Landing() {
           </div>
           <span className="font-semibold tracking-tight text-[15px]">StockTap</span>
         </div>
-        <Button
-          variant="ghost"
-          className="text-[#F3F1EC] hover:text-[#111316] hover:bg-[#F3F1EC] h-9 px-4"
-          onClick={() => setLocation("/auth")}
-          data-testid="button-nav-signin"
-        >
-          Sign in
-        </Button>
+        <nav className="flex items-center gap-1 sm:gap-2 text-sm">
+          <a href="/guides/" className="hidden sm:inline-block px-3 py-2 text-[#8A9099] hover:text-[#F3F1EC]" data-testid="link-nav-guides">Guides</a>
+          <a href="/tools/" className="hidden sm:inline-block px-3 py-2 text-[#8A9099] hover:text-[#F3F1EC]" data-testid="link-nav-tools">Free tools</a>
+          <a href="#pricing" className="hidden sm:inline-block px-3 py-2 text-[#8A9099] hover:text-[#F3F1EC]" data-testid="link-nav-pricing">Pricing</a>
+          <a href="/videos/" className="hidden sm:inline-block px-3 py-2 text-[#8A9099] hover:text-[#F3F1EC]" data-testid="link-nav-videos">How it works</a>
+          <Button
+            variant="ghost"
+            className="text-[#F3F1EC] hover:text-[#111316] hover:bg-[#F3F1EC] h-9 px-4"
+            onClick={() => setLocation("/auth")}
+            data-testid="button-nav-signin"
+          >
+            Sign in
+          </Button>
+        </nav>
       </header>
 
       {/* Lock-In founder banner */}
@@ -159,14 +198,13 @@ export default function Landing() {
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 pt-10 pb-16 text-center">
         <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-[#E0A343] bg-[#E0A343]/10 border border-[#E0A343]/25 rounded-full px-3 py-1 mb-6">
-          Stock-taking by weight, for UK pubs and bars
+          Stock-taking by weight, for pubs, bars and restaurants
         </div>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-[1.1] mb-5">
           Catch the losses before<br className="hidden sm:block" /> they become a problem.
         </h1>
         <p className="text-base sm:text-lg text-[#8A9099] max-w-xl mx-auto mb-9 leading-relaxed">
-          Weigh bottles on a scale, key in the grams. StockTap tells you ml left, tenths, £ value and GP% —
-          instantly, ex-VAT, in pounds. No more end-of-month surprises.
+          Put the bottle on a kitchen scale, type the grams. StockTap tells you what is left, what it is worth and what went missing since the till last rang. Every day, not once a month.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button
@@ -174,7 +212,7 @@ export default function Landing() {
             onClick={() => setLocation("/auth?mode=signup")}
             data-testid="button-hero-start"
           >
-            Start free trial
+            Start free: 14 days of Pro, no card
           </Button>
           <Button
             variant="outline"
@@ -184,6 +222,28 @@ export default function Landing() {
           >
             I already have an account
           </Button>
+        </div>
+        <p className="text-xs text-[#8A9099] mt-4">Set up in under ten minutes. Works on the phone in your pocket. Cancel in two taps.</p>
+      </section>
+
+      {/* Everything you need */}
+      <section className="max-w-3xl mx-auto px-6 pb-16">
+        <div className="rounded-xl border border-[#2A2E34] bg-[#1A1D21] p-6 grid sm:grid-cols-3 gap-5 text-center">
+          <div>
+            <div className="text-2xl font-bold text-[#E0A343]">1</div>
+            <div className="font-semibold mt-1">Your phone</div>
+            <p className="text-xs text-[#8A9099] mt-1">iPhone or Android. Nothing to install, add it to your home screen and it works in the cellar with no signal.</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-[#E0A343]">2</div>
+            <div className="font-semibold mt-1">A kitchen scale</div>
+            <p className="text-xs text-[#8A9099] mt-1">Any scale that reads grams to 2kg. About £15 online. That is the only kit you will ever need.</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-[#E0A343]">3</div>
+            <div className="font-semibold mt-1">Ten minutes</div>
+            <p className="text-xs text-[#8A9099] mt-1">Pick your lines from the catalogue, weigh your first open bottle, and you have a number you can trust.</p>
+          </div>
         </div>
       </section>
 
@@ -405,6 +465,49 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section id="pricing" className="max-w-4xl mx-auto px-6 pb-20">
+        <h2 className="text-2xl font-bold tracking-tight text-center mb-2">Plain pricing</h2>
+        <p className="text-sm text-[#8A9099] text-center mb-8">
+          Every new venue gets 14 days of Pro free, no card. After that, pick one. No VAT added, StockTap is not VAT registered.
+        </p>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {PLANS.map(plan => (
+            <div
+              key={plan.name}
+              className={`rounded-xl border p-6 flex flex-col ${plan.best ? "border-[#E0A343]/50 bg-[#E0A343]/5" : "border-[#2A2E34] bg-[#1A1D21]"}`}
+              data-testid={`pricing-${plan.name.toLowerCase()}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">{plan.name}</span>
+                {plan.best && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-[#E0A343] text-[#111316] rounded-full px-2 py-0.5">Most pubs</span>
+                )}
+              </div>
+              <div className="mt-3">
+                <span className="text-3xl font-bold">{plan.price}</span> <span className="text-xs text-[#8A9099]">{plan.note}</span>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm text-[#F3F1EC]/90 flex-1">
+                {plan.items.map(item => (
+                  <li key={item} className="flex gap-2">
+                    <Check className="w-4 h-4 text-[#3FAE74] shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                className={`mt-5 h-11 font-semibold ${plan.best ? "bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90" : "bg-[#2A2E34] text-[#F3F1EC] hover:bg-[#3A3E44]"}`}
+                onClick={() => setLocation("/auth?mode=signup")}
+                data-testid={`button-pricing-${plan.name.toLowerCase()}`}
+              >
+                {plan.cta}
+              </Button>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-[#8A9099] text-center mt-4">Cancel any time from Settings, two taps. Our guarantee above still applies.</p>
+      </section>
+
       {/* CTA footer */}
       <section className="max-w-3xl mx-auto px-6 pb-16 text-center">
         <div className="rounded-xl border border-[#2A2E34] bg-[#1A1D21] p-8">
@@ -421,14 +524,42 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-[#2A2E34] py-6">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col items-center gap-3 text-xs text-[#8A9099]">
-          <div className="flex items-center gap-4">
-            <Link href="/help" className="hover:text-[#F3F1EC]" data-testid="link-footer-help">Help &amp; FAQ</Link>
-            <Link href="/terms" className="hover:text-[#F3F1EC]" data-testid="link-footer-terms">Terms</Link>
-            <Link href="/privacy" className="hover:text-[#F3F1EC]" data-testid="link-footer-privacy">Privacy</Link>
+        <div className="max-w-5xl mx-auto px-6 grid sm:grid-cols-4 gap-6 text-xs text-[#8A9099]">
+          <div>
+            <div className="font-semibold text-[#F3F1EC] mb-2">Learn</div>
+            <div className="flex flex-col gap-1.5">
+              <a href="/guides/" className="hover:text-[#F3F1EC]" data-testid="link-footer-guides">Guides and articles</a>
+              <a href="/videos/" className="hover:text-[#F3F1EC]" data-testid="link-footer-videos">How-to videos</a>
+              <a href="/tools/" className="hover:text-[#F3F1EC]" data-testid="link-footer-tools">Free tools</a>
+              <a href="/downloads/gp-cheat-sheet.pdf" className="hover:text-[#F3F1EC]">GP cheat sheet (PDF)</a>
+            </div>
           </div>
-          <div>StockTap · Built for UK pubs, bars and restaurants</div>
+          <div>
+            <div className="font-semibold text-[#F3F1EC] mb-2">Product</div>
+            <div className="flex flex-col gap-1.5">
+              <a href="#pricing" className="hover:text-[#F3F1EC]">Pricing</a>
+              <Link href="/help" className="hover:text-[#F3F1EC]" data-testid="link-footer-help">Help &amp; FAQ</Link>
+              <Link href="/auth?mode=signup" className="hover:text-[#F3F1EC]">Start free</Link>
+              <Link href="/auth" className="hover:text-[#F3F1EC]">Sign in</Link>
+            </div>
+          </div>
+          <div>
+            <div className="font-semibold text-[#F3F1EC] mb-2">Contact</div>
+            <div className="flex flex-col gap-1.5">
+              <a href="mailto:hello@stocktap.net" className="hover:text-[#F3F1EC]" data-testid="link-footer-contact">hello@stocktap.net</a>
+              <a href="/about" className="hover:text-[#F3F1EC]">About StockTap</a>
+              <a href="https://www.linkedin.com/in/shaun-macmarketing" className="hover:text-[#F3F1EC]" rel="me noopener" target="_blank">Shaun on LinkedIn</a>
+            </div>
+          </div>
+          <div>
+            <div className="font-semibold text-[#F3F1EC] mb-2">Legal</div>
+            <div className="flex flex-col gap-1.5">
+              <Link href="/terms" className="hover:text-[#F3F1EC]" data-testid="link-footer-terms">Terms</Link>
+              <Link href="/privacy" className="hover:text-[#F3F1EC]" data-testid="link-footer-privacy">Privacy</Link>
+            </div>
+          </div>
         </div>
+        <div className="max-w-5xl mx-auto px-6 mt-6 text-xs text-[#8A9099]">StockTap · Built by a working licensee for pubs, bars and restaurants · UK first, works anywhere</div>
       </footer>
     </div>
   );

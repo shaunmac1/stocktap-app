@@ -17,6 +17,7 @@ import { isVolumeCountingMethod } from "@/lib/inventory-reporting";
 import { formatDistanceToNow } from "date-fns";
 import { TrendingDown, TrendingUp, Settings } from "lucide-react";
 import { StocktakeTasksCard } from "@/components/StocktakeTasksCard";
+import { venueTrial } from "@/hooks/useSubscription";
 
 export default function Home() {
   const { venue } = useAuth();
@@ -27,6 +28,7 @@ export default function Home() {
   const { data: latestByProduct = {} } = useLatestReadingsByProduct(venue?.id);
   const { data: stocktakes } = useStocktakes(venue?.id);
   const openStocktake = (stocktakes ?? []).find((s: any) => s.status === "open");
+  const trial = venueTrial(venue);
 
   const measureMl = venue?.measure_ml ?? 25;
 
@@ -123,6 +125,20 @@ export default function Home() {
         </div>
 
         {venue?.id && <StocktakeTasksCard venueId={venue.id} />}
+
+        {trial.active && trial.daysLeft <= 3 && (
+          <Link href="/settings" className="block">
+            <div
+              className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm flex items-center justify-between gap-3"
+              data-testid="banner-trial-ending"
+            >
+              <span>
+                Your Pro trial ends in {trial.daysLeft} {trial.daysLeft === 1 ? "day" : "days"}. Pick a plan to keep spot checks, reports and unlimited products.
+              </span>
+              <span className="font-semibold whitespace-nowrap">Plans →</span>
+            </div>
+          </Link>
+        )}
 
         {/* Quick actions */}
         <div className="space-y-3">
