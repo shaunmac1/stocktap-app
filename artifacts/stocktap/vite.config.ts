@@ -6,6 +6,16 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { VitePWA } from "vite-plugin-pwa";
 import { compression } from "vite-plugin-compression2";
 
+// Pin the Node build/test tooling to UTC. This has no effect on the deployed
+// app (the Cloudflare Worker ignores this file; the browser bundle reads the
+// device's own timezone via `Date`, which is what src/lib/wages.ts relies on
+// intentionally — close-time caps are meant to be computed in the venue's own
+// local time). Without this, `pnpm test`/`vitest run` gives different results
+// depending on which timezone the machine running them happens to be in.
+if (!process.env.TZ) {
+  process.env.TZ = "UTC";
+}
+
 const rawPort = process.env.PORT;
 
 if (!rawPort) {
@@ -142,5 +152,11 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+  },
+  test: {
+    // Vitest runs test files in worker threads/processes that don't inherit
+    // this file's top-level `process.env.TZ` side effect, so it's set again
+    // here via the option Vitest actually plumbs into each worker's env.
+    env: { TZ: "UTC" },
   },
 });

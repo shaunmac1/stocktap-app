@@ -89,7 +89,10 @@ describe("isOnShift", () => {
   });
 });
 
-// The container runs in UTC, so local == UTC here; assertions use UTC instants.
+// vite.config.ts pins process.env.TZ to UTC for build/test tooling, so local
+// == UTC in this test run regardless of the host machine's own timezone;
+// assertions use UTC instants. In the real app this same code runs in the
+// venue's own browser, in the venue's own local time, by design.
 describe("shiftCapISO (venue close cut-off)", () => {
   it("uses the weekday's close time", () => {
     // 2026-08-24 is a Monday -> 23:30 that day
