@@ -16,6 +16,10 @@ export interface SafeCatalogueItem {
   calibration_confidence: CatalogueConfidence;
   has_calibration: boolean;
   already_added: boolean;
+  /** Bottle outline for spirits and wines (null for draught, packaged and minerals). */
+  shape_path?: string | null;
+  /** Bottle photo path under /bottles/. */
+  image_path?: string | null;
 }
 
 /**

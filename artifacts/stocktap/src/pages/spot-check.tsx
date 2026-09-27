@@ -23,6 +23,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { NumberPad } from "@/components/NumberPad";
+import { TenthsInput } from "@/components/TenthsInput";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -833,12 +834,15 @@ export default function SpotCheck() {
                 </div>
               </div>
 
-              <NumberPad
+              {effectiveQuickMode && !isKegWeight && !isDipstick && (
+                <TenthsInput value={tenthsStr} onChange={setTenthsStr} shapePath={(currentProduct as any)?.shape_path} fillCurve={(currentProduct as any)?.fill_curve} imageUrl={(currentProduct as any)?.image_path} />
+              )}
+              {!(effectiveQuickMode && !isKegWeight && !isDipstick) && <NumberPad
                 value={isKegWeight || isDipstick ? weightStr : effectiveQuickMode ? tenthsStr : weightStr}
                 onChange={isKegWeight || isDipstick ? setWeightStr : effectiveQuickMode ? setTenthsStr : setWeightStr}
                 label={isKegWeight ? "Pints remaining (open keg)" : isDipstick ? "Dip reading (mm)" : effectiveQuickMode ? "Open bottle: tenths remaining (0-10)" : "Open bottle weight (grams)"}
                 allowDecimal
-              />
+              />}
 
               {entryMl !== null && (
                 <div className="bg-accent rounded-xl p-4 text-center space-y-1">

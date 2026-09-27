@@ -4,7 +4,7 @@ import {
   useProducts, useLocations, useStocktakes,
   useCreateStocktake, useCloseStocktake, useAddReading,
   useCountLocations, useLineEntries, addLineEntry, deleteLineEntry,
-  useAddCountLocation, useBottleShapes,
+  useAddCountLocation, useBottleShapes, useUpdateProduct,
   type BottleShape,
 } from "@/hooks/api";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,6 +26,8 @@ import {
   type CountingMethod, type ProductCategory, type CategoryReadingInput,
 } from "@/lib/calculations";
 import { useToast } from "@/hooks/use-toast";
+import { TenthsInput } from "@/components/TenthsInput";
+import { FullBottleSetup } from "@/components/FullBottleSetup";
 import { ArrowLeft, CheckCircle, Plus, Trash2, Cloud, CloudOff, MapPin, X, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import type { Database } from "@/lib/database.types";
@@ -58,6 +60,8 @@ export default function Stocktake() {
   const addReading = useAddReading();
   const addCountLocation = useAddCountLocation();
   const { toast } = useToast();
+  const updateProductForSize = useUpdateProduct();
+  const [showTypedTenths, setShowTypedTenths] = useState(false);
 
   // Core navigation
   const [step, setStep] = useState<Step>("list");
@@ -188,20 +192,23 @@ export default function Stocktake() {
   const bottleMethodChoice: "weigh" | "tenths" | null =
     isBottleLine && activeProduct
       ? (bottleMethodOverride[activeProduct.id] ??
-          (entryResolvedMethod === "tenths" ? "tenths" : entryResolvedMethod === "weigh" ? (canWeigh ? "weigh" : "tenths") : null))
+          (entryResolvedMethod === "tenths" ? "tenths" : entryResolvedMethod === "weigh" ? "weigh" : null))
       : null;
+  // Weigh chosen but no bottle weights yet: ask for one full sealed bottle (FullBottleSetup)
+  // instead of falling back to tenths. "Tenths" on the switch is always one tap away.
+  const needsFullBottle = bottleMethodChoice === "weigh" && !canWeigh;
   const bottleMethodResolved: CountingMethod | null =
-    bottleMethodChoice === "weigh" ? (canWeigh ? "weigh" : "tenths") : bottleMethodChoice === "tenths" ? "tenths" : null;
+    bottleMethodChoice === "weigh" ? (canWeigh ? "weigh" : null) : bottleMethodChoice === "tenths" ? "tenths" : null;
 
   // Weigh product with no bottle-weight calibration and no tenths fallback chosen —
   // show a notice, not the tenths pad. Falling back silently caused grams to be
   // interpreted as tenths (1000g → 1000.0 tenths).
   const isUncalibratedWeigh =
-    bottleMethodResolved == null && entryResolvedMethod === "weigh" && activeProduct?.empty_weight_g == null;
+    !needsFullBottle && bottleMethodResolved == null && entryResolvedMethod === "weigh" && activeProduct?.empty_weight_g == null;
 
   const entryActiveMethod: CountingMethod | null =
     bottleMethodResolved ||
-    (isUncalibratedWeigh
+    (isUncalibratedWeigh || needsFullBottle
       ? null
       // photo_tap requires a bottle shape — fall back gracefully if none is set
       : entryResolvedMethod === "photo_tap" && !activeShape
@@ -458,12 +465,26 @@ export default function Stocktake() {
     setNewLocationInput(""); setShowNewLocationField(false);
   };
 
+  // Bottle size picked on the tenths bottle: saves the line's size (e.g. the pub buys 1L not 70cl).
+  const changeBottleSize = async (ml: number) => {
+    if (!activeProduct || !venue?.id) return;
+    try {
+      const label = ml >= 1000 ? `${ml / 1000}L` : `${ml / 10}cl`;
+      // Keep the name honest: "Gordon's Gin 70cl" becomes "Gordon's Gin 1L" when the size is in the name.
+      const renamed = activeProduct.name.replace(/(\b\d+(?:\.\d+)?\s?(?:cl|ml|l|ltr|litre)\b)(?!.*\b\d+(?:\.\d+)?\s?(?:cl|ml|l|ltr|litre)\b)/i, label);
+      await updateProductForSize.mutateAsync({ id: activeProduct.id, venue_id: venue.id, size_ml: ml, ...(renamed !== activeProduct.name ? { name: renamed } : {}) });
+      toast({ title: "Bottle size changed", description: `${renamed} is now counted as ${label} bottles.` });
+    } catch (err: any) {
+      toast({ title: "Couldn't change the size", description: String(err?.message ?? err), variant: "destructive" });
+    }
+  };
+
   const saveLineEntry = async () => {
     if (!activeProduct || !venue?.id || !user?.id || !activeStocktakeId) return;
 
     // Bug 1: block save entirely for uncalibrated weigh products
-    if (isUncalibratedWeigh) {
-      toast({ title: "Cannot save", description: "Set bottle weights in the Library before counting this product by weight.", variant: "destructive" });
+    if (isUncalibratedWeigh || needsFullBottle) {
+      toast({ title: "Weigh a full bottle first", description: "Or tap Tenths to count this one in tenths.", variant: "destructive" });
       return;
     }
     if (underEmptyWarning) {
@@ -1091,7 +1112,6 @@ export default function Stocktake() {
                               type="button"
                               role="radio"
                               aria-checked={entryActiveMethod === "weigh"}
-                              disabled={!canWeigh}
                               onClick={() => { setBottleMethodOverride(prev => ({ ...prev, [activeProduct.id]: "weigh" })); setEntryNumStr("0"); }}
                               className={`h-10 rounded-lg text-sm font-semibold transition-colors ${entryActiveMethod === "weigh" ? "bg-primary text-primary-foreground" : "text-muted-foreground"} disabled:opacity-40`}
                               data-testid="button-bottle-method-weigh"
@@ -1109,8 +1129,8 @@ export default function Stocktake() {
                               Tenths
                             </button>
                           </div>
-                          {!canWeigh && (
-                            <p className="text-[11px] text-muted-foreground text-center">Weigh needs the empty-bottle weight — add it in the Library. Tenths works now.</p>
+                          {!canWeigh && entryActiveMethod === "tenths" && (
+                            <p className="text-[11px] text-muted-foreground text-center">Got a full sealed bottle? Tap Weigh to set this bottle up once.</p>
                           )}
                         </div>
                       )}
@@ -1132,6 +1152,17 @@ export default function Stocktake() {
                         </div>
                       )}
 
+                      {needsFullBottle && activeProduct && venue?.id && user?.id && (
+                        <FullBottleSetup
+                          product={activeProduct as any}
+                          venueId={venue.id}
+                          userId={user.id}
+                          switchToWeigh={activeProduct.counting_method !== "weigh"}
+                          useTenthsLabel="No full bottle to hand? Count this one in tenths"
+                          onUseTenths={() => setBottleMethodOverride(prev => ({ ...prev, [activeProduct.id]: "tenths" }))}
+                        />
+                      )}
+
                       {entryActiveMethod === "weigh" && <NumberPad value={entryWeightStr} onChange={setEntryWeightStr} label="Weight (grams)" allowDecimal />}
                       {entryActiveMethod === "weigh" && overCalibrationWarning && (
                         <div className="rounded-xl border border-[#E5544B]/40 bg-[#E5544B]/10 p-3 text-sm text-[#E5544B]">
@@ -1143,7 +1174,14 @@ export default function Stocktake() {
                           {underEmptyWarning}
                         </div>
                       )}
-                      {(entryActiveMethod === "tenths" || entryActiveMethod === "tenths_pints") && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />}
+                      {entryActiveMethod === "tenths_pints" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />}
+                      {entryActiveMethod === "tenths" && (<>
+                          <TenthsInput value={entryNumStr} onChange={setEntryNumStr} shapePath={activeProduct?.shape_path} fillCurve={activeProduct?.fill_curve} imageUrl={activeProduct?.image_path} sizeMl={activeProduct?.size_ml ?? null} onSizeChange={changeBottleSize} />
+                          <button type="button" className="text-xs underline text-muted-foreground w-full" onClick={() => setShowTypedTenths(v => !v)} data-testid="button-type-tenths">
+                            {showTypedTenths ? "Hide number pad" : "Type the number instead"}
+                          </button>
+                          {showTypedTenths && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />}
+                        </>)}
                       {entryActiveMethod === "keg_weight" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Pints remaining" allowDecimal />}
                       {entryActiveMethod === "dipstick" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Dip reading (mm)" allowDecimal />}
                       {entryActiveMethod === "dipstick" && !activeProduct?.dip_full_mm && (
@@ -1226,7 +1264,7 @@ export default function Stocktake() {
                         <NumberPad value={entryWeightStr} onChange={setEntryWeightStr} label="Weight (grams)" allowDecimal />
                       )}
                       {/* Uncalibrated product: no empty weight → estimate by tenths */}
-                      {!entryActiveMethod && activeProduct?.unit !== "count" && activeProduct?.empty_weight_g == null && (
+                      {!entryActiveMethod && !needsFullBottle && activeProduct?.unit !== "count" && activeProduct?.empty_weight_g == null && (
                         <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />
                       )}
 
@@ -1301,7 +1339,7 @@ export default function Stocktake() {
                         </div>
                       )}
 
-                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={saveLineEntry} disabled={savingEntry || isUncalibratedWeigh} data-testid="button-save-entry">
+                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={saveLineEntry} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle} data-testid="button-save-entry">
                         {savingEntry ? "Saving..." : "Save Entry"}
                       </Button>
                     </>

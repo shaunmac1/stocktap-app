@@ -81,7 +81,7 @@ const FAQS: FAQ[] = [
   {
     category: "Account & billing",
     q: "What is 'The Lock-In' founding landlord badge?",
-    a: "The first 20 venues ever to sign up get a permanent 'Founding Landlord' badge as a thank-you for backing us early. It's automatic — there's nothing to apply for — and the remaining spots are shown live on our homepage.",
+    a: "Early venues get a permanent 'Founding Landlord' badge as a thank-you for backing us early. It's automatic, there's nothing to apply for. Separately, the first 50 paying customers keep the £19 a month Pro founding rate.",
   },
   {
     category: "Account & billing",

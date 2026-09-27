@@ -83,7 +83,7 @@ const FEARS = [
   },
   {
     q: "What if my team gets defensive or the mood turns sour?",
-    a: "Spot checks take under five minutes and become routine fast — like checking the float. Frame it as 'we check everything, every day', not 'we're watching you'. Venues using StockTap report it actually reduces suspicion, because everyone can see the same honest numbers.",
+    a: "Spot checks take under five minutes and become routine fast — like checking the float. Frame it as 'we check everything, every day', not 'we're watching you'.",
   },
   {
     q: "I barely have time to do a stocktake once a month — how do I find time for this?",
@@ -92,7 +92,7 @@ const FEARS = [
 ];
 
 const COMPARISON_ROWS: { label: string; stocktaker: string | boolean; clipboard: string | boolean; stocktap: string | boolean }[] = [
-  { label: "Cost", stocktaker: "£150–£300 per visit", clipboard: true, stocktap: "From free" },
+  { label: "Cost", stocktaker: "£125–£320 per visit", clipboard: true, stocktap: "From free" },
   { label: "Frequency", stocktaker: "Monthly, by appointment", clipboard: "As often as you can face it", stocktap: "Daily, in minutes" },
   { label: "Accuracy of ml/tenths maths", stocktaker: true, clipboard: false, stocktap: true },
   { label: "Works with cold, wet hands in a cellar", stocktaker: true, clipboard: false, stocktap: true },
@@ -109,11 +109,11 @@ function ComparisonCell({ value }: { value: string | boolean }) {
 
 const CONFIGURATOR_STEPS = [
   { icon: ShieldQuestion, title: "Tell us where the leak is", body: "Spirits behind the bar, draught lines, wine, or all of the above — we'll set your library up to match." },
-  { icon: Upload, title: "Bring your lines in", body: "Import a CSV, start from our full UK pub catalogue (80 pre-weighed bottles plus 60 common packaged lines), or add products manually as you go." },
-  { icon: UserPlus, title: "Create your account", body: "Free to start, no card required. You're weighing your first bottle in under two minutes." },
+  { icon: Upload, title: "Bring your lines in", body: "Import a CSV, start from our UK pub catalogue (over 2,400 spirits, liqueurs and wines plus common bottled beers and softs), or add products manually as you go." },
+  { icon: UserPlus, title: "Create your account", body: "Free to start, no card required. Most people have their first line counted within ten minutes. No scale? Count in tenths and weigh later." },
 ];
 
-const IMPORT_OPTIONS = ["Import CSV", "Starter catalogue (140+ products)", "Add manually"];
+const IMPORT_OPTIONS = ["Import CSV", "UK pub catalogue (2,400+ lines)", "Add manually"];
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -178,22 +178,6 @@ export default function Landing() {
         </nav>
       </header>
 
-      {/* Lock-In founder banner */}
-      {remaining !== null && remaining > 0 && (
-        <div className="max-w-5xl mx-auto px-6 mb-2">
-          <div
-            className="rounded-xl border border-[#E0A343]/30 bg-[#E0A343]/10 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
-            data-testid="banner-lock-in"
-          >
-            <span className="text-sm font-medium">
-              <span className="text-[#E0A343] font-bold">The Lock-In:</span> the first 20 venues get a permanent Founding Landlord badge — locked-in early-adopter recognition, forever.
-            </span>
-            <span className="text-xs font-bold uppercase tracking-widest bg-[#E0A343] text-[#111316] rounded-full px-3 py-1 whitespace-nowrap" data-testid="text-lock-in-remaining">
-              {remaining} of {FOUNDING_LANDLORD_CAP} spots left
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 pt-10 pb-16 text-center">
@@ -272,7 +256,7 @@ export default function Landing() {
         <div className="rounded-xl border border-[#2A2E34] bg-[#1A1D21] p-6 sm:p-8">
           <h2 className="text-2xl font-bold tracking-tight mb-1.5 text-center">What's your bar actually losing?</h2>
           <p className="text-sm text-[#8A9099] text-center mb-8 max-w-lg mx-auto">
-            The trade average for unexplained wet-stock loss is 2–5% of sales. Drag the sliders for a rough estimate of what that could mean for your venue.
+            There's no trustworthy published UK average for unexplained wet-stock loss, so we won't make one up. Drag the sliders and try 1%, 2% and 3% to see what each would cost your venue.
           </p>
 
           <div className="space-y-7 max-w-md mx-auto">
@@ -304,7 +288,7 @@ export default function Landing() {
                 onValueChange={(v) => setLossPct(v[0])}
                 data-testid="slider-loss-pct"
               />
-              <p className="text-xs text-[#8A9099] mt-2">Rough estimate — not exact. 2% is a tight, well-run bar; 5% is typical for venues that don't track weight at all.</p>
+              <p className="text-xs text-[#8A9099] mt-2">Rough estimate, not a measurement. Your own first two counts will tell you your real number.</p>
             </div>
           </div>
 

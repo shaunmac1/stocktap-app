@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { NumberPad } from "@/components/NumberPad";
+import { TenthsInput } from "@/components/TenthsInput";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Papa from "papaparse";
@@ -640,7 +641,7 @@ function WeighNowSheet({ open, onClose, product, venueId }: {
         </SheetHeader>
 
         {useTenths ? (
-          <NumberPad value={tenthsStr} onChange={setTenthsStr} label="Tenths remaining (0-10)" allowDecimal />
+          <TenthsInput value={tenthsStr} onChange={setTenthsStr} shapePath={(product as any)?.shape_path} fillCurve={(product as any)?.fill_curve} imageUrl={(product as any)?.image_path} />
         ) : (
           <NumberPad value={weightStr} onChange={setWeightStr} label="Weight in grams" allowDecimal />
         )}

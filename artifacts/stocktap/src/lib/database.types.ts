@@ -161,6 +161,9 @@ export interface Database {
           bottle_shape_id: string | null;
           cost_price_estimated: boolean;
           pour_price_estimated: boolean;
+          shape_path: string | null;
+          image_path: string | null;
+          fill_curve: Array<{ y: number; fill: number }> | null;
           created_at: string;
           updated_at: string;
         };
@@ -196,6 +199,9 @@ export interface Database {
           bottle_shape_id?: string | null;
           cost_price_estimated?: boolean;
           pour_price_estimated?: boolean;
+          shape_path?: string | null;
+          image_path?: string | null;
+          fill_curve?: Array<{ y: number; fill: number }> | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -229,6 +235,9 @@ export interface Database {
           bottle_shape_id?: string | null;
           cost_price_estimated?: boolean;
           pour_price_estimated?: boolean;
+          shape_path?: string | null;
+          image_path?: string | null;
+          fill_curve?: Array<{ y: number; fill: number }> | null;
           updated_at?: string;
         };
         Relationships: [

@@ -1,0 +1,3 @@
+const http=require('http'),fs=require('fs'),path=require('path');const R=process.env.DIST || '/tmp/ui-dist';
+const T={'.js':'text/javascript','.css':'text/css','.html':'text/html','.svg':'image/svg+xml','.png':'image/png','.json':'application/json','.webmanifest':'application/manifest+json','.woff2':'font/woff2'};
+http.createServer((q,s)=>{let p=decodeURIComponent(new URL(q.url,'http://x').pathname);let f=path.join(R,p);if(!fs.existsSync(f)||fs.statSync(f).isDirectory())f=path.join(R,'index.html');s.writeHead(200,{'Content-Type':T[path.extname(f)]||'application/octet-stream'});fs.createReadStream(f).pipe(s);}).listen(5173,()=>console.log('static 5173'));

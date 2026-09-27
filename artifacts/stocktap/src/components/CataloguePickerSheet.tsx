@@ -1,4 +1,5 @@
 import React from "react";
+import { BottleGauge } from "@/components/BottleGauge";
 import { Check, Database, Library, Search, ShieldCheck } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -209,6 +210,9 @@ export function CataloguePickerSheet({
                       <span className={`w-6 h-6 rounded-md border flex items-center justify-center shrink-0 mt-0.5 ${selected ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}>
                         {(selected || item.already_added) && <Check className="w-4 h-4" />}
                       </span>
+                      {item.shape_path && (
+                        <BottleGauge shapePath={item.shape_path} imageUrl={item.image_path} tenths={10} className="h-14 w-9 shrink-0" />
+                      )}
                       <span className="flex-1 min-w-0">
                         <span className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-sm">{item.canonical_name}</span>

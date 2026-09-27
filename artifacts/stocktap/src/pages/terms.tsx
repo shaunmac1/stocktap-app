@@ -48,7 +48,7 @@ export default function Terms() {
 
         <section>
           <h2 className="text-base font-semibold text-[#F3F1EC] mb-2">6. The Lock-In founding landlord programme</h2>
-          <p>The first 20 venues ever to create an account receive a permanent "Founding Landlord" badge. This is a goodwill recognition, not a contractual guarantee of future pricing, features or exclusivity.</p>
+          <p>Early venues receive a permanent "Founding Landlord" badge. This is a goodwill recognition, not a contractual guarantee of future pricing, features or exclusivity.</p>
         </section>
 
         <section>

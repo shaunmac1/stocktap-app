@@ -673,7 +673,7 @@ export default function Auth() {
               }}
               data-testid="button-onboarding-starter"
             >
-              Import the full UK pub catalogue instead (140+ lines)
+              Import the full UK pub catalogue instead (2,400+ lines)
             </Button>
             {/* "Import my own CSV" is hidden until the importer matches rows to the
                 calibrated catalogue; the catalogue is the reliable path for now. */}

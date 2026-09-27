@@ -103,6 +103,17 @@ export default defineConfig({
               cacheableResponse: { statuses: [200] },
             },
           },
+          {
+            // Bottle photos: fetched when a line is first shown, then kept for
+            // offline counting in the cellar. Not precached (2,000+ files).
+            urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith("/bottles/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "bottle-photos",
+              expiration: { maxEntries: 600, maxAgeSeconds: 60 * 60 * 24 * 180 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
         ],
       },
     }),
