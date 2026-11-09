@@ -1,0 +1,41 @@
+const { chromium } = require('playwright');
+const fs = require('fs'); const SHOT = '/tmp/uitest/shots'; fs.mkdirSync(SHOT, { recursive: true });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const U = '11111111-1111-4111-8111-111111111111';
+const exp = Math.floor(Date.now() / 1000) + 3600 * 24;
+const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: U, role: 'authenticated', aud: 'authenticated', exp, email: 'owner@example.test' })}.sig`;
+const session = { access_token: jwt, refresh_token: 'r', token_type: 'bearer', expires_in: 86400, expires_at: exp, user: { id: U, email: 'owner@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } };
+const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: 'block', acceptDownloads: true });
+  await ctx.addInitScript(s => { try { localStorage.setItem('sb-localhost-auth-token', s); } catch {} }, JSON.stringify(session));
+  const p = await ctx.newPage(); const errors = []; p.on('pageerror', e => errors.push(e.message));
+  const results = []; const check = (n, ok, d = '') => results.push(`${ok ? 'PASS' : 'FAIL'} ${n} ${d}`);
+  const tap = async tid => { const l = p.locator(`[data-testid="${tid}"]:visible`).first(); await l.waitFor({ timeout: 10000 }).catch(() => { throw new Error('not visible: ' + tid); }); await l.scrollIntoViewIfNeeded(); await l.click(); await sleep(700); };
+  const plus = async k => { for (let i = 0; i < k; i++) await p.locator('[data-testid="button-full-plus"]:visible').first().click(); };
+  const count = async (id, full, gal, pt) => { await tap(`counting-product-${id}`); await sleep(400); if (!(await p.locator('[data-testid="draught-gauge-entry"]:visible').count())) await tap('button-add-entry'); if (await p.locator('[data-testid="button-keg-mode-kegs"]:visible').count()) await tap('button-keg-mode-kegs'); if (await p.locator('[data-testid="button-dip-mode-pints"]:visible').count()) await tap('button-dip-mode-pints'); await plus(full); if (gal) await p.locator('[data-testid="input-part-gallons"]:visible').fill(String(gal)); if (pt) await tap(`button-part-pints-${pt}`); await sleep(300); await tap('button-save-entry'); await sleep(900); await tap('button-back-to-products'); };
+  const A = P('a'), B = P('b');
+  try {
+    await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(3000);
+    await tap('button-new-stocktake'); await tap(`select-product-${A}`); await tap(`select-product-${B}`); await tap('button-start-stocktake'); await sleep(1200);
+    await tap('button-count-spot-loc-outside'); await count(A, 4, 0, 0);
+    await tap('button-count-spot-loc-cellar'); await count(A, 9, 10, 0); await count(B, 2, 4, 5);
+    await tap('button-review-stocktake'); await sleep(1000);
+    check('draught sheet on the review screen', await p.locator('[data-testid="draught-sheet"]').isVisible());
+    const sheet = await p.locator('[data-testid="draught-sheet"]').innerText();
+    check('Hobgoblin Gold row 22 / 5, before lager', /Hobgoblin Gold[\s\S]*22\s+5[\s\S]*Carlsberg/.test(sheet));
+    check('Carlsberg row 153 / 0 with both stores', /Carlsberg Pilsner 3\.4%\s*\nOutside store 44 gal 0 pt · Cellar 109 gal 0 pt\s*153\s+0/.test(sheet) || (/Carlsberg/.test(sheet) && /153\s+0/.test(sheet) && /Cellar 109 gal 0 pt/.test(sheet)), sheet.replace(/\n/g, ' | ').slice(0, 300));
+    await p.locator('[data-testid="draught-sheet"]').scrollIntoViewIfNeeded(); await p.screenshot({ path: `${SHOT}/v1-sheet.png` });
+    const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 8000 }), p.locator('[data-testid="button-download-draught-sheet"]').click()]);
+    const csv = require('fs').readFileSync(await dl.path(), 'utf8');
+    check('CSV downloads with Whole/Part per store', csv.includes('Draught Lager,Carlsberg Pilsner 3.4%,Gallon 8 Pint,153,0,1224') && /Cellar whole,Cellar part/.test(csv), dl.suggestedFilename());
+    await tap('button-finish-stocktake'); await sleep(2000);
+    await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(2500);
+    await p.locator('[data-testid^="button-open-stocktake-"]').first().click(); await sleep(1500);
+    check('sheet also on a finished stocktake (View)', await p.locator('[data-testid="draught-sheet"]').isVisible());
+    check('no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
+  } catch (e) { results.push('ERROR ' + e.message.split('\n')[0]); await p.screenshot({ path: `${SHOT}/vX.png` }); }
+  console.log(results.join('\n')); await b.close();
+})();

@@ -32,6 +32,7 @@ import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { isHidden } from "@/lib/hidden-products";
+import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
 import { ToastAction } from "@/components/ui/toast";
@@ -1911,6 +1912,53 @@ export default function Stocktake() {
           {summaryLines.length === 0 && (
             <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No products counted yet</CardContent></Card>
           )}
+          {(() => {
+            const sheet = buildDraughtSheet(summaryLines.map(l => ({ prod: l.prod as any, entries: (entriesByProduct.get(l.prod.id) ?? []) as any })));
+            if (sheet.length === 0) return null;
+            const spotNames = [...new Set(sheet.flatMap(r => r.spots.map(sp => sp.name)))];
+            const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+            const download = () => {
+              const csv = draughtSheetCsv(sheet, venue?.name ?? "StockTap", date);
+              const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+              const a = document.createElement("a");
+              a.href = url; a.download = `${(venue?.name ?? "stocktap").replace(/[^a-z0-9]+/gi, "-")}-draught-sheet-${new Date().toISOString().slice(0, 10)}.csv`;
+              document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+            };
+            return (
+              <section className="rounded-xl border border-border bg-card p-3 space-y-2" data-testid="draught-sheet">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <h2 className="text-sm font-bold">Draught sheet</h2>
+                    <p className="text-xs text-muted-foreground">Whole = gallons, Part = pints, as a Venners sheet sets it out.</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={download} data-testid="button-download-draught-sheet">Download CSV</Button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm tabular-nums">
+                    <thead>
+                      <tr className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        <th className="text-left py-1.5 pr-2 font-semibold">Product</th>
+                        <th className="text-right py-1.5 px-1 font-semibold">Whole</th>
+                        <th className="text-right py-1.5 pl-1 font-semibold">Part</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sheet.map(r => (
+                        <tr key={r.name} className="border-t border-border align-top" data-testid={`sheet-row-${r.name}`}>
+                          <td className="py-1.5 pr-2">
+                            <div className="font-medium">{r.name}</div>
+                            {spotNames.length > 1 && <div className="text-xs text-muted-foreground">{r.spots.map(sp => `${sp.name} ${sp.whole} gal ${sp.part} pt`).join(" · ")}</div>}
+                          </td>
+                          <td className="text-right py-1.5 px-1 font-bold">{r.whole}</td>
+                          <td className="text-right py-1.5 pl-1 font-bold">{r.part}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            );
+          })()}
         </div>
         <div className="p-4 border-t border-border bg-card">
           {isViewingClosed ? (
