@@ -5,8 +5,11 @@ import {
   useCreateStocktake, useCloseStocktake, useAddReading,
   useCountLocations, useLineEntries, addLineEntry, deleteLineEntry,
   useAddCountLocation, useBottleShapes, useUpdateProduct, recomputeOpenEntriesForProduct,
+  useLatestReadingsByProduct,
   type BottleShape,
 } from "@/hooks/api";
+import { useDeliveries } from "@/hooks/useDeliveries";
+import { findLooksWrong } from "@/lib/looks-wrong";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -442,6 +445,15 @@ export default function Stocktake() {
   }, [lineEntries]);
 
   // Summary and close use the same aggregation/valuation helpers so they cannot drift.
+  // "This looks wrong": last count per line, plus deliveries since, for the review screen.
+  const { data: lastByProduct = {} } = useLatestReadingsByProduct(venue?.id);
+  const looksWrongOn = (venue as any)?.features?.looks_wrong !== false;
+  const earliestLast = useMemo(() => {
+    const ts = Object.values(lastByProduct as Record<string, any>).map((r: any) => r?.reading_at).filter(Boolean).sort();
+    return ts[0] ? String(ts[0]).slice(0, 10) : undefined;
+  }, [lastByProduct]);
+  const { data: deliveriesSince = [] } = useDeliveries(looksWrongOn && step === "summary" ? venue?.id : undefined, earliestLast);
+
   const summaryLines = useMemo(() => {
     if ((lineEntries?.length ?? 0) > 0) {
       const grouped = new Map<string, LocalLineEntry[]>();
@@ -1879,6 +1891,39 @@ export default function Stocktake() {
                 <span className="font-medium">{noPrice.length} counted {noPrice.length === 1 ? "line has" : "lines have"} no cost price</span>, so {noPrice.length === 1 ? "it's" : "they're"} £0 in this total: {noPrice.slice(0, 3).map(l => l.prod.name).join(", ")}{noPrice.length > 3 ? ` and ${noPrice.length - 3} more` : ""}. The counts are kept. Add prices in the Library (Cost prices) and the value comes right.
               </div>
             ) : null;
+          })()}
+          {!isViewingClosed && looksWrongOn && (() => {
+            const flags = findLooksWrong(summaryLines.map(l => {
+              const last: any = (lastByProduct as any)[l.prod.id] ?? null;
+              const lastAt = last?.reading_at ?? null;
+              const deliveredMl = (deliveriesSince as any[])
+                .filter(d => d.product_id === l.prod.id && (!lastAt || d.delivered_at > lastAt))
+                .reduce((a, d) => a + (Number(d.quantity_ml) || 0), 0);
+              const draught = (l.prod.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(l.prod.counting_method ?? "");
+              return { productId: l.prod.id, name: l.prod.name, draught, sizeMl: l.prod.size_ml, countedMl: l.mlRemaining, lastMl: last ? Number(last.ml_remaining) : null, lastAt, deliveredMl };
+            }));
+            if (flags.length === 0) return null;
+            return (
+              <div className="rounded-xl border-2 border-[#E0A343] bg-[#E0A343]/10 p-3 space-y-2" data-testid="banner-looks-wrong">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-[#B26A00] shrink-0" />
+                  <span className="text-sm font-bold">{flags.length === 1 ? "1 line looks wrong" : `${flags.length} lines look wrong`}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Stock can't go up on its own. It's a miscount or a delivery that wasn't logged.</p>
+                {flags.map(fl => (
+                  <button
+                    key={fl.productId}
+                    type="button"
+                    onClick={() => { setActiveProductId(fl.productId); setCountingView("detail"); setStep("counting"); }}
+                    className="w-full text-left rounded-lg bg-card border border-border p-2.5"
+                    data-testid={`looks-wrong-${fl.productId}`}
+                  >
+                    <div className="text-sm font-semibold">{fl.name}</div>
+                    <div className="text-xs text-muted-foreground">{fl.message}</div>
+                  </button>
+                ))}
+              </div>
+            );
           })()}
           {summaryGroups.map(group => (
             <React.Fragment key={group.key}>
