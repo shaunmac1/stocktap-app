@@ -25,6 +25,8 @@ import { Input } from "@/components/ui/input";
 import { NumberPad } from "@/components/NumberPad";
 import { TenthsInput } from "@/components/TenthsInput";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
+import { useDeliveries } from "@/hooks/useDeliveries";
+import { lineCheck } from "@/lib/line-check";
 import { isHidden } from "@/lib/hidden-products";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { supabase } from "@/lib/supabase";
@@ -203,6 +205,8 @@ export default function SpotCheck() {
   const isKegWeight  = countingMethod === "keg_weight";
   const isDipstick   = countingMethod === "dipstick";
   const isTenthsPints = countingMethod === "tenths_pints";
+  // Casks with no dip depth set are read off the gauge in gallons + pints, same as kegs.
+  const usesGaugeSc = isKegWeight || (isDipstick && !currentProduct?.dip_full_mm);
 
   const hasKegCalibration  = isKegWeight  && !!currentProduct?.container_l;
   const hasDipCalibration  = isDipstick   && !!currentProduct?.dip_full_mm && !!currentProduct?.container_l;
@@ -226,7 +230,7 @@ export default function SpotCheck() {
   // Part-measurement of the currently OPEN container (grams / tenths / keg / dip)
   const partMl = useMemo(() => {
     if (!currentProduct) return null;
-    if (isKegWeight) {
+    if (usesGaugeSc) {
       if (!currentProduct.container_l) return null;
       const pints = parseFloat(weightStr) || 0;
       return pints * ML_PER_PINT;
@@ -277,10 +281,17 @@ export default function SpotCheck() {
 
   const measuresRemaining = totalMl !== null ? calcMeasuresLeft(totalMl, measureMl) : null;
 
+  // Deliveries since the last count are added back, or a delivery looks like negative sales.
+  const lastAt: string | null = (lastReading as any)?.reading_at ?? null;
+  const { data: deliveriesSinceLast = [] } = useDeliveries(lastAt ? venue?.id : undefined, lastAt ? lastAt.slice(0, 10) : undefined);
+  const deliveredSinceMl = useMemo(() => (deliveriesSinceLast as any[])
+    .filter(d => d.product_id === currentProduct?.id && lastAt && d.delivered_at > lastAt)
+    .reduce((a, d) => a + (Number(d.quantity_ml) || 0), 0), [deliveriesSinceLast, currentProduct?.id, lastAt]);
+
   const soldByWeight = useMemo(() => {
     if (totalMl === null || !lastReading) return null;
-    return calcSoldSinceLast(lastReading.ml_remaining, totalMl, measureMl);
-  }, [totalMl, lastReading, measureMl]);
+    return calcSoldSinceLast(lastReading.ml_remaining + deliveredSinceMl, totalMl, measureMl);
+  }, [totalMl, lastReading, measureMl, deliveredSinceMl]);
 
   const effectivePourPrice = activeOffer?.offer_price ?? currentProduct?.pour_price ?? null;
 
@@ -297,7 +308,7 @@ export default function SpotCheck() {
     id ? (countLocations?.find(l => l.id === id)?.name ?? "Unknown") : "General";
 
   const entryMethod = (): LocalLineEntry["method"] =>
-    isKegWeight ? "keg_weight" : isDipstick ? "dipstick" : effectiveQuickMode ? "count" : "weigh";
+    usesGaugeSc ? "keg_weight" : isDipstick ? "dipstick" : effectiveQuickMode ? "count" : "weigh";
 
   // One spot check at a time: quick taps used to open several at once.
   const sessionInFlight = React.useRef<Promise<string> | null>(null);
@@ -832,13 +843,13 @@ export default function SpotCheck() {
             <>
               {(effectiveQuickMode || isKegWeight || isDipstick) && (
                 <div className="text-xs font-semibold text-primary uppercase tracking-wide -mb-2">
-                  {isKegWeight ? "Keg gauge" : isDipstick ? "Dipstick entry" : hasCalibration ? "Quick line-check" : "No weight set up yet — tenths entry"}
+                  {usesGaugeSc ? (isDipstick ? "Cask gauge" : "Keg gauge") : isDipstick ? "Dipstick entry" : hasCalibration ? "Quick line-check" : "No weight set up yet — tenths entry"}
                 </div>
               )}
 
-              {isKegWeight && (
+              {usesGaugeSc && (
                 <DraughtGaugeEntry
-                  kind={currentProduct?.container_type === "cask" ? "cask" : "keg"}
+                  kind={isDipstick || currentProduct?.container_type === "cask" ? "cask" : "keg"}
                   containerL={currentProduct?.container_l != null ? Number(currentProduct.container_l) : null}
                   full={String(fullCount)} onFull={v => setFullCount(Math.max(0, parseInt(v) || 0))}
                   gallons={gaugeGal} onGallons={g => setGauge(g, gaugePt)}
@@ -846,7 +857,7 @@ export default function SpotCheck() {
                 />
               )}
               {/* Full containers stepper — alongside the part measurement */}
-              {!isKegWeight && <div className="flex items-center justify-between bg-card border border-border rounded-xl p-3">
+              {!usesGaugeSc && <div className="flex items-center justify-between bg-card border border-border rounded-xl p-3">
                 <div>
                   <div className="text-sm font-semibold">Full {containerNoun}</div>
                   <div className="text-xs text-muted-foreground">Unopened, at {currentLocName}</div>
@@ -870,7 +881,7 @@ export default function SpotCheck() {
               {effectiveQuickMode && !isKegWeight && !isDipstick && (
                 <TenthsInput value={tenthsStr} onChange={setTenthsStr} shapePath={(currentProduct as any)?.shape_path} fillCurve={(currentProduct as any)?.fill_curve} imageUrl={(currentProduct as any)?.image_path} />
               )}
-              {!isKegWeight && !(effectiveQuickMode && !isDipstick) && <NumberPad
+              {!usesGaugeSc && !(effectiveQuickMode && !isDipstick) && <NumberPad
                 value={isKegWeight || isDipstick ? weightStr : effectiveQuickMode ? tenthsStr : weightStr}
                 onChange={isKegWeight || isDipstick ? setWeightStr : effectiveQuickMode ? setTenthsStr : setWeightStr}
                 label={isKegWeight ? "Pints remaining (open keg)" : isDipstick ? "Dip reading (mm)" : effectiveQuickMode ? "Open bottle: tenths remaining (0-10)" : "Open bottle weight (grams)"}
@@ -962,7 +973,7 @@ export default function SpotCheck() {
                     </div>
                     {lastReading && soldByWeight !== null && (
                       <div className="text-sm text-muted-foreground">
-                        Sold since last check: ~{soldByWeight.toFixed(1)} measures
+                        {isDraughtLine ? `Gone since last check: ${Math.round(soldByWeight)} pints` : `Sold since last check: ~${soldByWeight.toFixed(1)} measures`}
                       </div>
                     )}
                     {!lastReading && (
@@ -1009,7 +1020,7 @@ export default function SpotCheck() {
                   {showAmount(totalMl ?? 0)}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {measuresRemaining} {measureWord} remaining
+                  {isDraughtLine && totalMl !== null ? Math.round(totalMl / ML_PER_PINT) : measuresRemaining} {measureWord} remaining
                   {currentProduct.cost_price != null && effectiveCapMl > 0 && (
                     <> · {formatGBP(((totalMl ?? 0) / effectiveCapMl) * currentProduct.cost_price)}</>
                   )}
@@ -1021,7 +1032,7 @@ export default function SpotCheck() {
                 )}
                 {lastReading && soldByWeight !== null && (
                   <div className="text-sm text-muted-foreground">
-                    Sold since last check: ~{soldByWeight.toFixed(1)} measures
+                    {isDraughtLine ? `Gone since last check: ${Math.round(soldByWeight)} pints` : `Sold since last check: ~${soldByWeight.toFixed(1)} measures`}
                   </div>
                 )}
                 {activeOffer && (
@@ -1031,6 +1042,32 @@ export default function SpotCheck() {
                 )}
               </div>
 
+              {lastReading && totalMl !== null && (() => {
+                const lc = lineCheck({ lastMl: Number(lastReading.ml_remaining), deliveredMl: deliveredSinceMl, nowMl: totalMl, tillUnits: tillStr && tillStr !== "0" ? tillMeasures : null, unitMl: measureMl, draught: isDraughtLine, pricePerUnit: effectivePourPrice });
+                const when = lastAt ? new Date(lastAt).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+                const Row = ({ k, v, strong, tid }: { k: string; v: string; strong?: boolean; tid?: string }) => (
+                  <div className={`flex justify-between gap-3 py-1.5 ${strong ? "font-bold" : ""}`} data-testid={tid}>
+                    <span className={strong ? "" : "text-muted-foreground"}>{k}</span><span className="tabular-nums text-right">{v}</span>
+                  </div>
+                );
+                return (
+                  <div className="rounded-xl border border-border bg-card p-3 text-sm divide-y divide-border" data-testid="line-check-card">
+                    <div className="pb-1.5 font-bold">Line check since {when}</div>
+                    <Row k="Last count" v={lc.label(Number(lastReading.ml_remaining))} />
+                    <Row k="+ Delivered since" v={deliveredSinceMl > 0 ? lc.label(deliveredSinceMl) : "none logged"} tid="line-check-delivered" />
+                    <Row k="− Now" v={lc.label(totalMl)} />
+                    <Row k="= Gone" v={lc.label(lc.goneMl)} strong tid="line-check-gone" />
+                    {lc.missingUnits != null && <Row k="Till says sold" v={`${tillMeasures} ${isDraughtLine ? (tillMeasures === 1 ? "pint" : "pints") : "measures"}`} />}
+                    {lc.missingUnits != null && (
+                      <div className={`flex justify-between gap-3 pt-1.5 font-bold ${lc.missingUnits > 0.5 ? "text-[#C2372E]" : lc.missingUnits < -0.5 ? "text-[#B26A00]" : "text-[#2F7A4F]"}`} data-testid="line-check-missing">
+                        <span>{lc.missingUnits > 0.5 ? "Missing" : lc.missingUnits < -0.5 ? "Rung but not poured" : "Balanced"}</span>
+                        <span className="tabular-nums text-right">{Math.abs(lc.missingUnits) > 0.5 ? `${lc.label(Math.abs(lc.missingMl!))}${lc.missingValue != null ? ` · ${formatGBP(Math.abs(lc.missingValue))}` : ""}` : "within half a pint"}</span>
+                      </div>
+                    )}
+                    {lc.missingUnits == null && <div className="pt-1.5 text-xs text-muted-foreground">Type what the till says was sold to see what's missing.</div>}
+                  </div>
+                );
+              })()}
               <NumberPad
                 value={tillStr}
                 onChange={setTillStr}
@@ -1044,6 +1081,7 @@ export default function SpotCheck() {
                   valueVariance={valueVariance}
                   soldByWeight={soldByWeight}
                   tillMeasures={tillMeasures}
+                  unitWord={measureWord}
                 />
               )}
 
@@ -1373,12 +1411,15 @@ function VarianceDisplay({
   valueVariance,
   soldByWeight,
   tillMeasures,
+  unitWord,
 }: {
   variance: number;
   valueVariance: number | null;
   soldByWeight: number;
   tillMeasures: number;
+  unitWord?: string;
 }) {
+  const w = unitWord ?? "measures";
   const isShrinkage = variance > 0;
   const isOverRing  = variance < 0;
 
@@ -1395,9 +1436,9 @@ function VarianceDisplay({
     : "text-[#3FAE74]";
 
   const label = isShrinkage
-    ? `${variance.toFixed(1)} measures unaccounted for`
+    ? `${variance.toFixed(1)} ${w} unaccounted for`
     : isOverRing
-    ? `${Math.abs(variance).toFixed(1)} more measures rung than poured — check the till or measure size`
+    ? `${Math.abs(variance).toFixed(1)} more ${w} rung than poured: check the till or measure size`
     : "Balanced";
 
   return (
