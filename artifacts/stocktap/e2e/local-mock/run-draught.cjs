@@ -23,10 +23,10 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
   try {
     await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(3500);
     await tap('button-new-stocktake'); await sleep(800);
-    for (const i of [1, 2]) await tap(`select-product-${P(i)}`);
+    for (const i of ['a', 'b']) await tap(`select-product-${P(i)}`);
     await tap('button-start-stocktake'); await sleep(1500);
     // Carlsberg: 9 full kegs + 10 gal
-    await openEntry(1);
+    await openEntry("a");
     if (await p.locator('[data-testid="button-keg-mode-kegs"]').count()) await tap('button-keg-mode-kegs');
     check('gauge entry shown for keg', await p.locator('[data-testid="draught-gauge-entry"]').isVisible());
     for (let i = 0; i < 9; i++) await p.locator('[data-testid="button-full-plus"]').click();
@@ -42,7 +42,7 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
     const body1 = await p.locator('body').innerText(); check('saved line says 9 full + 10 gal 0 pt', body1.includes('9 full + 10 gal 0 pt'));
     await tap('button-back-to-products'); await sleep(600);
     // Hobgoblin Gold cask: 2 full + 4 gal 5 pt
-    await openEntry(2);
+    await openEntry("b");
     if (await p.locator('[data-testid="button-dip-mode-pints"]').count()) await tap('button-dip-mode-pints');
     check('gauge entry shown for cask', await p.locator('[data-testid="draught-gauge-entry"]').isVisible());
     check('cask wording', /full casks/i.test(await text('draught-gauge-entry')));

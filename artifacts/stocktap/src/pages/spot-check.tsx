@@ -24,6 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { NumberPad } from "@/components/NumberPad";
 import { TenthsInput } from "@/components/TenthsInput";
+import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
+import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -96,6 +98,10 @@ export default function SpotCheck() {
   const [selectedVendor, setSelectedVendor] = useState<string>("all");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [weightStr, setWeightStr] = useState("0");
+  // Part keg read off the keg gauge: gallons + pints (0–7). Stored as pints in weightStr.
+  const [gaugeGal, setGaugeGal] = useState("0");
+  const [gaugePt, setGaugePt] = useState("0");
+  const setGauge = (g: string, p: string) => { setGaugeGal(g); setGaugePt(p); setWeightStr(String(gaugeToPints(parseFloat(g) || 0, parseFloat(p) || 0))); };
   const [tenthsStr, setTenthsStr] = useState("0");
   const [fullCount, setFullCount] = useState(0);
   const [tillStr, setTillStr] = useState("0");
@@ -261,7 +267,11 @@ export default function SpotCheck() {
       ? calcTenths(partMl, effectiveCapMl)
       : null;
 
-  const measureMl = resolveMeasureMl(currentProduct?.measure_ml, venue?.measure_ml);
+  // Draught sells by the pint, not the spirit measure, unless the product says otherwise.
+  const isDraughtLine = isKegWeight || isDipstick || isTenthsPints || (currentProduct?.category ?? "").startsWith("draught_");
+  const measureMl = isDraughtLine ? (currentProduct?.measure_ml ?? ML_PER_PINT) : resolveMeasureMl(currentProduct?.measure_ml, venue?.measure_ml);
+  const measureWord = isDraughtLine ? "pints" : "measures";
+  const showAmount = (ml: number) => isDraughtLine ? formatGauge(ml / ML_PER_PINT) : `${Math.round(ml)}ml`;
 
   const measuresRemaining = totalMl !== null ? calcMeasuresLeft(totalMl, measureMl) : null;
 
@@ -335,7 +345,7 @@ export default function SpotCheck() {
     queryClient.invalidateQueries({ queryKey: ["spot-check-line-entries", sid] });
     await refetchSpotEntries();
     setFullCount(0);
-    setWeightStr("0");
+    setWeightStr("0"); setGaugeGal("0"); setGaugePt("0");
     setTenthsStr("0");
     // Move the picker on to the next un-counted location for convenience
     const remaining = (countLocations ?? []).filter(
@@ -359,7 +369,7 @@ export default function SpotCheck() {
   };
 
   const resetEntryInputs = () => {
-    setWeightStr("0");
+    setWeightStr("0"); setGaugeGal("0"); setGaugePt("0");
     setTenthsStr("0");
     setFullCount(0);
     setTillStr("0");
@@ -808,12 +818,21 @@ export default function SpotCheck() {
             <>
               {(effectiveQuickMode || isKegWeight || isDipstick) && (
                 <div className="text-xs font-semibold text-primary uppercase tracking-wide -mb-2">
-                  {isKegWeight ? "Keg weight entry" : isDipstick ? "Dipstick entry" : hasCalibration ? "Quick line-check" : "No weight set up yet — tenths entry"}
+                  {isKegWeight ? "Keg gauge" : isDipstick ? "Dipstick entry" : hasCalibration ? "Quick line-check" : "No weight set up yet — tenths entry"}
                 </div>
               )}
 
+              {isKegWeight && (
+                <DraughtGaugeEntry
+                  kind={currentProduct?.container_type === "cask" ? "cask" : "keg"}
+                  containerL={currentProduct?.container_l != null ? Number(currentProduct.container_l) : null}
+                  full={String(fullCount)} onFull={v => setFullCount(Math.max(0, parseInt(v) || 0))}
+                  gallons={gaugeGal} onGallons={g => setGauge(g, gaugePt)}
+                  pints={gaugePt} onPints={p => setGauge(gaugeGal, p)}
+                />
+              )}
               {/* Full containers stepper — alongside the part measurement */}
-              <div className="flex items-center justify-between bg-card border border-border rounded-xl p-3">
+              {!isKegWeight && <div className="flex items-center justify-between bg-card border border-border rounded-xl p-3">
                 <div>
                   <div className="text-sm font-semibold">Full {containerNoun}</div>
                   <div className="text-xs text-muted-foreground">Unopened, at {currentLocName}</div>
@@ -832,12 +851,12 @@ export default function SpotCheck() {
                     data-testid="button-full-plus"
                   ><Plus className="w-4 h-4" /></Button>
                 </div>
-              </div>
+              </div>}
 
               {effectiveQuickMode && !isKegWeight && !isDipstick && (
                 <TenthsInput value={tenthsStr} onChange={setTenthsStr} shapePath={(currentProduct as any)?.shape_path} fillCurve={(currentProduct as any)?.fill_curve} imageUrl={(currentProduct as any)?.image_path} />
               )}
-              {!(effectiveQuickMode && !isKegWeight && !isDipstick) && <NumberPad
+              {!isKegWeight && !(effectiveQuickMode && !isDipstick) && <NumberPad
                 value={isKegWeight || isDipstick ? weightStr : effectiveQuickMode ? tenthsStr : weightStr}
                 onChange={isKegWeight || isDipstick ? setWeightStr : effectiveQuickMode ? setTenthsStr : setWeightStr}
                 label={isKegWeight ? "Pints remaining (open keg)" : isDipstick ? "Dip reading (mm)" : effectiveQuickMode ? "Open bottle: tenths remaining (0-10)" : "Open bottle weight (grams)"}
@@ -847,11 +866,13 @@ export default function SpotCheck() {
               {entryMl !== null && (
                 <div className="bg-accent rounded-xl p-4 text-center space-y-1">
                   <div className="text-lg font-bold text-primary">
-                    This entry: {fullCount > 0 ? `${fullCount} full + ` : ""}{Math.round(partMl ?? 0)}ml open = {Math.round(entryMl)}ml
+                    {isKegWeight || isDipstick
+                      ? <>This entry: {fullCount > 0 ? `${fullCount} full + ` : ""}{formatGauge((partMl ?? 0) / ML_PER_PINT)} open = {formatGauge(entryMl / ML_PER_PINT)}</>
+                      : <>This entry: {fullCount > 0 ? `${fullCount} full + ` : ""}{Math.round(partMl ?? 0)}ml open = {Math.round(entryMl)}ml</>}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {effectiveQuickMode ? "Rough estimate — not exact · " : ""}
-                    {tenths !== null ? `open ${containerNoun.slice(0, -1)}: ${tenths.toFixed(1)} tenths · ` : ""}
+                    {tenths !== null && !isDraughtLine ? `open ${containerNoun.slice(0, -1)}: ${tenths.toFixed(1)} tenths · ` : ""}
                     at {currentLocName}
                   </div>
                   {activeOffer && (
@@ -882,7 +903,7 @@ export default function SpotCheck() {
                       <div className="min-w-0">
                         <div className="text-sm font-semibold truncate">{e.count_location_name ?? entryLocationName(e.count_location_id)}</div>
                         <div className="text-xs text-muted-foreground">
-                          {(e.full_containers ?? 0) > 0 ? `${e.full_containers} full · ` : ""}{Math.round(e.ml_remaining)}ml
+                          {(e.full_containers ?? 0) > 0 ? `${e.full_containers} full · ` : ""}{showAmount(e.ml_remaining)}
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -903,9 +924,11 @@ export default function SpotCheck() {
                   ))}
                   <div className="bg-muted rounded-xl p-3 text-center space-y-0.5">
                     <div className="text-sm text-muted-foreground">Running total ({productEntries.length} location{productEntries.length === 1 ? "" : "s"})</div>
-                    <div className="text-2xl font-bold text-primary" data-testid="text-running-total">{Math.round(savedTotalMl)}ml</div>
+                    <div className="text-2xl font-bold text-primary" data-testid="text-running-total">{showAmount(savedTotalMl)}</div>
                     <div className="text-sm text-muted-foreground">
-                      {calcMeasuresLeft(savedTotalMl, measureMl)} measures remaining
+                      {isDraughtLine
+                      ? draughtBreakdown(savedTotalMl / ML_PER_PINT, currentProduct?.container_l != null ? Number(currentProduct.container_l) : null, currentProduct?.container_type === "cask" ? "cask" : "keg")
+                      : `${calcMeasuresLeft(savedTotalMl, measureMl)} ${measureWord} remaining`}
                       {currentProduct.cost_price != null && effectiveCapMl > 0 && (
                         <> · {formatGBP((savedTotalMl / effectiveCapMl) * currentProduct.cost_price)}</>
                       )}
@@ -936,7 +959,7 @@ export default function SpotCheck() {
                 disabled={totalMl === null}
                 data-testid="button-enter-till"
               >
-                Enter Till Measures
+                Enter Till {isDraughtLine ? "Pints" : "Measures"}
               </Button>
 
               <Button
@@ -956,17 +979,17 @@ export default function SpotCheck() {
                   {hasSavedEntries ? `Total across ${productEntries.length} location${productEntries.length === 1 ? "" : "s"}` : "Count reading"}
                 </div>
                 <div className="text-2xl font-bold">
-                  {Math.round(totalMl ?? 0)}ml
+                  {showAmount(totalMl ?? 0)}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {measuresRemaining} measures remaining
+                  {measuresRemaining} {measureWord} remaining
                   {currentProduct.cost_price != null && effectiveCapMl > 0 && (
                     <> · {formatGBP(((totalMl ?? 0) / effectiveCapMl) * currentProduct.cost_price)}</>
                   )}
                 </div>
                 {hasSavedEntries && (
                   <div className="text-xs text-muted-foreground">
-                    {productEntries.map(e => `${e.count_location_name ?? entryLocationName(e.count_location_id)}: ${Math.round(e.ml_remaining)}ml`).join(" · ")}
+                    {productEntries.map(e => `${e.count_location_name ?? entryLocationName(e.count_location_id)}: ${showAmount(e.ml_remaining)}`).join(" · ")}
                   </div>
                 )}
                 {lastReading && soldByWeight !== null && (
@@ -984,7 +1007,7 @@ export default function SpotCheck() {
               <NumberPad
                 value={tillStr}
                 onChange={setTillStr}
-                label="Till measures sold"
+                label={isDraughtLine ? "Pints sold on the till" : "Till measures sold"}
                 allowDecimal
               />
 
@@ -1099,8 +1122,9 @@ export default function SpotCheck() {
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {Math.round(r.mlRemaining)}ml remaining
-                        {r.measuresRemaining != null && ` · ${r.measuresRemaining} measures remaining`}
+                        {(r.product.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes((r.product as any).counting_method ?? "")
+                          ? `${draughtBreakdown(r.mlRemaining / ML_PER_PINT, r.product.container_l != null ? Number(r.product.container_l) : null, r.product.container_type === "cask" ? "cask" : "keg")} left`
+                          : <>{Math.round(r.mlRemaining)}ml remaining{r.measuresRemaining != null && ` · ${r.measuresRemaining} measures remaining`}</>}
                       </div>
                       {!r.awaitingTill ? (
                         <div className="text-xs text-muted-foreground mt-0.5">

@@ -27,8 +27,8 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
   try {
     await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(3500);
     await tap('button-new-stocktake'); await sleep(800);
-    await tap(`select-product-${P(1)}`); await tap('button-start-stocktake'); await sleep(1500);
-    await tap(`counting-product-${P(1)}`); await sleep(500);
+    await tap(`select-product-${P('a')}`); await tap('button-start-stocktake'); await sleep(1500);
+    await tap(`counting-product-${P('a')}`); await sleep(500);
     await count('loc-cellar', 9, 10, 0);
     await count('loc-outside', 4, 0, 0);
     await shot('e1-two-stores');
@@ -40,7 +40,7 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
     // survives a reload (saved on the phone before syncing)
     await p.reload({ waitUntil: 'domcontentloaded' }); await sleep(3500);
     await p.getByRole('button', { name: 'Resume' }).first().click(); await sleep(1500);
-    await tap(`counting-product-${P(1)}`); await sleep(800);
+    await tap(`counting-product-${P('a')}`); await sleep(800);
     const b2 = await p.locator('body').innerText();
     check('after reload + Resume, both stores still add to 153 gal 0 pt', b2.includes('153 gal 0 pt'));
     await shot('e2-after-reload');

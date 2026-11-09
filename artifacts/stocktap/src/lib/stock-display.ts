@@ -1,3 +1,4 @@
+import { draughtBreakdown } from "./draught-gauge";
 import {
   ML_PER_PINT,
   calcTenths,
@@ -92,7 +93,8 @@ export function describeQuantity(product: DisplayProduct, entries: DisplayEntry[
       main: gp,
       unit: "",
       short: gp,
-      detail: `${trim(pints, 1)} pints · ${(totalMl / 1000).toFixed(1)}L${kegs != null ? ` · ${trim(kegs, 2)} ${product.container_type === "cask" ? "casks" : "kegs"}` : ""}`,
+      // "872 pints · 109 gal 0 pt · 9.9 kegs": every way a landlord counts it, side by side.
+      detail: draughtBreakdown(pints, product.container_l ?? null, product.container_type === "cask" ? "cask" : "keg"),
       value: cost != null && capMl > 0 ? (totalMl / capMl) * cost : null,
     };
   }

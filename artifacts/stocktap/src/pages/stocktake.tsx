@@ -31,7 +31,7 @@ import { isLitreOnBottles } from "@/lib/library-hygiene";
 import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
-import { gaugeToPints, formatGauge } from "@/lib/draught-gauge";
+import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
@@ -1642,9 +1642,11 @@ export default function Stocktake() {
                                 <div className="text-3xl font-bold text-primary font-mono tabular-nums" data-testid="text-keg-result">
                                   {formatGallonsPints(totalPints)}
                                 </div>
+                                <div className="text-sm font-semibold mt-1" data-testid="text-keg-breakdown">
+                                  {draughtBreakdown(totalPints, activeProduct?.container_l != null ? Number(activeProduct.container_l) : null, entryActiveMethod === "dipstick" || activeProduct?.container_type === "cask" ? "cask" : "keg")}
+                                </div>
                                 <div className="text-sm text-muted-foreground mt-1">
-                                  {totalPints.toFixed(1)} pints
-                                  {activeProduct?.container_l ? ` · ${full} full ${entryActiveMethod === "dipstick" ? (full === 1 ? "cask" : "casks") : (full === 1 ? "keg" : "kegs")} + ${formatGauge(partPints)} in the open one` : ""}
+                                  {activeProduct?.container_l ? `${full} full ${entryActiveMethod === "dipstick" ? (full === 1 ? "cask" : "casks") : (full === 1 ? "keg" : "kegs")} + ${formatGauge(partPints)} in the open one` : ""}
                                 </div>
                                 {activeProduct?.cost_price && entryCategoryResult ? (
                                   <div className="text-sm text-muted-foreground">{formatGBP(entryCategoryResult.valueGbp)} stock value</div>

@@ -36,3 +36,11 @@ describe("full kegs + part read off the gauge", () => {
     expect(r.fullContainers).toBe(9);
   });
 });
+
+import { draughtBreakdown } from "./draught-gauge";
+describe("pints, gallons and kegs side by side", () => {
+  it("one 11G keg", () => expect(draughtBreakdown(88, 50)).toBe("88 pints · 11 gal 0 pt · 1 keg"));
+  it("9 full + 10 gal", () => expect(draughtBreakdown(9 * 50000 / 568.261 + 80, 50)).toBe("872 pints · 109 gal 0 pt · 9.9 kegs"));
+  it("casks", () => expect(draughtBreakdown(181, 40.9, "cask")).toBe("181 pints · 22 gal 5 pt · 2.5 casks"));
+  it("no size yet: pints and gallons only", () => expect(draughtBreakdown(37, null)).toBe("37 pints · 4 gal 5 pt"));
+});

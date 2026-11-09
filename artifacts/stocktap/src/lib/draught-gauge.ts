@@ -29,3 +29,20 @@ export function gaugeScaleFor(containerL: number | null | undefined): string | n
   const gal = containerL / LITRES_PER_GALLON_EXACT;
   return gal > 22.5 ? "36G" : "up to 22G";
 }
+
+/**
+ * Every way a landlord thinks about draught, side by side:
+ * "88 pints · 11 gal 0 pt · 1 keg". Containers to 1dp, whole when it's within a pint.
+ */
+export function draughtBreakdown(totalPints: number, containerL: number | null | undefined, kind: "keg" | "cask" = "keg"): string {
+  const pints = Math.max(0, Math.round(totalPints));
+  const parts = [`${pints} ${pints === 1 ? "pint" : "pints"}`, formatGauge(totalPints)];
+  if (containerL && containerL > 0) {
+    const capPints = (containerL * 1000) / 568.261;
+    const n = totalPints / capPints;
+    const whole = Math.round(n);
+    const shown = Math.abs(n - whole) * capPints < 1 ? String(whole) : n.toFixed(1);
+    parts.push(`${shown} ${kind}${shown === "1" ? "" : "s"}`);
+  }
+  return parts.join(" · ");
+}
