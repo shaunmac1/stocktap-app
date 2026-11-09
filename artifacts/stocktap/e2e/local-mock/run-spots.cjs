@@ -1,0 +1,44 @@
+const { chromium } = require('playwright');
+const fs = require('fs'); const SHOT = '/tmp/uitest/shots'; fs.mkdirSync(SHOT, { recursive: true });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const U = '11111111-1111-4111-8111-111111111111';
+const exp = Math.floor(Date.now() / 1000) + 3600 * 24;
+const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: U, role: 'authenticated', aud: 'authenticated', exp, email: 'owner@example.test' })}.sig`;
+const session = { access_token: jwt, refresh_token: 'r', token_type: 'bearer', expires_in: 86400, expires_at: exp, user: { id: U, email: 'owner@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } };
+const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
+  await ctx.addInitScript(s => { try { localStorage.setItem('sb-localhost-auth-token', s); } catch {} }, JSON.stringify(session));
+  const p = await ctx.newPage(); const errors = []; p.on('pageerror', e => errors.push(e.message));
+  const results = []; const check = (n, ok, d = '') => results.push(`${ok ? 'PASS' : 'FAIL'} ${n} ${d}`);
+  const tap = async tid => { const l = p.locator(`[data-testid="${tid}"]:visible`).first(); await l.waitFor({ timeout: 10000 }).catch(() => { throw new Error('not visible: ' + tid); }); await l.scrollIntoViewIfNeeded(); await l.click(); await sleep(700); };
+  const plus = async k => { for (let i = 0; i < k; i++) await p.locator('[data-testid="button-full-plus"]:visible').first().click(); };
+  const txt = async tid => (await p.locator(`[data-testid="${tid}"]`).first().innerText().catch(() => '')).trim();
+  const A = P('a'), B = P('b');
+  try {
+    await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(3000);
+    await tap('button-new-stocktake'); await tap(`select-product-${A}`); await tap(`select-product-${B}`); await tap('button-start-stocktake'); await sleep(1200);
+    check('Counting in switch shows both stores', await p.locator('[data-testid="button-count-spot-loc-cellar"]').isVisible() && await p.locator('[data-testid="button-count-spot-loc-outside"]').isVisible());
+    await tap('button-count-spot-loc-outside');
+    check('lines say not counted outside yet', /Not counted in Outside store yet/.test(await txt(`spot-status-${A}`)));
+    await tap(`counting-product-${A}`); await sleep(600);
+    check('tapping a line goes straight to the gauge, at Outside store', await p.locator('[data-testid="draught-gauge-entry"]:visible').count() > 0 && /OUTSIDE STORE/i.test(await p.locator('body').innerText()));
+    if (await p.locator('[data-testid="button-keg-mode-kegs"]:visible').count()) await tap('button-keg-mode-kegs');
+    await plus(4); await tap('button-save-entry'); await sleep(900); await tap('button-back-to-products');
+    check('Carlsberg ticked: done in Outside store', /Done in Outside store/.test(await txt(`spot-status-${A}`)));
+    check('Left counter counts this store only (1 left outside)', /Left \(1\)/.test(await txt('button-toggle-remaining')), await txt('button-toggle-remaining'));
+    await p.screenshot({ path: `${SHOT}/s1-outside.png` });
+    await tap('button-count-spot-loc-cellar');
+    check('switch to Cellar: Carlsberg not counted in cellar yet, 2 left', /Not counted in Cellar yet/.test(await txt(`spot-status-${A}`)) && /Left \(2\)/.test(await txt('button-toggle-remaining')));
+    await tap(`counting-product-${A}`); await sleep(600);
+    check('straight to the gauge at Cellar', /CELLAR/.test(await p.locator('body').innerText()) && await p.locator('[data-testid="draught-gauge-entry"]:visible').count() > 0);
+    if (await p.locator('[data-testid="button-keg-mode-kegs"]:visible').count()) await tap('button-keg-mode-kegs');
+    await plus(9); await p.locator('[data-testid="input-part-gallons"]:visible').fill('10'); await sleep(300); await tap('button-save-entry'); await sleep(900);
+    check('both stores still add to 153 gal 0 pt', (await p.locator('body').innerText()).includes('153 gal 0 pt'));
+    await tap('button-back-to-products'); await p.screenshot({ path: `${SHOT}/s2-cellar.png` });
+    check('no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
+  } catch (e) { results.push('ERROR ' + e.message.split('\n')[0]); await p.screenshot({ path: `${SHOT}/sX.png` }); }
+  console.log(results.join('\n')); await b.close();
+})();

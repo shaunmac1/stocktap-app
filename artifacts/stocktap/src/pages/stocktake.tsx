@@ -1084,8 +1084,12 @@ export default function Stocktake() {
       const enteredCount = Array.from(entriesByProduct.keys()).filter(pid => selectedProductIds.includes(pid)).length;
       const q = norm(countingSearch);
       const searched = q ? countListOrder.filter(p => norm(p.name).includes(q)) : countListOrder;
-      const leftCount = filteredProducts.length - enteredCount;
-      const visibleProducts = searched.filter(p => !leftOnly || !(entriesByProduct.get(p.id) ?? []).length);
+      // "Counting in: Cellar" — the spot you're standing in. Lines tick off per spot,
+      // and opening a line goes straight to full kegs, then gallons, then pints there.
+      const spot = lastLocation && lastLocation.id && (countLocations ?? []).some(l => l.id === lastLocation.id) ? lastLocation : null;
+      const inSpot = (pid: string) => (entriesByProduct.get(pid) ?? []).filter((e: any) => !spot || (e.count_location_id ?? "") === spot.id);
+      const leftCount = filteredProducts.filter(p => inSpot(p.id).length === 0).length;
+      const visibleProducts = searched.filter(p => !leftOnly || inSpot(p.id).length === 0);
       return (
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-border bg-card sticky top-0 z-10">
@@ -1125,6 +1129,22 @@ export default function Stocktake() {
                 {leftOnly ? "All" : `Left (${leftCount})`}
               </Button>
             </div>
+            {(countLocations?.length ?? 0) > 0 && (
+              <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1" role="radiogroup" aria-label="Counting in">
+                <span className="text-xs font-semibold text-muted-foreground shrink-0">Counting in:</span>
+                {countLocations!.map(loc => (
+                  <button
+                    key={loc.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={spot?.id === loc.id}
+                    onClick={() => setLastLocation(spot?.id === loc.id ? null : { id: loc.id, name: loc.name })}
+                    className={`px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap border ${spot?.id === loc.id ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}
+                    data-testid={`button-count-spot-${loc.id}`}
+                  >{loc.name}</button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-auto p-4 pb-24 space-y-2">
             {filteredProducts.length === 0 ? (
@@ -1133,6 +1153,7 @@ export default function Stocktake() {
               <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">{q ? "No products match that search" : "Everything is counted"}</CardContent></Card>
             ) : visibleProducts.map((p, idx) => {
               const entries = entriesByProduct.get(p.id) ?? [];
+              const here = inSpot(p.id);
               const q = entries.length > 0 ? describeQuantity(p as any, entries as any) : null;
               const pending = entries.some(e => e.sync_status === "pending");
               const heading = idx === 0 || visibleProducts[idx - 1].category !== p.category
@@ -1143,8 +1164,8 @@ export default function Stocktake() {
                 {heading && <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest pt-2" data-testid={`count-group-${p.category ?? "other"}`}>{heading}</h2>}
                 <button
                   data-testid={`counting-product-${p.id}`}
-                  onClick={() => { setActiveProductId(p.id); setCountingView("detail"); }}
-                  className={`w-full flex items-start justify-between p-3 rounded-xl border text-left transition-colors ${entries.length > 0 ? "border-primary/40 bg-primary/5" : "border-border"}`}
+                  onClick={() => { setActiveProductId(p.id); setCountingView("detail"); if (spot && here.length === 0) openAddEntry(); }}
+                  className={`w-full flex items-start justify-between p-3 rounded-xl border text-left transition-colors ${here.length > 0 ? "border-primary/40 bg-primary/5" : "border-border"}`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm truncate">{p.name}</div>
@@ -1155,6 +1176,11 @@ export default function Stocktake() {
                         {q?.short ?? ""}
                         {entries.length > 1 && ` · ${entries.length} spots`}
                         {q?.value != null && ` · ${formatGBP(q.value)}`}
+                      </div>
+                    )}
+                    {spot && (
+                      <div className={`text-xs font-semibold mt-0.5 ${here.length ? "text-primary" : "text-[#B26A00]"}`} data-testid={`spot-status-${p.id}`}>
+                        {here.length ? `✓ Done in ${spot.name}` : `Not counted in ${spot.name} yet`}
                       </div>
                     )}
                   </div>
