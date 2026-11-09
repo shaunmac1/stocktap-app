@@ -237,8 +237,51 @@ export async function flushPendingLineEntries(): Promise<number> {
     .equals("pending")
     .toArray();
   let flushed = 0;
+  // A spot-check count whose spot check was closed (or never reached the server)
+  // is refused for good, so it would retry forever. Re-home it instead of losing it.
+  const rehomed = new Map<string, string>(); // venue_id -> fresh open spot check id
   for (const entry of pending) {
-    const { error } = await supabase
+    let error = (await upsertEntry(entry)).error;
+    if (error && entry.spot_check_id && /already closed|does not belong/i.test(error.message ?? "")) {
+      const { data: sess } = await supabase.from("spot_check_sessions").select("id,status").eq("id", entry.spot_check_id).maybeSingle();
+      if (!sess) {
+        // Created offline and never uploaded: put the spot check up first, same id.
+        await supabase.from("spot_check_sessions").insert({ id: entry.spot_check_id, venue_id: entry.venue_id, status: "open", opened_at: entry.entered_at, user_id: entry.user_id } as any);
+      } else {
+        let fresh = rehomed.get(entry.venue_id);
+        if (!fresh) {
+          fresh = crypto.randomUUID();
+          const now = new Date().toISOString();
+          const { error: e2 } = await supabase.from("spot_check_sessions").insert({ id: fresh, venue_id: entry.venue_id, status: "open", opened_at: now, user_id: entry.user_id } as any);
+          if (e2) fresh = undefined; else {
+            rehomed.set(entry.venue_id, fresh);
+            try { await db.spot_check_sessions.put({ id: fresh, venue_id: entry.venue_id, status: "open", opened_at: now, closed_at: null, user_id: entry.user_id, created_at: now, updated_at: now } as any); } catch { /* local cache only */ }
+          }
+        }
+        if (fresh) { entry.spot_check_id = fresh; await db.line_entries.update(entry.id, { spot_check_id: fresh } as any); }
+      }
+      error = (await upsertEntry(entry)).error;
+    }
+    if (!error) {
+      await db.line_entries.update(entry.id, {
+        sync_status: "uploaded",
+        updated_at: new Date().toISOString(),
+      });
+      flushed++;
+    } else {
+      console.warn("[flushPendingLineEntries]", entry.id, "will retry:", error.message);
+    }
+  }
+  if (flushed && typeof window !== "undefined") {
+    // Lets open count/spot-check screens drop their "Not synced" badges at once.
+    try { window.dispatchEvent(new Event("stocktap:line-entry-synced")); } catch { /* noop */ }
+    try { window.dispatchEvent(new Event("stocktap:pending-changed")); } catch { /* noop */ }
+  }
+  return flushed;
+}
+
+function upsertEntry(entry: any) {
+  return supabase
       .from("stocktake_line_entries")
       .upsert(
         {
@@ -258,22 +301,6 @@ export async function flushPendingLineEntries(): Promise<number> {
         } as any,
         { onConflict: "id" }
       );
-    if (!error) {
-      await db.line_entries.update(entry.id, {
-        sync_status: "uploaded",
-        updated_at: new Date().toISOString(),
-      });
-      flushed++;
-    } else {
-      console.warn("[flushPendingLineEntries]", entry.id, "will retry:", error.message);
-    }
-  }
-  if (flushed && typeof window !== "undefined") {
-    // Lets open count/spot-check screens drop their "Not synced" badges at once.
-    try { window.dispatchEvent(new Event("stocktap:line-entry-synced")); } catch { /* noop */ }
-    try { window.dispatchEvent(new Event("stocktap:pending-changed")); } catch { /* noop */ }
-  }
-  return flushed;
 }
 
 export async function getPendingCount(): Promise<number> {

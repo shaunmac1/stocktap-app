@@ -299,7 +299,15 @@ export default function SpotCheck() {
   const entryMethod = (): LocalLineEntry["method"] =>
     isKegWeight ? "keg_weight" : isDipstick ? "dipstick" : effectiveQuickMode ? "count" : "weigh";
 
+  // One spot check at a time: quick taps used to open several at once.
+  const sessionInFlight = React.useRef<Promise<string> | null>(null);
   const ensureSession = async (): Promise<string> => {
+    if (sessionInFlight.current) return sessionInFlight.current;
+    const p = ensureSessionOnce();
+    sessionInFlight.current = p;
+    try { return await p; } finally { setTimeout(() => { sessionInFlight.current = null; }, 1500); }
+  };
+  const ensureSessionOnce = async (): Promise<string> => {
     if (activeSessionId) {
       if (!sessionId) setSessionId(activeSessionId);
       if (!sessionOpenedAt && openSession) setSessionOpenedAt(openSession.opened_at);

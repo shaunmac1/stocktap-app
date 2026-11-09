@@ -72,6 +72,13 @@ http.createServer((req, res) => {
     }
     if (req.method === 'POST') {
       let items = body ? JSON.parse(body) : []; if (!Array.isArray(items)) items = [items];
+      // Like the real integrity trigger: no counts into a closed (or unknown) spot check.
+      if (table === 'stocktake_line_entries') {
+        for (const i of items) if (i.spot_check_id) {
+          const sc = (db.spot_check_sessions || []).find(x => x.id === i.spot_check_id);
+          if (!sc || sc.status === 'closed') return send(409, { code: 'P0001', message: 'Spot check does not belong to this venue or is already closed' });
+        }
+      }
       items = items.map(i => ({ id: i.id || rid(), created_at: now, ...i }));
       for (const i of items) { const k = db[table].findIndex(r => r.id === i.id); if (k >= 0) db[table][k] = { ...db[table][k], ...i }; else db[table].push(i); }
       log.push({ insert: table, items });
