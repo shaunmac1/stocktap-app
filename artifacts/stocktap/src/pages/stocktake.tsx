@@ -62,7 +62,7 @@ type LegacyReading = { productId: string; mlRemaining: number; count?: number };
 /** " · 50L keg", " · 12L box", " · 330ml" — whatever size matters for this line. */
 function productSizeLabel(p: { category?: string | null; counting_method?: string | null; container_l?: number | null; container_type?: string | null; size_ml?: number | null }): string {
   const draught = (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(p.counting_method ?? "");
-  if (draught) return p.container_l ? ` · ${p.container_l}L ${p.container_type === "cask" ? "cask" : "keg"}` : "";
+  if (draught) return p.container_l ? ` · ${containerSizeLabel(Number(p.container_l), p.container_type === "cask" ? "cask" : "keg")}` : "";
   if (p.counting_method === "litre" && p.container_l) return ` · ${p.container_l}L box`;
   return p.size_ml ? ` · ${p.size_ml >= 1000 ? `${p.size_ml / 1000}L` : `${p.size_ml}ml`}` : "";
 }

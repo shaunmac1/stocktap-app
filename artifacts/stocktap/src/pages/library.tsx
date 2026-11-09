@@ -65,6 +65,9 @@ import {
 import { matchKnownBottles } from "@/hooks/useCatalogue";
 import { isHidden } from "@/lib/hidden-products";
 import { useQuickHide } from "@/hooks/useQuickHide";
+import { containerSizeLabel } from "@/lib/container-sizes";
+import { stockNow } from "@/lib/stock-now";
+import { useDeliveries } from "@/hooks/useDeliveries";
 
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 type ProductType = "spirit" | "gin" | "vodka" | "whisky" | "rum" | "liqueur" | "wine" | "sparkling" | "vermouth" | "syrup" | "cordial" | "packaged";
@@ -3621,6 +3624,9 @@ export default function Library() {
   };
 
   const quickHide = useQuickHide(venue?.id);
+  // Deliveries from the last 90 days, so stock on hand includes what's arrived since the last count.
+  const since90 = useMemo(() => new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10), []);
+  const { data: recentDeliveries = [] } = useDeliveries(venue?.id, since90);
   // Lines the pub no longer stocks: kept (with their past counts), just out of the way.
   const hiddenProducts = useMemo(() => (products ?? []).filter(p => isHidden(p as any)), [products]);
 
@@ -4224,7 +4230,7 @@ export default function Library() {
                           {/* Size display: show capacity in litres for keg/dipstick, ml for bottles */}
                           {(p.counting_method === "keg_weight" || p.counting_method === "dipstick" || p.counting_method === "tenths_pints")
                             ? p.container_l
-                              ? <span className="text-xs text-muted-foreground">{p.container_l}L</span>
+                              ? <span className="text-xs text-muted-foreground">{containerSizeLabel(Number(p.container_l), p.container_type === "cask" ? "cask" : "keg")}</span>
                               : <span className="text-xs text-amber-600">No capacity set</span>
                             : p.counting_method === "litre" && p.container_l
                               ? <span className="text-xs text-muted-foreground">{p.container_l}L box</span>
@@ -4233,6 +4239,14 @@ export default function Library() {
                                 : null
                           }
                           {p.pour_price && <span className="text-xs text-muted-foreground">{formatGBP(p.pour_price)}</span>}
+                          {(() => {
+                            const sn = stockNow(p as any, latestReading as any, recentDeliveries as any);
+                            return sn ? (
+                              <span className="basis-full text-xs font-semibold text-primary" data-testid={`text-stock-now-${p.id}`}>
+                                In stock: {sn.label}{sn.deliveredLabel ? <span className="font-normal text-muted-foreground"> · incl. {sn.deliveredLabel} delivered since last count</span> : null}
+                              </span>
+                            ) : null;
+                          })()}
                           {estimatedPriceIds.has(p.id) && (
                             <button
                               type="button"

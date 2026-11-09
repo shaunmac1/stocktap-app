@@ -29,6 +29,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { deliveryProvenanceLabel, summariseDeliveryProvenance } from "@/lib/deliveries";
+import { draughtAmount } from "@/lib/draught-gauge";
 import {
   costPerSoldUnit,
   gpPercentForProduct,
@@ -343,7 +344,7 @@ export default function Reports() {
       Product: r.p.name,
       Type: r.p.type,
       Location: r.locName,
-      Qty: (() => { const vM = r.p.counting_method === "keg_weight" || r.p.counting_method === "dipstick" || r.p.counting_method === "tenths_pints"; const cU = r.p.unit === "count" && !vM; return cU ? `${Math.round(r.count)} units` : vM && r.p.container_l ? `${(r.mlRemaining / 1000).toFixed(1)}L` : `${Math.round(r.mlRemaining)}ml`; })(),
+      Qty: (() => { const vM = r.p.counting_method === "keg_weight" || r.p.counting_method === "dipstick" || r.p.counting_method === "tenths_pints"; const cU = r.p.unit === "count" && !vM; return cU ? `${Math.round(r.count)} units` : vM && r.p.container_l ? `${draughtAmount(r.mlRemaining)}` : `${Math.round(r.mlRemaining)}ml`; })(),
       Tenths: (() => { const vM = r.p.counting_method === "keg_weight" || r.p.counting_method === "dipstick" || r.p.counting_method === "tenths_pints"; const cU = r.p.unit === "count" && !vM; return cU || vM ? "—" : (r.tenths?.toFixed(1) ?? "—"); })(),
       "Value (£)": r.value.toFixed(2),
     }));
@@ -417,7 +418,7 @@ export default function Reports() {
               {displayedValuationRows.map(({ p, mlRemaining, count, value, tenths, locName, reading }) => {
                 const isVolM = p.counting_method === "keg_weight" || p.counting_method === "dipstick" || p.counting_method === "tenths_pints";
                 const isCnt = p.unit === "count" && !isVolM;
-                const qtyLabel = !reading ? "—" : isCnt ? `${Math.round(count)} units` : isVolM && p.container_l ? `${(mlRemaining / 1000).toFixed(1)}L` : `${Math.round(mlRemaining)}ml`;
+                const qtyLabel = !reading ? "—" : isCnt ? `${Math.round(count)} units` : isVolM && p.container_l ? `${draughtAmount(mlRemaining)}` : `${Math.round(mlRemaining)}ml`;
                 const tenthsLabel = (!reading || isCnt || isVolM || tenths == null) ? null : `${tenths.toFixed(1)} tenths`;
                 return (
                   <div key={p.id} data-testid={`row-valuation-${p.id}`} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
@@ -561,7 +562,7 @@ export default function Reports() {
                                 {isCnt2
                                   ? `${Math.round(count)} units`
                                   : isVolM2 && p.container_l
-                                    ? `${(mlRemaining / 1000).toFixed(1)}L`
+                                    ? `${draughtAmount(mlRemaining)}`
                                     : `${Math.round(mlRemaining)}ml · ${tenths != null ? tenths.toFixed(1) : "—"} tenths`}
                               </div>
                             )}

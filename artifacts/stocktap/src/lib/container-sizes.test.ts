@@ -19,7 +19,7 @@ describe("container size from the name", () => {
     expect(containerSizeFromName("Stout Guinness")).toBeNull();
   });
   it("labels and presets", () => {
-    expect(containerSizeLabel(30, "keg")).toBe("30L keg");
+    expect(containerSizeLabel(30, "keg")).toBe("30L · 6.6 gal keg");
     expect(containerSizeLabel(12, "postmix")).toBe("12L box");
     expect(containerSizeLabel(40.9, "cask")).toBe("Firkin 9 gal (40.9L)");
     expect(presetsFor("postmix").map(p => p.value)).toContain(12);

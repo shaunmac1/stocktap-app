@@ -771,6 +771,8 @@ type ReadingInsert = Database["public"]["Tables"]["readings"]["Insert"];
 export function useAddReading() {
   const queryClient = useQueryClient();
   return useMutation({
+    // Saves on the phone first and queues the upload itself, so it must run with no signal too.
+    networkMode: "always",
     mutationFn: async (reading: ReadingInsert) => {
       const localId = crypto.randomUUID();
       const now = new Date().toISOString();

@@ -23,4 +23,15 @@ describe("daily line check", () => {
     expect(s.label(s.goneMl)).toBe("10.0 measures");
     expect(s.missingUnits).toBeCloseTo(1, 5);
   });
+  it("line cleaning pints are not missing", () => {
+    const c = lineCheck({ lastMl: 100 * P, deliveredMl: 0, nowMl: 50 * P, tillUnits: 46, unitMl: P, draught: true, wasteMl: 4 * P });
+    expect(Math.round(c.missingUnits!)).toBe(0);
+  });
+});
+import { shortPattern } from "./line-check";
+describe("patterns", () => {
+  const h = (m: number | null) => ({ missing_ml: m == null ? null : m * P, unit_ml: P });
+  it("short 3 of the last 4", () => expect(shortPattern([h(4), h(0), h(3), h(6)])).toBe("short 3 of the last 4 checks"));
+  it("not enough history", () => expect(shortPattern([h(4), h(5)])).toBeNull());
+  it("mostly fine", () => expect(shortPattern([h(0), h(0), h(3), h(0)])).toBeNull());
 });

@@ -338,6 +338,19 @@ export default function Settings() {
                 data-testid="switch-looks-wrong"
               />
             </div>
+            <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3 mt-2">
+              <div className="min-w-0">
+                <Label htmlFor="feature-line-check" className="text-sm font-semibold">Morning line check on Home</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Shows yesterday's short lines on Home, with a one-screen check of every keg and cask against the till.</p>
+              </div>
+              <Switch
+                id="feature-line-check"
+                checked={features.morning_line_check !== false}
+                disabled={savingFeature === "morning_line_check"}
+                onCheckedChange={v => setFeature("morning_line_check", v)}
+                data-testid="switch-line-check"
+              />
+            </div>
           </div>
           <div>
             <h2 className="text-sm font-semibold text-primary mb-1">Counting locations</h2>

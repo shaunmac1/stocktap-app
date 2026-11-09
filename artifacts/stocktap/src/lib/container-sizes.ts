@@ -1,3 +1,4 @@
+import { litresAsGallons } from "./draught-gauge";
 /**
  * Container sizes a pub can pick from in one tap. Anything else goes in the
  * "Other size" box. These are shortcuts only; nothing assumes a line is one of them.
@@ -74,5 +75,7 @@ export function containerSizeLabel(litres: number | null | undefined, kind: stri
   const preset = presetsFor(kind).find(p => Math.abs(p.value - litres) < 0.05);
   const noun = kind === "cask" ? "cask" : kind === "bag_in_box" || kind === "postmix" ? "box" : "keg";
   if (preset && kind === "cask") return preset.label;
+  // Kegs are sold in litres but counted in gallons: show both ("50L · 11 gal keg").
+  if (noun === "keg") return `${Math.round(litres * 10) / 10}L · ${litresAsGallons(litres)} gal keg`;
   return `${Math.round(litres * 10) / 10}L ${noun}`;
 }

@@ -21,6 +21,8 @@ import { StocktakeTasksCard } from "@/components/StocktakeTasksCard";
 import { venueTrial } from "@/hooks/useSubscription";
 import { NewPubWelcome } from "@/components/NewPubWelcome";
 import { isHidden } from "@/lib/hidden-products";
+import { draughtAmount, isDraughtProduct } from "@/lib/draught-gauge";
+import { useLineChecks } from "@/hooks/useLineChecks";
 
 export default function Home() {
   const { venue } = useAuth();
@@ -98,6 +100,8 @@ export default function Home() {
   // A pub that has never finished a count (and has no readings) gets the guided
   // first screen instead of an empty value and a GP% from placeholder prices.
   const isNewPub = !!products && !!stocktakes && !openStocktake && !hasClosedCount && Object.keys(latestByProduct).length === 0;
+  const { data: lineChecks = [] } = useLineChecks(venue?.id);
+  const lineCheckOn = (venue as any)?.features?.morning_line_check !== false;
   const shownProducts = (products ?? []).filter(p => !isHidden(p as any));
   const draughtLines = shownProducts.filter(p => (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes((p as any).counting_method ?? "")).length;
 
@@ -144,6 +148,33 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
+
+        {lineCheckOn && draughtLines > 0 && (() => {
+          const latestAt = lineChecks[0]?.checked_at ?? null;
+          const latest = latestAt ? lineChecks.filter(h => h.checked_at === latestAt) : [];
+          const short = latest.filter(h => h.missing_ml != null && h.missing_ml / h.unit_ml > 0.5).sort((a, b) => (b.missing_ml ?? 0) - (a.missing_ml ?? 0));
+          const pence = short.reduce((a, h) => a + (h.missing_value_pence ?? 0), 0);
+          const when = latestAt ? new Date(latestAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) : null;
+          const checkedToday = !!latestAt && latestAt.slice(0, 10) === new Date().toISOString().slice(0, 10);
+          return (
+            <Link href="/line-check" className="block">
+              <div className={`rounded-xl border-2 p-4 ${short.length ? "border-[#E5544B]/50 bg-[#E5544B]/10" : "border-primary/40 bg-primary/5"}`} data-testid="card-line-check">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-bold">{!latestAt ? "Morning line check" : short.length ? `${short.length} ${short.length === 1 ? "line" : "lines"} short${pence ? ` · ${formatGBP(pence / 100)}` : ""}` : "Lines balanced"}</div>
+                  <span className="text-sm font-semibold text-primary whitespace-nowrap">{checkedToday ? "Open →" : "Check now →"}</span>
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {!latestAt ? "Count your kegs, type the till pints, see what's missing. Two minutes." : `Last check ${when}, ${latest.length} ${latest.length === 1 ? "line" : "lines"}.`}
+                </div>
+                {short.slice(0, 3).map(h => (
+                  <div key={h.id} className="text-sm font-semibold text-[#C2372E] mt-1" data-testid={`home-short-${h.product_id}`}>
+                    {(products ?? []).find(p => p.id === h.product_id)?.name ?? "Line"}: {Math.round((h.missing_ml ?? 0) / h.unit_ml)} pints missing{h.missing_value_pence ? ` · ${formatGBP(h.missing_value_pence / 100)}` : ""}
+                  </div>
+                ))}
+              </div>
+            </Link>
+          );
+        })()}
 
         {/* GP + Last updated */}
         <div className="grid grid-cols-2 gap-3">
@@ -267,7 +298,7 @@ export default function Home() {
               {recentReadings.map(({ r, productName }) => (
                 <div key={r.id} className="flex items-center justify-between bg-card rounded-xl px-3 py-2 border border-border" data-testid={`row-reading-${r.id}`}>
                   <span className="text-sm font-medium truncate flex-1 mr-2">{productName}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">{Math.round(r.ml_remaining)}ml</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">{isDraughtProduct((r as any).products ?? (products ?? []).find(p => p.id === (r as any).product_id)) ? draughtAmount(r.ml_remaining) : `${Math.round(r.ml_remaining)}ml`}</span>
                 </div>
               ))}
             </div>

@@ -1,0 +1,60 @@
+const { chromium } = require('playwright');
+const fs = require('fs'); const SHOT = '/tmp/uitest/shots'; fs.mkdirSync(SHOT, { recursive: true });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const U = '11111111-1111-4111-8111-111111111111';
+const exp = Math.floor(Date.now() / 1000) + 3600 * 24;
+const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: U, role: 'authenticated', aud: 'authenticated', exp, email: 'owner@example.test' })}.sig`;
+const session = { access_token: jwt, refresh_token: 'r', token_type: 'bearer', expires_in: 86400, expires_at: exp, user: { id: U, email: 'owner@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } };
+const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
+(async () => {
+  const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: 'block', acceptDownloads: true });
+  await ctx.addInitScript(s => { try { localStorage.setItem('sb-localhost-auth-token', s); } catch {} }, JSON.stringify(session));
+  const p = await ctx.newPage(); const errors = []; p.on('pageerror', e => errors.push(e.message));
+  const results = []; const check = (n, ok, d = '') => results.push(`${ok ? 'PASS' : 'FAIL'} ${n} ${d}`);
+  const A = P('a'), B = P('b');
+  const t = async tid => (await p.locator(`[data-testid="${tid}"]`).first().innerText().catch(() => '')).replace(/\n/g, ' | ').trim();
+  const fill = async (tid, v) => { const l = p.locator(`[data-testid="${tid}"]`); await l.scrollIntoViewIfNeeded(); await l.fill(String(v)); await sleep(150); };
+  const log = async () => (await fetch('http://localhost:8899/__log')).json();
+  const rowsOf = async tbl => (await (await fetch(`http://localhost:8899/rest/v1/${tbl}?select=*`)).json());
+  try {
+    await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(3500);
+    check('Home shows the Morning line check card', /Morning line check/.test(await t('card-line-check')));
+    await p.locator('[data-testid="card-line-check"]').click(); await sleep(2500);
+    check('both draught lines on one screen', await p.locator(`[data-testid="line-${A}"]`).count() === 1 && await p.locator(`[data-testid="line-${B}"]`).count() === 1);
+    check('line shows stock incl. delivery', /incl\. 18 gal 0 pt delivered/.test(await t(`line-${B}`)), (await t(`line-${B}`)).slice(0, 120));
+    await fill('input-clean-all', 4); await p.locator('[data-testid="button-clean-all"]').click(); await sleep(200);
+    await fill(`full-${A}`, 5); await fill(`gal-${A}`, 4); await fill(`till-${A}`, 160);
+    check('Carlsberg: gone 168, cleaning 4, till 160 → missing 4 pints', /Missing \| 4 pints · 0 gal 4 pt · £17\.0/.test(await t(`result-${A}`)), await t(`result-${A}`));
+    await fill(`full-${B}`, 2); await fill(`gal-${B}`, 4); await p.locator(`[data-testid="pt-${B}-5"]`).click(); await fill(`till-${B}`, 39);
+    check('Hobgoblin: gone 43, cleaning 4, till 39 → balanced', /Balanced/.test(await t(`result-${B}`)), await t(`result-${B}`));
+    await p.locator(`[data-testid="line-${A}"]`).scrollIntoViewIfNeeded(); await p.screenshot({ path: `${SHOT}/m1.png` });
+    check('Save button counts 2', /Save 2 line checks/.test(await t('button-save-line-check')));
+    await p.locator('[data-testid="button-save-line-check"]').click(); await sleep(2500);
+    check('result: 1 line short with £', /1 line short · £17\.0/.test(await t('line-check-result')), (await t('line-check-result')).slice(0, 140));
+    await p.evaluate(() => window.scrollTo(0, 0)); await p.screenshot({ path: `${SHOT}/m2.png` });
+    const lc = await rowsOf('line_checks'); const rd = await rowsOf('readings');
+    check('2 dated checks on the server, 2 new counts saved', lc.length === 2 && rd.length === 4, `checks=${lc.length} readings=${rd.length}`);
+    check('log says 2 checks this week', /^2 checks logged/.test(await t('text-week-count')), await t('text-week-count'));
+    const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 8000 }), p.locator('[data-testid="button-download-log"]').click()]);
+    const csv = require('fs').readFileSync(await dl.path(), 'utf8');
+    check('log CSV has the Carlsberg check with missing 4', /Carlsberg Pilsner 3\.4%,640,0,472,59 gal 0 pt,168,4,160,4,17\.0/.test(csv), csv.split('\n').find(l => /Carlsberg/.test(l)));
+    // offline second check
+    await ctx.setOffline(true);
+    await fill(`full-${A}`, 5); await fill(`gal-${A}`, 2); await fill(`till-${A}`, 14);
+    await p.locator('[data-testid="button-save-line-check"]').click(); await sleep(2500);
+    check('offline: saved on the phone', (await rowsOf('line_checks')).length === 2 && /Saved on this phone|line checked/.test(await p.locator('body').innerText()));
+    await ctx.setOffline(false); await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(4000);
+    check('back online: third check synced', (await rowsOf('line_checks')).length === 3, `checks=${(await rowsOf('line_checks')).length}`);
+    check('Home card shows the latest check', /Last check/.test(await t('card-line-check')), await t('card-line-check'));
+    await p.screenshot({ path: `${SHOT}/m3.png` });
+    // landlord's choice: off
+    await p.goto('http://localhost:5173/settings', { waitUntil: 'domcontentloaded' }); await sleep(2500);
+    await p.getByRole('tab', { name: 'Counting' }).click(); await sleep(500);
+    await p.locator('[data-testid="switch-line-check"]').click(); await sleep(1200);
+    await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(3000);
+    check('switched off in Settings: card gone from Home', await p.locator('[data-testid="card-line-check"]').count() === 0);
+    check('no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
+  } catch (e) { results.push('ERROR ' + e.message.split('\n')[0]); await p.screenshot({ path: `${SHOT}/mX.png` }); }
+  console.log(results.join('\n')); await b.close();
+})();

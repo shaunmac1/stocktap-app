@@ -28,7 +28,7 @@ import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { lineCheck } from "@/lib/line-check";
 import { isHidden } from "@/lib/hidden-products";
-import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
+import { gaugeToPints, formatGauge, draughtBreakdown, draughtAmount, isDraughtProduct } from "@/lib/draught-gauge";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -283,7 +283,7 @@ export default function SpotCheck() {
 
   // Deliveries since the last count are added back, or a delivery looks like negative sales.
   const lastAt: string | null = (lastReading as any)?.reading_at ?? null;
-  const { data: deliveriesSinceLast = [] } = useDeliveries(lastAt ? venue?.id : undefined, lastAt ? lastAt.slice(0, 10) : undefined);
+  const { data: deliveriesSinceLast = [], isError: deliveriesFailed } = useDeliveries(lastAt ? venue?.id : undefined, lastAt ? lastAt.slice(0, 10) : undefined);
   const deliveredSinceMl = useMemo(() => (deliveriesSinceLast as any[])
     .filter(d => d.product_id === currentProduct?.id && lastAt && d.delivered_at > lastAt)
     .reduce((a, d) => a + (Number(d.quantity_ml) || 0), 0), [deliveriesSinceLast, currentProduct?.id, lastAt]);
@@ -1054,7 +1054,7 @@ export default function SpotCheck() {
                   <div className="rounded-xl border border-border bg-card p-3 text-sm divide-y divide-border" data-testid="line-check-card">
                     <div className="pb-1.5 font-bold">Line check since {when}</div>
                     <Row k="Last count" v={lc.label(Number(lastReading.ml_remaining))} />
-                    <Row k="+ Delivered since" v={deliveredSinceMl > 0 ? lc.label(deliveredSinceMl) : "none logged"} tid="line-check-delivered" />
+                    <Row k="+ Delivered since" v={deliveredSinceMl > 0 ? lc.label(deliveredSinceMl) : deliveriesFailed ? "can't check (no signal)" : "none logged"} tid="line-check-delivered" />
                     <Row k="− Now" v={lc.label(totalMl)} />
                     <Row k="= Gone" v={lc.label(lc.goneMl)} strong tid="line-check-gone" />
                     {lc.missingUnits != null && <Row k="Till says sold" v={`${tillMeasures} ${isDraughtLine ? (tillMeasures === 1 ? "pint" : "pints") : "measures"}`} />}
@@ -1226,7 +1226,7 @@ export default function SpotCheck() {
                         <div key={j} className="flex justify-between text-xs">
                           <span className="text-muted-foreground">{b.locationName}</span>
                           <span className="font-medium">
-                            {b.fullContainers > 0 ? `${b.fullContainers} full · ` : ""}{Math.round(b.ml)}ml
+                            {b.fullContainers > 0 ? `${b.fullContainers} full · ` : ""}{isDraughtProduct(r.product as any) ? formatGauge(b.ml / ML_PER_PINT) : `${Math.round(b.ml)}ml`}
                           </span>
                         </div>
                       ))}
@@ -1331,7 +1331,7 @@ export default function SpotCheck() {
                 >
                   <div className="font-semibold">{product.name}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    {formatReadingDate(reading.reading_at)} · {Math.round(reading.ml_remaining)}ml remaining
+                    {formatReadingDate(reading.reading_at)} · {isDraughtProduct(product as any) ? draughtAmount(reading.ml_remaining) : `${Math.round(reading.ml_remaining)}ml`} remaining
                   </div>
                 </button>
               ))}

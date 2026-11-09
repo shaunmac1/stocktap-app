@@ -46,3 +46,18 @@ export function draughtBreakdown(totalPints: number, containerL: number | null |
   }
   return parts.join(" · ");
 }
+
+/** Litres as gallons for a label: 50 → "11", 30 → "6.6", 40.9 → "9". */
+export function litresAsGallons(litres: number): string {
+  const g = litres / LITRES_PER_GALLON_EXACT;
+  return Math.abs(g - Math.round(g)) < 0.06 ? String(Math.round(g)) : g.toFixed(1);
+}
+
+/** A draught amount for any screen: "22 gal 5 pt (181 pints)". */
+export function draughtAmount(ml: number): string {
+  const pints = ml / 568.261;
+  return `${formatGauge(pints)} (${Math.round(pints)} pints)`;
+}
+
+export const isDraughtProduct = (p: { category?: string | null; counting_method?: string | null } | null | undefined): boolean =>
+  !!p && ((p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(p.counting_method ?? ""));
