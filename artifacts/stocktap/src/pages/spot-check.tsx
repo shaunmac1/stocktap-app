@@ -101,6 +101,7 @@ export default function SpotCheck() {
   const [weightStr, setWeightStr] = useState("0");
   // Part keg read off the keg gauge: gallons + pints (0–7). Stored as pints in weightStr.
   const [gaugeGal, setGaugeGal] = useState("0");
+  const [scDupAsk, setScDupAsk] = useState(false);
   const [gaugePt, setGaugePt] = useState("0");
   const setGauge = (g: string, p: string) => { setGaugeGal(g); setGaugePt(p); setWeightStr(String(gaugeToPints(parseFloat(g) || 0, parseFloat(p) || 0))); };
   const [tenthsStr, setTenthsStr] = useState("0");
@@ -313,13 +314,17 @@ export default function SpotCheck() {
 
   // Save the composed entry for the chosen counting location.
   // Replaces any existing entry for the same product + location (recalculate, never duplicate).
-  const saveLocationEntry = async () => {
+  const saveLocationEntry = async (decision?: "replace" | "add") => {
     if (!currentProduct || !venue || !user || entryMl === null) return;
-    const sid = await ensureSession();
     const locId = entryCountLocationId;
     // Editing the same product × location REUSES the entry id, so the remote
     // id-keyed upsert updates in place (no delete/insert race, no unique-index conflict).
     const existing = productEntries.find(e => (e.count_location_id ?? null) === locId);
+    // Draught already counted here: recount (replace) or a second open keg (add to it)?
+    if (existing && isDraughtLine && !decision) { setScDupAsk(true); return; }
+    setScDupAsk(false);
+    const addTo = decision === "add" && existing;
+    const sid = await ensureSession();
 
     const now = new Date().toISOString();
     const partValue = effectiveQuickMode
@@ -334,9 +339,9 @@ export default function SpotCheck() {
       count_location_id: locId,
       count_location_name: entryLocationName(locId),
       method: entryMethod(),
-      full_containers: fullCount,
-      part_value: partValue,
-      ml_remaining: Math.max(0, entryMl),
+      full_containers: addTo ? (existing!.full_containers ?? 0) + fullCount : fullCount,
+      part_value: addTo ? (Number(existing!.part_value) || 0) + (partValue ?? 0) : partValue,
+      ml_remaining: Math.max(0, entryMl) + (addTo ? Number(existing!.ml_remaining) || 0 : 0),
       sync_status: "pending",
       entered_at: now,
       user_id: user.id,
@@ -346,7 +351,7 @@ export default function SpotCheck() {
     queryClient.invalidateQueries({ queryKey: ["spot-check-line-entries", sid] });
     await refetchSpotEntries();
     setFullCount(0);
-    setWeightStr("0"); setGaugeGal("0"); setGaugePt("0");
+    setWeightStr("0"); setGaugeGal("0"); setGaugePt("0"); setScDupAsk(false);
     setTenthsStr("0");
     // Move the picker on to the next un-counted location for convenience
     const remaining = (countLocations ?? []).filter(
@@ -884,10 +889,23 @@ export default function SpotCheck() {
                 </div>
               )}
 
+              {scDupAsk && (() => {
+                const ex = productEntries.find(e => (e.count_location_id ?? null) === entryCountLocationId);
+                return (
+                  <div className="rounded-xl border-2 border-[#E0A343] bg-[#E0A343]/10 p-3 space-y-2" data-testid="sc-dup-ask">
+                    <p className="text-sm font-semibold">Already counted at {currentLocName}: {ex ? formatGauge(Number(ex.ml_remaining) / ML_PER_PINT) : ""}.</p>
+                    <p className="text-xs text-muted-foreground">Recounting? Replace it. Another open keg on the same line? Add it.</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button type="button" className="h-11" onClick={() => saveLocationEntry("replace")} data-testid="button-sc-dup-replace">Replace it</Button>
+                      <Button type="button" variant="outline" className="h-11" onClick={() => saveLocationEntry("add")} data-testid="button-sc-dup-add">Add to it</Button>
+                    </div>
+                  </div>
+                );
+              })()}
               <Button
                 variant="secondary"
                 className="h-12 font-semibold"
-                onClick={saveLocationEntry}
+                onClick={() => saveLocationEntry()}
                 disabled={entryMl === null}
                 data-testid="button-save-location-entry"
               >
