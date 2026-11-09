@@ -180,6 +180,7 @@ export default function Stocktake() {
   // Part keg/cask read off a keg gauge: gallons + pints (0–7), like the Venners sheet.
   const [partGalStr, setPartGalStr] = useState("0");
   const [partPtStr, setPartPtStr] = useState("0");
+  const [dupAsk, setDupAsk] = useState(false);
   const [newLocationInput, setNewLocationInput] = useState("");
   const [showNewLocationField, setShowNewLocationField] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
@@ -609,7 +610,7 @@ export default function Stocktake() {
   const resetEntryForm = () => {
     setEntryWeightStr("0"); setEntryNumStr("0"); setEntryFullContainersStr("0");
     setEntryGallonsStr("0"); setEntryPintsStr("0");
-    setPartGalStr("0"); setPartPtStr("0");
+    setPartGalStr("0"); setPartPtStr("0"); setDupAsk(false);
     setEntryLocationId(""); setEntryLocationName("");
     setEntryStep("location"); setShowAddEntry(false);
     setNewLocationInput(""); setShowNewLocationField(false);
@@ -687,8 +688,15 @@ export default function Stocktake() {
     }
   };
 
-  const saveLineEntry = async () => {
+  const saveLineEntry = async (decision?: "replace" | "add") => {
     if (!activeProduct || !venue?.id || !user?.id || !activeStocktakeId) return;
+
+    // Counting the same spot twice by mistake would silently double the line.
+    // Ask: replace the earlier count, or add this as another keg/cask?
+    const sameSpot = (entriesByProduct.get(activeProduct.id) ?? []).filter((e: any) => (e.count_location_id ?? null) === (entryLocationId || null));
+    if (isDraughtProduct && sameSpot.length > 0 && !decision) { setDupAsk(true); return; }
+    setDupAsk(false);
+    if (decision === "replace") { for (const e of sameSpot) await deleteLineEntry((e as any).id); }
 
     // Bug 1: block save entirely for uncalibrated weigh products
     if (isUncalibratedWeigh || needsFullBottle) {
@@ -1742,7 +1750,21 @@ export default function Stocktake() {
                         </div>
                       )}
 
-                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={saveLineEntry} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle || (entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm)} data-testid="button-save-entry">
+                      {dupAsk && activeProduct && (() => {
+                        const same = (entriesByProduct.get(activeProduct.id) ?? []).filter((e: any) => (e.count_location_id ?? null) === (entryLocationId || null));
+                        const ml = same.reduce((a: number, e: any) => a + (e.ml_remaining ?? 0), 0);
+                        return (
+                          <div className="rounded-xl border-2 border-[#E0A343] bg-[#E0A343]/10 p-3 space-y-2" data-testid="dup-spot-ask">
+                            <p className="text-sm font-semibold">{activeProduct.name} is already counted at {entryLocationName || "this spot"}: {formatGauge(ml / ML_PER_PINT)}.</p>
+                            <p className="text-xs text-muted-foreground">Recounting? Replace it. Another open keg on the same line? Add it.</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button type="button" className="h-11" onClick={() => saveLineEntry("replace")} data-testid="button-dup-replace">Replace it</Button>
+                              <Button type="button" variant="outline" className="h-11" onClick={() => saveLineEntry("add")} data-testid="button-dup-add">Add as another</Button>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={() => saveLineEntry()} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle || (entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm)} data-testid="button-save-entry">
                         {savingEntry ? "Saving..." : entryIsZero ? "Save: none left" : "Save"}
                       </Button>
                     </>

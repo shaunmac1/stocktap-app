@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { LITRES_PER_GALLON_EXACT, gaugeScaleFor } from "@/lib/draught-gauge";
 
 /**
@@ -31,6 +32,13 @@ export function DraughtGaugeEntry({
   const over = capGal != null && galN + ptN / 8 > capGal + 0.01;
   const word = kind === "cask" ? "cask" : "keg";
   const scale = gaugeScaleFor(containerL);
+  // What's typed in the gallons box, kept as text so "10." survives until the 5 goes in.
+  const [galText, setGalText] = useState(galN ? String(galN) : "");
+  useEffect(() => {
+    // The form was reset (after Save): clear the box too.
+    if (gallons === "0" && pints === "0" && (parseFloat(galText) || 0) !== 0) setGalText("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gallons, pints]);
 
   return (
     <div className="space-y-3" data-testid="draught-gauge-entry">
@@ -68,6 +76,11 @@ export function DraughtGaugeEntry({
         </div>
       </div>
 
+      {fullN > 40 && (
+        <p className="text-sm font-semibold text-destructive" data-testid="warn-full-high">
+          {fullN} full {word}s is a lot for one line. Check the number before you save.
+        </p>
+      )}
       <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-3">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -76,14 +89,24 @@ export function DraughtGaugeEntry({
           </div>
           <div className="flex items-center gap-2">
             <input
-              type="number"
-              inputMode="numeric"
+              
+              inputMode="decimal"
               min={0}
+              step="any"
               placeholder="0"
               aria-label={`Gallons left in the open ${word}`}
               className="h-12 w-20 rounded-xl border border-border bg-background text-center text-3xl font-bold tabular-nums"
-              value={galN === 0 && (gallons === "0" || gallons === "") ? "" : galN}
-              onChange={e => onGallons(String(Math.max(0, Math.floor(parseFloat(e.target.value) || 0))))}
+              type="text"
+              value={galText}
+              onChange={e => {
+                const raw = e.target.value.replace(/[^0-9.]/g, "");
+                setGalText(raw);
+                // 10.5 gal on the gauge = 10 gal 4 pt: a half gallon is never dropped.
+                const v = Math.max(0, parseFloat(raw) || 0);
+                const g = Math.floor(v), extra = Math.round((v - g) * 8);
+                if (extra > 0) { const p = Math.min(7, extra); onGallons(String(g + (extra >= 8 ? 1 : 0))); onPints(String(extra >= 8 ? 0 : p)); }
+                else onGallons(String(g));
+              }}
               data-testid="input-part-gallons"
             />
             <span className="text-sm font-semibold text-muted-foreground">gal</span>
