@@ -31,6 +31,7 @@ import { isLitreOnBottles } from "@/lib/library-hygiene";
 import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
+import { isHidden } from "@/lib/hidden-products";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
 import { ToastAction } from "@/components/ui/toast";
@@ -245,7 +246,7 @@ export default function Stocktake() {
 
   const pickableProducts = useMemo(() => {
     if (!products) return [];
-    let list = products;
+    let list = products.filter(p => !isHidden(p as any));
     if (selectedLocationId !== "all") list = list.filter(p => p.location_id === selectedLocationId);
     if (selectedCategory !== "all") list = list.filter(p => p.category === selectedCategory);
     if (selectedVendor !== "all") list = list.filter(p => p.vendor === selectedVendor);
@@ -599,6 +600,7 @@ export default function Stocktake() {
     draughtPreselected.current = true;
     window.history.replaceState({}, "", window.location.pathname);
     const ids = products
+      .filter(p => !isHidden(p as any))
       .filter(p => (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(p.counting_method ?? ""))
       .map(p => p.id);
     if (ids.length === 0) return;

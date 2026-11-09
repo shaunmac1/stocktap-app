@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { NumberPad } from "@/components/NumberPad";
 import { TenthsInput } from "@/components/TenthsInput";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
+import { isHidden } from "@/lib/hidden-products";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -176,7 +177,7 @@ export default function SpotCheck() {
 
   const pickableProducts = useMemo(() => {
     if (!products) return [];
-    let list = products;
+    let list = products.filter(p => !isHidden(p as any));
     if (selectedCategory !== "all") list = list.filter(p => p.category === selectedCategory);
     if (selectedVendor !== "all") list = list.filter(p => p.vendor === selectedVendor);
     const q = searchStr.trim().toLowerCase();

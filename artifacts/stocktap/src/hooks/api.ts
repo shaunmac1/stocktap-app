@@ -6,6 +6,7 @@ import { queueWrite } from "@/lib/sync";
 import { deriveEmptyWeight, deriveDensity, checkCalibrationPlausibility, DEFAULT_DENSITIES } from "@/lib/calculations";
 import type { Database } from "@/lib/database.types";
 import type { LocalReading, LocalProduct, LocalLineEntry, LocalCountLocation, LocalTillEntry, LocalSpotCheckSession } from "@/lib/db";
+import { applyPendingHidden, readPendingHidden, queueHidden, clearPendingHidden } from "@/lib/hidden-products";
 
 export type Product = LocalProduct;
 export type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -33,6 +34,7 @@ export function useProducts(venueId: string | undefined) {
     queryKey: ["products", venueId],
     queryFn: async () => {
       if (!venueId) return [] as Product[];
+      await flushPendingHidden();
       // Always go to Supabase — Dexie alone can never detect server-side deletions
       // (e.g. another device or direct DB edit). staleTime:30s means this only
       // re-runs when data is actually stale, so it's not called on every render.
@@ -45,10 +47,10 @@ export function useProducts(venueId: string | undefined) {
         // Network/auth failure — serve Dexie cache so the app works offline
         const local = await db.products.where("venue_id").equals(venueId).toArray();
         local.sort((a, b) => a.name.localeCompare(b.name));
-        if (local.length > 0) return local;
+        if (local.length > 0) return applyPendingHidden(local as any) as Product[];
         throw error;
       }
-      const serverData = (data ?? []) as Product[];
+      const serverData = applyPendingHidden((data ?? []) as any) as Product[];
       // Reconcile Dexie: evict any rows the server no longer has (deletions from
       // other devices/sessions would otherwise linger in the local cache forever).
       const local = await db.products.where("venue_id").equals(venueId).toArray();
@@ -62,6 +64,42 @@ export function useProducts(venueId: string | undefined) {
     },
     enabled: !!venueId,
     staleTime: 30_000,
+  });
+}
+
+/** Send any hides/shows saved while offline. Safe to call any time. */
+async function flushPendingHidden() {
+  const pending = readPendingHidden();
+  for (const [id, hiddenAt] of Object.entries(pending)) {
+    const { error } = await supabase.from("products").update({ hidden_at: hiddenAt } as any).eq("id", id);
+    if (!error) clearPendingHidden(id);
+  }
+}
+
+/** Hide a line the pub no longer stocks, or show it again. Works offline. */
+export function useSetProductHidden() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // Runs with no signal too: saved on the phone now, sent to the server later.
+    networkMode: "always",
+    onMutate: ({ id, venue_id, hidden }) => {
+      const hiddenAt = hidden ? new Date().toISOString() : null;
+      queryClient.setQueryData<Product[]>(["products", venue_id], old => old?.map(p => (p.id === id ? ({ ...p, hidden_at: hiddenAt } as any) : p)));
+    },
+    mutationFn: async ({ id, venue_id, hidden }: { id: string; venue_id: string; hidden: boolean }) => {
+      const hiddenAt = hidden ? new Date().toISOString() : null;
+      queueHidden(id, hiddenAt);
+      try { await db.products.update(id, { hidden_at: hiddenAt } as any); } catch { /* not cached yet */ }
+      let synced = false;
+      if (typeof navigator === "undefined" || navigator.onLine) {
+        try {
+          const { error } = await supabase.from("products").update({ hidden_at: hiddenAt } as any).eq("id", id);
+          if (!error) { clearPendingHidden(id); synced = true; }
+        } catch { /* no signal: stays queued */ }
+      }
+      return { venue_id, synced };
+    },
+    onSettled: (_r, _e, v) => { queryClient.invalidateQueries({ queryKey: ["products", v.venue_id] }); },
   });
 }
 

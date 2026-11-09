@@ -130,6 +130,7 @@ export interface Database {
       };
       products: {
         Row: {
+          hidden_at: string | null;
           id: string;
           venue_id: string;
           location_id: string | null;
@@ -168,6 +169,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
+          hidden_at?: string | null;
           id?: string;
           venue_id: string;
           location_id?: string | null;
@@ -206,6 +208,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: {
+          hidden_at?: string | null;
           location_id?: string | null;
           name?: string;
           type?: "spirit" | "gin" | "vodka" | "whisky" | "rum" | "liqueur" | "wine" | "sparkling" | "vermouth" | "syrup" | "cordial" | "packaged";

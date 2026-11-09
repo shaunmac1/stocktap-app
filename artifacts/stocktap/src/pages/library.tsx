@@ -35,7 +35,7 @@ import {
   type ProductCategory,
   type CountingMethod,
 } from "@/lib/calculations";
-import { useUpdateProduct, useCalibrateFullBottle, useBottleShapes, useUpsertBottleShape, useAttachShapeToProduct, recomputeOpenEntriesForProduct, type BottleShape } from "@/hooks/api";
+import { useSetProductHidden, useUpdateProduct, useCalibrateFullBottle, useBottleShapes, useUpsertBottleShape, useAttachShapeToProduct, recomputeOpenEntriesForProduct, type BottleShape } from "@/hooks/api";
 import { Search, Plus, Scale, SlidersHorizontal, Upload, CheckCircle2, AlertCircle, ArrowLeftRight, Library as LibraryIcon, Tags, PackagePlus, Pencil, Trash2, Banknote } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -63,6 +63,7 @@ import {
   guessCategoryFromName,
 } from "@/lib/library-hygiene";
 import { matchKnownBottles } from "@/hooks/useCatalogue";
+import { isHidden } from "@/lib/hidden-products";
 
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 type ProductType = "spirit" | "gin" | "vodka" | "whisky" | "rum" | "liqueur" | "wine" | "sparkling" | "vermouth" | "syrup" | "cordial" | "packaged";
@@ -3139,6 +3140,46 @@ function ContainerSizeField({ id, containerType, value, onChange }: {
   return <ContainerSizePicker id={id} kind={containerType} value={value} onChange={onChange} testId="container" />;
 }
 
+/** The Library's "Hidden lines" list: each with Show again. */
+function HiddenLines({ products, venueId }: { products: any[]; venueId: string }) {
+  const setHidden = useSetProductHidden();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="pt-2" data-testid="hidden-lines">
+      <button
+        type="button"
+        className="w-full flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest py-2"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        data-testid="button-toggle-hidden-lines"
+      >
+        <span>Hidden lines ({products.length})</span>
+        <span className="normal-case tracking-normal font-semibold text-primary">{open ? "Hide list" : "Show list"}</span>
+      </button>
+      {open && (
+        <div className="space-y-2">
+          {products.map(p => (
+            <div key={p.id} className="bg-card border border-dashed border-border rounded-xl p-3 flex items-center gap-3" data-testid={`card-hidden-${p.id}`}>
+              <span className="flex-1 min-w-0 truncate text-sm text-muted-foreground">{p.name}</span>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={setHidden.isPending}
+                onClick={async () => {
+                  const r = await setHidden.mutateAsync({ id: p.id, venue_id: venueId, hidden: false });
+                  toast({ title: `${p.name} is back`, description: r.synced ? "It's on your counts again." : "Saved on this phone. It'll sync when you're back online." });
+                }}
+                data-testid={`button-show-again-${p.id}`}
+              >Show again</Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function EditProductSheet({ open, onClose, product, venueId }: {
   open: boolean;
   onClose: () => void;
@@ -3147,6 +3188,7 @@ function EditProductSheet({ open, onClose, product, venueId }: {
 }) {
   const { toast } = useToast();
   const updateProduct = useUpdateProduct();
+  const setHidden = useSetProductHidden();
   const deleteProduct = useDeleteProduct();
   const { data: editLocations = [] } = useLocations(venueId);
   const [locationId, setLocationId] = useState("none");
@@ -3418,7 +3460,21 @@ function EditProductSheet({ open, onClose, product, venueId }: {
             {updateProduct.isPending ? "Saving..." : "Save Changes"}
           </Button>
 
-          <div className="pt-2 border-t border-border">
+          <div className="pt-2 border-t border-border space-y-1">
+            <Button
+              variant="outline"
+              className="w-full h-12 font-semibold"
+              disabled={setHidden.isPending}
+              onClick={async () => {
+                const r = await setHidden.mutateAsync({ id: product.id, venue_id: venueId, hidden: true });
+                toast({ title: `${product.name} hidden`, description: r.synced ? "It's off your counts. Find it under Hidden lines in the Library if it comes back." : "Saved on this phone. It'll sync when you're back online." });
+                onClose();
+              }}
+              data-testid="button-hide-product"
+            >
+              No longer stock this? Hide it
+            </Button>
+            <p className="text-xs text-muted-foreground text-center pb-1">Hiding keeps its past counts. Remove deletes it for good.</p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
@@ -3563,10 +3619,13 @@ export default function Library() {
     setAddOpen(true);
   };
 
+  // Lines the pub no longer stocks: kept (with their past counts), just out of the way.
+  const hiddenProducts = useMemo(() => (products ?? []).filter(p => isHidden(p as any)), [products]);
+
   const searchFiltered = useMemo(() => {
     if (!products) return [];
     const q = normName(search);
-    return products.filter(p => normName(p.name).includes(q) || normName(p.type ?? "").includes(q) || normName(p.sku ?? "") === q);
+    return products.filter(p => !isHidden(p as any)).filter(p => normName(p.name).includes(q) || normName(p.type ?? "").includes(q) || normName(p.sku ?? "") === q);
   }, [products, search]);
 
   // Live catalogue matching in the search box: surface known-weighed bottles the venue
@@ -4330,6 +4389,7 @@ export default function Library() {
             </div>
           ))
         )}
+        {hiddenProducts.length > 0 && venue?.id && <HiddenLines products={hiddenProducts} venueId={venue.id} />}
       </div>
 
       <Button

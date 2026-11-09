@@ -20,6 +20,7 @@ import { TrendingDown, TrendingUp, Settings } from "lucide-react";
 import { StocktakeTasksCard } from "@/components/StocktakeTasksCard";
 import { venueTrial } from "@/hooks/useSubscription";
 import { NewPubWelcome } from "@/components/NewPubWelcome";
+import { isHidden } from "@/lib/hidden-products";
 
 export default function Home() {
   const { venue } = useAuth();
@@ -97,7 +98,8 @@ export default function Home() {
   // A pub that has never finished a count (and has no readings) gets the guided
   // first screen instead of an empty value and a GP% from placeholder prices.
   const isNewPub = !!products && !!stocktakes && !openStocktake && !hasClosedCount && Object.keys(latestByProduct).length === 0;
-  const draughtLines = (products ?? []).filter(p => (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes((p as any).counting_method ?? "")).length;
+  const shownProducts = (products ?? []).filter(p => !isHidden(p as any));
+  const draughtLines = shownProducts.filter(p => (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes((p as any).counting_method ?? "")).length;
 
   return (
     <div className="flex flex-col h-full overflow-auto pb-20">
@@ -119,7 +121,7 @@ export default function Home() {
               </div>
             </Link>
           )}
-          <NewPubWelcome draughtLines={draughtLines} totalLines={products?.length ?? 0} />
+          <NewPubWelcome draughtLines={draughtLines} totalLines={shownProducts.length} />
         </div>
       ) : (
       <div className="p-4 space-y-4">
