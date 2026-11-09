@@ -6,6 +6,7 @@ import {
 
 export interface ReportProductLike {
   type?: string | null;
+  category?: string | null;
   unit?: string | null;
   counting_method?: string | null;
   size_ml?: number | null;
@@ -29,8 +30,13 @@ export function isDozenProduct(product: ReportProductLike): boolean {
   return product.counting_method === "dozen";
 }
 
+/** Postmix, juice by the litre, cordial by the litre: a volume, not a count of items. */
+export function isLitreProduct(product: ReportProductLike): boolean {
+  return product.counting_method === "litre";
+}
+
 export function isDiscreteCountProduct(product: ReportProductLike): boolean {
-  return product.unit === "count" && !isVolumeCountingMethod(product.counting_method);
+  return product.unit === "count" && !isVolumeCountingMethod(product.counting_method) && !isLitreProduct(product);
 }
 
 /** Quantity expressed in purchase units: items, packs, bottles, kegs or containers. */
@@ -90,7 +96,7 @@ export function costPerSoldUnit(
   if (
     isDiscreteCountProduct(product) ||
     product.counting_method === "each" ||
-    (product.type === "packaged" && !isVolumeCountingMethod(product.counting_method))
+    (product.type === "packaged" && !isVolumeCountingMethod(product.counting_method) && !isLitreProduct(product))
   ) return costPrice;
 
   const capacityMl = productCapacityMl(product);
@@ -99,9 +105,11 @@ export function costPerSoldUnit(
   const isWine = product.type === "wine" || product.type === "sparkling";
   // Single-serve wine and prosecco (187ml, 200ml) is sold as the whole bottle.
   if (isWine && capacityMl <= 250 && product.measure_ml == null) return costPrice;
+  // Draught and postmix are sold by the pint.
   const measureMl = product.measure_ml
-    ?? (isVolumeCountingMethod(product.counting_method) ? ML_PER_PINT : isWine ? 175 : defaultMeasureMl);
+    ?? (isVolumeCountingMethod(product.counting_method) || isLitreProduct(product) ? ML_PER_PINT : isWine ? 175 : defaultMeasureMl);
   if (measureMl <= 0) return null;
+  // Postmix capacity is already the drink a box makes (see postmixDrinkLitresPerBox).
   return (costPrice / capacityMl) * measureMl;
 }
 

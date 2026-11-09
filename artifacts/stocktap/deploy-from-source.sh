@@ -14,7 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 SITE="https://stocktap.net"; UA="Mozilla/5.0 stocktap-deploy"
 CFG="wrangler.jsonc"; [ "${1:-}" = "staging" ] && CFG="wrangler.staging.jsonc"
-: "${CLOUDFLARE_API_TOKEN:?}"; : "${CLOUDFLARE_ACCOUNT_ID:?}"
+# Auth: CLOUDFLARE_API_TOKEN if set, otherwise your `npx wrangler login` session.
 
 echo "== 1. sync live-only static files into public/"
 curl -fsS -A "$UA" "$SITE/asset-manifest.txt?cb=$(date +%s)" -o /tmp/live-manifest.txt
@@ -31,6 +31,8 @@ while read -r p; do
   sed -i '/static.cloudflareinsights.com\/beacon.min.js/d' "public$p.tmp" 2>/dev/null || true
   mv "public$p.tmp" "public$p"; echo "synced $p"
 done < /tmp/live-manifest.txt
+python3 local-guides.py  # keep hand-written guides in the refreshed index and sitemap
+python3 scripts/price39-fix.py  # 8 Nov 2026: StockTap is one plan, Premium £39; fix old £19 wording synced back from live
 
 echo "== 2. build"
 PORT=5173 BASE_PATH=/ NODE_ENV=production pnpm run build >/tmp/build.log 2>&1 || { tail -30 /tmp/build.log; exit 2; }

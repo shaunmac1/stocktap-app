@@ -99,3 +99,25 @@ export function catalogueConfidenceLabel(
 export function isCatalogueProduct(externalId: string | null | undefined): boolean {
   return !!externalId?.startsWith("catalogue:");
 }
+
+/**
+ * Put catalogue results in the order a person expects: every word typed must start a
+ * word in the name ("gin" finds "Gordon's Gin", not "Original"). When at least one
+ * result matches that way, the in-the-middle-of-a-word matches are dropped.
+ */
+export function rankCatalogueResults<T extends { canonical_name: string }>(items: T[], query: string): T[] {
+  const words = query.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").split(/[^a-z0-9%]+/).filter(Boolean);
+  if (words.length === 0) return items;
+  const nameWords = (n: string) => n.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/['’]/g, "").split(/[^a-z0-9%]+/).filter(Boolean);
+  const scored = items.map((item, i) => {
+    const nw = nameWords(item.canonical_name);
+    const all = words.every(w => nw.some(x => x.startsWith(w.replace(/['’]/g, ""))));
+    const firstWord = nw[0]?.startsWith(words[0]) ? 1 : 0;
+    return { item, i, all, firstWord };
+  });
+  const anyWordStart = scored.some(s => s.all);
+  return scored
+    .filter(s => !anyWordStart || s.all)
+    .sort((a, b) => Number(b.all) - Number(a.all) || b.firstWord - a.firstWord || a.i - b.i)
+    .map(s => s.item);
+}

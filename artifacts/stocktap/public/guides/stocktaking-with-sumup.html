@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stocktaking with SumUp: free stock counts, a £39 margin report, and the keg it can’t count | StockTap</title>
+  <meta name="description" content="SumUp&#x27;s stock tracking, cost-price margins and fees from their own help pages, why its margin report flatters a keg, and the count a till can&#x27;t replace." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/stocktaking-with-sumup" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Stocktaking with SumUp: free stock counts, a £39 margin report, and the keg it can’t count | StockTap" />
+  <meta property="og:description" content="SumUp&#x27;s stock tracking, cost-price margins and fees from their own help pages, why its margin report flatters a keg, and the count a till can&#x27;t replace." />
+  <meta property="og:url" content="https://stocktap.net/guides/stocktaking-with-sumup" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Stocktaking with SumUp: free stock counts, a £39 margin report, and the keg it can’t count | StockTap" />
+  <meta name="twitter:description" content="SumUp&#x27;s stock tracking, cost-price margins and fees from their own help pages, why its margin report flatters a keg, and the count a till can&#x27;t replace." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Stocktaking with SumUp: the free stock counter, the £39 margin report, and the keg it can’t count",
+      "description": "SumUp's stock tracking, cost-price margins and fees from their own help pages, why its margin report flatters a keg, and the count a till can't replace.",
+      "datePublished": "2026-10-04",
+      "dateModified": "2026-10-04",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/stocktaking-with-sumup"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can SumUp do a full pub stocktake on its own?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. It keeps sensible unit counts on bottles, cans and snacks and knocks them down per sale. Draught and open spirits need a physical count, because the till records what was rung, not the liquid used, and the difference between those two numbers is where a pub's stock loss lives."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is SumUp inventory tracking free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Tracking, low-stock levels and the Sold Out label are on the free plan. Adding cost prices so profit and margin show in the items report is a POS Plus feature, £39 a month excluding VAT on a 12-month contract."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is SumUp Payments Plus worth it for a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually, if most of your takings go through the reader. It's £19 a month and drops domestic consumer card payments from 1.69% to 0.99%. The rate gap pays the fee at about £2,714 a month of ordinary consumer card takings; SumUp suggests £3,000 to £3,300 to allow for premium cards, which stay at 1.69%."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which till is this series doing next?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ICRTouch. If yours isn't covered yet, the EPOS integration guide covers making any till and any stock system work together."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Stocktaking with SumUp: the free stock counter, the £39 margin report, and the keg it can’t count",
+          "item": "https://stocktap.net/guides/stocktaking-with-sumup"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons</div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Stocktaking with SumUp: the free stock counter, the £39 margin report, and the keg it can’t count</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-10-04">4 October 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>SumUp's stock tracking is free on every plan and does a decent job on anything you sell as a whole unit. The margin report is the bit to think twice about: cost prices and margins are a POS Plus feature at £39 a month on a 12-month contract, and on draught that report works out your GP as if every pint in the keg reached the till. It never does.</strong></p>
+
+<p>This is the fourth till in the series, after <a href="/guides/stocktaking-with-epos-now">Epos Now</a>, <a href="/guides/stocktaking-with-zettle">Zettle</a> and <a href="/guides/stocktaking-with-square">Square</a>. Same rules as before. Everything I say about SumUp comes from SumUp's own help centre and price pages, checked today, and I'll be straight about where a till stops and a count starts.</p>
+
+<h2>What the free stock side does</h2>
+
+<p>Tracking is switched on per item. In your SumUp profile or the app you go to Items, then Inventory, flip the Enable tracking toggle, type in what you've got and, if you want, a stock code. From then on every sale through the item catalogue knocks the number down on its own. Restocking is a pencil icon and a number, and their help page has a nice touch: type +20 and it adds twenty rather than replacing the figure.</p>
+
+<p>The colours tell you where you stand. Orange when an item drops below the Low Inventory Level you set, red when it hits zero, and at zero the till puts a Sold Out label on the button. Anything you don't track is treated as infinite and never sells out.</p>
+
+<p>For bottles, cans, crisps and nuts that is all a small bar needs from a till. One case in, 24 on the count, sales knock it down, and the orange warning becomes your ordering prompt if you set the level like a <a href="/guides/pub-par-levels-how-much-stock">par level</a>: a delivery cycle of cover plus a weekend.</p>
+
+<h2>Do not track a keg as units on SumUp</h2>
+
+<p>Here is where it bites. If you set a keg up as an item with 88 in stock, SumUp has no idea that 88 is the best case. Line cleaning and fobbing come out of the same keg without a sale, so the till runs out of pints on paper while you've still got beer, or the keg blows while the till still says 9 left.</p>
+
+<p>SumUp's own page is admirably honest about the first half of that. Sold Out items can still be added to an order, the count just goes negative, and in their words that can "lead to mismatches between the software's stock count and actual inventory". On draught that mismatch is the whole job. Leave draught untracked on the till and count it properly, by <a href="/guides/keg-calibration-guide-pub-cellar">weighing the keg</a> or dipping the cask, against what was rung.</p>
+
+<h2>The £39 question: the margin report</h2>
+
+<p>On the free plan you get the stock counts. To add a cost price to an item and have profit and margin appear in your items report, SumUp's help page says plainly that you need POS Plus. That is £39 a month excluding VAT, billed monthly on a 12-month contract, with a 30-day free trial. Read the renewal line before you sign: if you don't cancel before the year is up, it renews for another 12 months.</p>
+
+<p>So that is £468 a year, plus VAT, and here is what the margin figure is actually doing. It takes the price you rang and the cost you typed in and does the sum per sale. Take a pint at the £5.34 national average, which is £4.45 once you take VAT out. Cost it at £1.56 a pint, which is an 88-pint keg bought at £137.28. The report shows 64.9% GP on every pint you ring.</p>
+
+<p>Now suppose that keg only puts 80 pints through the till once cleaning, changeover and drip have had their share. The real cost of each pint you sold is £1.72, and your real GP on that line is 61.4%. Eight pints, £35.60 of sales, gone from every keg, and the report shows 64.9% throughout because it can only see the rung pints. That is not SumUp being bad. It is every till that works out margin from a typed cost price. The gap between the two numbers is your <a href="/guides/how-to-read-gp-percentage-report">achieved GP</a>, and only a count finds it.</p>
+
+<p>My view: pay for POS Plus if you want what it's actually built for, which on their list is floor plans, QR ordering, multiple printers, till management, employee PINs and Sage, QuickBooks or Xero sync. Don't pay £468 a year for the margin column alone.</p>
+
+<h2>The plumbing: getting your list in and out</h2>
+
+<p>SumUp's comparison of Free and Plus lists importing and exporting the items list on both, along with selling in units of measure and setting low-stock alerts. You can bulk add items in one category from the web profile, and there is a feature that builds items from a photo of your price list, which I'd treat as a first draft and check line by line, because a misread price on a till button is a GP problem from the first pint.</p>
+
+<p>The export is the useful part for stock. Your whole product list comes out as a file, which means you are never locked in and you can feed it straight into whatever you count with.</p>
+
+<h2>The X report is for the till, not for people</h2>
+
+<p>If you use Till Management on POS Plus, SumUp gives you two reports. A Z report closes the till, counts the cash and resets the counters. An X report is a read-only snapshot you can pull at any time without closing anything, and it can be run for a single employee.</p>
+
+<p>That per-employee option is handy at a <a href="/guides/bar-shift-handover-stock-discrepancy">shift handover</a>: run an X report at the changeover, do a quick count of the five lines that matter, and the next shift starts clean. Use it to put a time on a gap, not a name. A variance that lines up with one person's shifts is usually a method difference, a different pour or a different button, and that's a ten-minute conversation, not a disciplinary.</p>
+
+<h2>The fee plan most pubs on SumUp haven't looked at</h2>
+
+<p>Pay-as-you-go is 1.69% per card payment with no monthly charge, which is 9.0p on a £5.34 pint. SumUp also sells Payments Plus at £19 a month (or £189 a year), which drops in-person payments on domestic consumer cards to 0.99%, or 5.3p a pint. Corporate, premium and international cards, American Express included, stay at 1.69%.</p>
+
+<p>The break-even is one sum. The rate gap is 0.70%, so £19 a month pays for itself once you take about £2,714 a month on ordinary consumer cards. SumUp's own pages pitch it at £3,000 to £3,300 a month, which is a safer figure once you allow for the premium cards that don't get the discount. A pub taking a few thousand a week through the reader is past that in the first week. The <a href="/guides/pub-card-machine-fees-2026">card fees guide</a> compares the pay-as-you-go rates across providers; if you're on SumUp, this plan changes your numbers.</p>
+
+<h2>On the older SumUp POS Pro</h2>
+
+<p>Some pubs run SumUp POS Pro, the bigger hospitality till with its own back office. Its stock report is a different screen, and SumUp's help note says Pro customers who signed up from December 2022 use the in-app stock feature rather than the back-office one. Same principle either way: it counts sales, not liquid.</p>
+
+<h2>Does StockTap plug into SumUp?</h2>
+
+<p>Not natively, and I'd rather say that flat out than hint at a sync that doesn't exist. What works today is the same file round trip as the other tills in this series: export your items from SumUp, import them into StockTap, count by weighing or tenths, then type the till's total into the daily spot check and read the variance line by line. My own 270-line library took a few minutes each way, and you only do the full trip once at setup.</p>
+
+<h2>Common questions</h2>
+
+<h3>Can SumUp do a full pub stocktake on its own?</h3>
+<p>No. It keeps sensible unit counts on bottles, cans and snacks and knocks them down per sale. Draught and open spirits need a physical count, because the till records what was rung, not the liquid used, and the difference between those two numbers is where a pub's stock loss lives.</p>
+
+<h3>Is SumUp inventory tracking free?</h3>
+<p>Yes. Tracking, low-stock levels and the Sold Out label are on the free plan. Adding cost prices so profit and margin show in the items report is a POS Plus feature, £39 a month excluding VAT on a 12-month contract.</p>
+
+<h3>Is SumUp Payments Plus worth it for a pub?</h3>
+<p>Usually, if most of your takings go through the reader. It's £19 a month and drops domestic consumer card payments from 1.69% to 0.99%. The rate gap pays the fee at about £2,714 a month of ordinary consumer card takings; SumUp suggests £3,000 to £3,300 to allow for premium cards, which stay at 1.69%.</p>
+
+<h3>Which till is this series doing next?</h3>
+<p>ICRTouch. If yours isn't covered yet, the <a href="/guides/epos-integration-pub-stock-control">EPOS integration guide</a> covers making any till and any stock system work together.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Enable tracking per item, automatic stock updates from catalogue sales, orange and red levels, Sold Out label, negative stock and the "mismatches" warning, restock with +20: <a href="https://help.sumup.com/en-GB/articles/WcT1PpyBZHREhzgn7Wstl-manage-inventory" rel="noopener">SumUp help: Manage my inventory</a>, checked 4 October 2026.</li>
+<li>Cost price and margins in the items report as a POS Plus feature, bulk add, add items from a photo: <a href="https://help.sumup.com/en-GB/articles/1ZHM8V5zKlAdEriUqiXwHu-item-catalogue" rel="noopener">SumUp help: Add items to my item catalogue</a>, checked 4 October 2026.</li>
+<li>POS Plus at £39 a month on a 12-month contract, 30-day trial, auto-renewal, features shared with the free plan (import and export of items, units of measure, low-stock alerts): <a href="https://help.sumup.com/en-GB/articles/44f1NCVhjK4InnHQI5wnCZ-whats-pos-plus" rel="noopener">SumUp help: What is POS Plus?</a>, checked 4 October 2026.</li>
+<li>X and Z reports, single-employee X reports: <a href="https://help.sumup.com/en-GB/articles/LZwliMLJLXxWff9nTYy4F" rel="noopener">SumUp help: X Report and Z Report</a>, checked 4 October 2026.</li>
+<li>Pay-as-you-go 1.69%, Payments Plus £19 a month or £189 a year at 0.99% for in-person domestic consumer cards, premium, corporate and international cards at 1.69%: <a href="https://www.sumup.com/en-gb/card-readers/" rel="noopener">SumUp card readers</a> and <a href="https://www.sumup.com/en-gb/pricing/" rel="noopener">SumUp pricing</a>, checked 4 October 2026.</li>
+<li>POS Pro back-office stock note for customers from December 2022: <a href="https://help.sumup.com/en-GB/pos/articles/75000062158-stock-report-how-to-understand-and-use-the-stock-report-" rel="noopener">SumUp help: Stock report</a>, checked 4 October 2026.</li>
+<li>£5.34 average pint: Morning Advertiser pint price survey, May 2026, as used in the <a href="/guides/average-price-of-a-pint-uk-2026">average pint price guide</a>.</li>
+<li>The 80-pint keg, the £1.56 cost price and the break-even and per-pint fee figures are my own arithmetic from the numbers above.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Just had a stocktake? Send me the sheets</h2>
+        <p>Any stocktaker&#x2019;s report, your own spreadsheet or a till export. I&#x2019;ll set your whole bar up in StockTap for you, with your products and prices in and your closing stock as the starting point, so your first count shows a real variance. Free, completely confidential, used for nothing else, and deleted once you&#x2019;re set up.</p>
+        <a href="mailto:trainingforchatbots@gmail.com?subject=Set%20up%20my%20bar%20in%20StockTap&amp;body=Hi%20Shaun%2C%20my%20stocktake%20sheets%20are%20attached.%20Pub%20name%3A%20" class="cta-btn">Email me your sheets</a>
+        <p style="margin:1rem 0 0;">Rather do it yourself? <a href="/auth?mode=signup">Start the free trial</a>, no card needed.</p>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/stocktaking-with-square">Stocktaking with Square</a></li>
+          <li><a href="/guides/stocktaking-with-zettle">Stocktaking with Zettle</a></li>
+          <li><a href="/guides/stocktaking-with-epos-now">Stocktaking with Epos Now</a></li>
+          <li><a href="/guides/pub-card-machine-fees-2026">Card machine fees per pint 2026</a></li>
+          <li><a href="/guides/how-to-read-gp-percentage-report">How to read a GP% report</a></li>
+          <li><a href="/guides/till-not-matching-stocktake">Till not matching the stocktake</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

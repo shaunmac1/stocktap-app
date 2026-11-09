@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The 1,000 Bottle Challenge | StockTap Bottle Library</title>
+  <meta name="description" content="UK landlords building the biggest pub bottle-weight library, for landlords. Weigh 10 full sealed bottles on your kitchen scales and help us build it." />
+  <meta name="robots" content="index, follow" />
+  <meta name="color-scheme" content="dark light" />
+  <link rel="canonical" href="https://stocktap.net/bottle-library/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="The 1,000 Bottle Challenge | StockTap" />
+  <meta property="og:description" content="Landlords building the UK's biggest pub bottle-weight library, for landlords. Help us build it." />
+  <meta property="og:url" content="https://stocktap.net/bottle-library/" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#111316; --panel:#16191D; --panel-2:#1C2025; --ink:#F3F1EC; --ink-soft:#DDD9D3; --muted:#8A9099;
+      --line:#2A2E34; --amber:#E0A343; --amber-ink:#111316; --amber-dim:rgba(224,163,67,.10);
+      --good:#5BC08A; --good-dim:rgba(91,192,138,.12); --warn:#E0A343; --warn-dim:rgba(224,163,67,.12);
+      --bad:#E57373; --bad-dim:rgba(229,115,115,.12);
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg:#F7F5F0; --panel:#FFFFFF; --panel-2:#F1EEE7; --ink:#16191D; --ink-soft:#33383F; --muted:#666C75;
+        --line:#E1DDD4; --amber:#B97A16; --amber-ink:#FFFFFF; --amber-dim:rgba(185,122,22,.10);
+        --good:#1F8A52; --good-dim:rgba(31,138,82,.10); --warn:#9A6410; --warn-dim:rgba(185,122,22,.12);
+        --bad:#C0392B; --bad-dim:rgba(192,57,43,.10);
+      }
+    }
+    html { -webkit-text-size-adjust:100%; }
+    body { background:var(--bg); color:var(--ink); font-family:'Space Grotesk',system-ui,sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; overflow-x:hidden; }
+    a { color:inherit; }
+    .container { max-width:80rem; margin:0 auto; padding:0 1rem; }
+    .site-header { border-bottom:1px solid var(--line); }
+    .nav-inner { display:flex; align-items:center; justify-content:space-between; padding:1.1rem 0; }
+    .logo { display:flex; align-items:center; gap:.5rem; text-decoration:none; }
+    .logo-icon { width:1.75rem; height:1.75rem; background:var(--amber); border-radius:.375rem; display:flex; align-items:center; justify-content:center; }
+    .logo-icon svg { stroke:var(--amber-ink); }
+    .logo-text { font-weight:600; font-size:15px; letter-spacing:-.01em; }
+    .nav-signin { color:var(--ink); font-size:.875rem; font-weight:500; padding:.375rem 1rem; border:1px solid var(--line); border-radius:.375rem; text-decoration:none; }
+    main { flex:1; }
+    .wrap { max-width:720px; margin:0 auto; padding:2.25rem 1rem 4.5rem; }
+    .eyebrow { display:inline-flex; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); background:var(--amber-dim); border:1px solid color-mix(in srgb, var(--amber) 30%, transparent); border-radius:9999px; padding:.2rem .75rem; margin-bottom:1rem; }
+    h1 { font-size:clamp(1.9rem,7vw,2.75rem); font-weight:700; line-height:1.1; letter-spacing:-.02em; margin-bottom:.9rem; }
+    h2 { font-size:1.3rem; font-weight:700; letter-spacing:-.01em; margin-bottom:.6rem; }
+    .lede { font-size:1.0625rem; line-height:1.65; color:var(--ink-soft); margin-bottom:1.75rem; }
+    p { line-height:1.65; color:var(--ink-soft); }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:1rem; padding:1.35rem 1.25rem; margin-top:1.1rem; }
+    section { margin-top:2.5rem; }
+
+    /* progress */
+    .count-line { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; }
+    .count-big { font-size:2.4rem; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+    .count-of { color:var(--muted); font-size:1rem; }
+    .bar { height:14px; background:var(--panel-2); border:1px solid var(--line); border-radius:9999px; overflow:hidden; margin:.9rem 0 .7rem; }
+    .bar > span { display:block; height:100%; width:0; background:var(--amber); border-radius:9999px; transition:width .8s ease; min-width:6px; }
+    .sub { font-size:.9rem; color:var(--muted); line-height:1.5; }
+
+    /* search */
+    .search-row { display:flex; gap:.5rem; }
+    input, select { font:inherit; font-size:16px; color:var(--ink); background:var(--panel-2); border:1px solid var(--line); border-radius:.6rem; padding:.7rem .8rem; width:100%; min-width:0; }
+    input:focus, select:focus { outline:2px solid var(--amber); outline-offset:1px; border-color:transparent; }
+    label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.35rem; color:var(--ink-soft); }
+    .btn { font:inherit; font-weight:600; font-size:1rem; border:0; border-radius:.6rem; padding:.75rem 1.1rem; cursor:pointer; background:var(--amber); color:var(--amber-ink); white-space:nowrap; }
+    .btn:disabled { opacity:.55; cursor:default; }
+    .btn-ghost { background:transparent; color:var(--ink); border:1px solid var(--line); }
+    .btn-small { font-size:.85rem; padding:.45rem .75rem; }
+    .results { list-style:none; margin-top:.8rem; }
+    .results li { display:flex; justify-content:space-between; align-items:center; gap:.75rem; padding:.7rem 0; border-top:1px solid var(--line); }
+    .results li:first-child { border-top:0; }
+    .rname { font-weight:500; overflow-wrap:anywhere; }
+    .rsize { color:var(--muted); font-size:.85rem; }
+    .pill { display:inline-block; font-size:.8rem; font-weight:600; border-radius:9999px; padding:.25rem .65rem; white-space:nowrap; }
+    .pill-in { background:var(--good-dim); color:var(--good); }
+    .pill-out { background:var(--amber-dim); color:var(--amber); border:0; font:inherit; font-size:.8rem; font-weight:600; cursor:pointer; }
+    .msg { margin-top:.75rem; font-size:.95rem; color:var(--ink-soft); }
+    .msg.err { color:var(--bad); }
+
+    /* steps */
+    ol.steps { list-style:none; counter-reset:s; margin-top:.5rem; }
+    ol.steps li { counter-increment:s; display:flex; gap:.8rem; padding:.55rem 0; line-height:1.55; color:var(--ink-soft); }
+    ol.steps li::before { content:counter(s); flex:none; width:1.7rem; height:1.7rem; border-radius:50%; background:var(--amber-dim); color:var(--amber); font-weight:700; font-size:.85rem; display:flex; align-items:center; justify-content:center; }
+
+    /* form */
+    .grid2 { display:grid; grid-template-columns:1fr; gap:.85rem; }
+    @media (min-width:560px) { .grid2 { grid-template-columns:1fr 1fr; } }
+    .tick { display:flex; gap:.6rem; align-items:flex-start; margin-top:.9rem; font-size:.95rem; color:var(--ink-soft); cursor:pointer; font-weight:400; }
+    .tick input { width:1.2rem; height:1.2rem; flex:none; margin-top:.15rem; accent-color:var(--amber); }
+    .bottle { background:var(--panel-2); border:1px solid var(--line); border-radius:.8rem; padding:1rem; margin-top:.85rem; }
+    .bottle input, .bottle select { background:var(--panel); }
+    .bottle-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; }
+    .bottle-head strong { font-size:.95rem; }
+    .remove { background:none; border:0; color:var(--muted); font:inherit; font-size:.85rem; cursor:pointer; text-decoration:underline; padding:.25rem; }
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+    .fields .full { grid-column:1 / -1; }
+    .hint { font-size:.8rem; color:var(--muted); margin-top:.3rem; line-height:1.4; }
+    .row-note { margin-top:.7rem; font-size:.9rem; border-radius:.5rem; padding:.55rem .7rem; }
+    .row-note.bad { background:var(--bad-dim); color:var(--bad); }
+    .actions { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1rem; }
+    .privacy { font-size:.85rem; color:var(--muted); margin-top:1rem; }
+    .out { list-style:none; margin-top:.4rem; }
+    .out li { padding:.75rem .85rem; border-radius:.6rem; margin-top:.55rem; line-height:1.5; }
+    .out li strong { display:block; color:var(--ink); }
+    .out .good { background:var(--good-dim); }
+    .out .info { background:var(--panel-2); }
+    .out .warn { background:var(--warn-dim); }
+    .out .bad { background:var(--bad-dim); }
+    .out li span { font-size:.92rem; color:var(--ink-soft); }
+
+    /* wall */
+    .wall { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.9rem; }
+    .wall span { background:var(--panel-2); border:1px solid var(--line); border-radius:.5rem; padding:.4rem .7rem; font-size:.92rem; overflow-wrap:anywhere; }
+
+    .reward { border-color:color-mix(in srgb, var(--amber) 40%, var(--line)); }
+    footer.site-footer { border-top:1px solid var(--line); }
+    .footer-inner { display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between; align-items:center; padding:1.5rem 1rem; font-size:.8125rem; color:var(--muted); }
+    .footer-links { display:flex; gap:1.25rem; flex-wrap:wrap; }
+    .footer-links a { text-decoration:none; }
+    .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <a href="/auth" class="nav-signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <span class="eyebrow">Help us build it</span>
+      <h1>The 1,000 Bottle Challenge</h1>
+      <p class="lede">Landlords building the UK's biggest pub bottle-weight library, for landlords. Every bottle that goes in gets filled in for every pub that counts by weight, so nobody has to weigh it again. We're aiming for 1,000 bottles. Help us get there.</p>
+
+      <div class="card" aria-live="polite">
+        <div class="count-line">
+          <span class="count-big" id="inLib">...</span>
+          <span class="count-of">of 1,000 bottles in the library</span>
+        </div>
+        <div class="bar" role="progressbar" aria-label="Bottles in the library" aria-valuemin="0" aria-valuemax="1000" id="barWrap"><span id="bar"></span></div>
+        <p class="sub" id="statLine">Loading the latest count.</p>
+      </div>
+
+      <section aria-labelledby="searchH">
+        <h2 id="searchH">Is your bottle already in?</h2>
+        <p>Have a look before you weigh anything. No point doing one we've already got.</p>
+        <div class="card">
+          <form id="searchForm" class="search-row" autocomplete="off">
+            <label for="q" class="sr">Bottle name</label>
+            <input id="q" type="search" placeholder="e.g. Gordon's Gin" maxlength="80" />
+            <button class="btn" type="submit">Check</button>
+          </form>
+          <p class="msg" id="searchMsg" hidden></p>
+          <ul class="results" id="results"></ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="howH">
+        <h2 id="howH">How it works</h2>
+        <div class="card">
+          <ol class="steps">
+            <li>Grab 10 full bottles off the shelf or out the cellar. They need to be sealed, never opened, cap still on.</li>
+            <li>Pop each one on your kitchen scales and write down the weight in grams.</li>
+            <li>Add them below with the size and what type of drink it is. Takes about 10 minutes all in.</li>
+            <li>When a second pub's weight agrees with yours (within 5 grams) it goes straight into the library. If nobody else has that bottle yet, I'll check it myself.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section aria-labelledby="rewardH">
+        <div class="card reward">
+          <h2 id="rewardH">A thank you for your time</h2>
+          <p>Get 10 new bottles verified and you get a month of StockTap free. Get 20 verified and it's two months. That's the cap, two months.</p>
+          <p style="margin-top:.6rem">Verified means a second pub's weight agrees with yours, or I've checked it myself. Bottles we've already got don't count towards it, but thanks anyway.</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="formH">
+        <h2 id="formH">Add your bottles</h2>
+        <form id="subForm" class="card" novalidate>
+          <div class="grid2">
+            <div>
+              <label for="pub">Pub name</label>
+              <input id="pub" maxlength="120" autocomplete="organization" placeholder="e.g. The Red Lion, Durham" />
+            </div>
+            <div>
+              <label for="email">Email</label>
+              <input id="email" type="email" maxlength="200" autocomplete="email" placeholder="you@yourpub.co.uk" />
+            </div>
+          </div>
+          <label class="tick"><input type="checkbox" id="showName" checked /> Show my pub's name on the wall</label>
+
+          <div id="bottles"></div>
+          <div class="actions">
+            <button type="button" class="btn btn-ghost" id="addRow">+ Add another bottle</button>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn" id="sendBtn">Send my bottles</button>
+          </div>
+          <p class="msg" id="formMsg" hidden></p>
+          <p class="privacy">Your email is only used to sort your free month. It's never shown anywhere.</p>
+        </form>
+        <div class="card" id="outCard" hidden aria-live="polite">
+          <h2>How your bottles got on</h2>
+          <ul class="out" id="out"></ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="wallH">
+        <h2 id="wallH">Built by <span id="pubCount">...</span></h2>
+        <p id="wallIntro">Every pub that's had a bottle verified.</p>
+        <div class="wall" id="wall"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>StockTap. Built by a landlord, for landlords.</span>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/tools">Free tools</a>
+        <a href="/privacy">Privacy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    var SB = "https://nyqohgaxvqypdvdmpyix.supabase.co";
+    var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55cW9oZ2F4dnF5cGR2ZG1weWl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTA5NjUsImV4cCI6MjA5ODQ4Njk2NX0.I3LUpSbwiYnRj7_-4XOyuU02smoQkZTrz7Rbng6Lfso";
+    var MAX = 30;
+    var $ = function (id) { return document.getElementById(id); };
+
+    function rpc(fn, body) {
+      return fetch(SB + "/rest/v1/rpc/" + fn, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY },
+        body: JSON.stringify(body || {})
+      }).then(function (r) {
+        return r.text().then(function (t) {
+          var data = null; try { data = t ? JSON.parse(t) : null; } catch (e) {}
+          if (!r.ok) { var err = new Error((data && data.message) || ("HTTP " + r.status)); err.code = (data && data.message) || ""; throw err; }
+          return data;
+        });
+      });
+    }
+    function friendly(e) {
+      var c = (e && e.code) || "";
+      if (c === "rate_limited") return "Easy, that's a lot in a short time. Give it a little while and try again.";
+      if (c === "pub_name") return "Pop your pub's name in first.";
+      if (c === "email") return "That email doesn't look quite right. Have another look.";
+      if (c === "bottles") return "Add at least one bottle (up to 30 at a time).";
+      if (!navigator.onLine) return "Looks like you're offline. Check your signal and try again.";
+      return "Something went wrong our end. Try again in a minute.";
+    }
+    function sizeLabel(ml) {
+      ml = Number(ml);
+      if (!ml) return "";
+      if (ml >= 1000 && ml % 1000 === 0) return (ml / 1000) + "L";
+      if (ml >= 1000) return (ml / 1000).toFixed(2).replace(/0+$/, "").replace(/\.$/, "") + "L";
+      if (ml % 10 === 0) return (ml / 10) + "cl";
+      return ml + "ml";
+    }
+    function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    function fmt(n) { return Number(n || 0).toLocaleString("en-GB"); }
+
+    /* ---------- stats + wall ---------- */
+    function showStats(s) {
+      if (!s) return;
+      var inLib = Number(s.in_library) || 0, goal = Number(s.goal) || 1000;
+      $("inLib").textContent = fmt(inLib);
+      $("bar").style.width = Math.min(100, (inLib / goal) * 100) + "%";
+      $("barWrap").setAttribute("aria-valuenow", String(inLib));
+      var left = Math.max(0, goal - inLib);
+      var bits = [left > 0 ? fmt(left) + " to go." : "We've done it. Thank you."];
+      var waiting = Number(s.waiting) || 0;
+      if (waiting > 0) bits.push(fmt(waiting) + (waiting === 1 ? " bottle is" : " bottles are") + " waiting for a second pub or for me to check.");
+      $("statLine").textContent = bits.join(" ");
+
+      var pc = Number(s.pub_count) || 0;
+      $("pubCount").textContent = pc === 0 ? "0 pubs so far" : pc === 1 ? "1 pub" : fmt(pc) + " pubs";
+      var wall = $("wall"); wall.innerHTML = "";
+      var names = Array.isArray(s.pubs) ? s.pubs : [];
+      names.forEach(function (n) { wall.appendChild(el("span", null, n)); });
+      var hidden = pc - names.length;
+      if (pc === 0) {
+        $("wallIntro").textContent = "No pubs on the wall yet. Be the first.";
+      } else {
+        $("wallIntro").textContent = "Every pub that's had a bottle verified. Thank you all.";
+        if (hidden > 0) wall.appendChild(el("span", null, "+ " + hidden + (hidden === 1 ? " pub that's" : " pubs that'd") + " rather stay quiet"));
+      }
+    }
+    function loadStats() {
+      rpc("bottle_library_stats").then(showStats).catch(function () {
+        $("statLine").textContent = "Couldn't load the latest count just now. Refresh to try again.";
+        if ($("inLib").textContent === "...") $("inLib").textContent = "-";
+        if ($("pubCount").textContent === "...") $("pubCount").textContent = "pubs like yours";
+      });
+    }
+
+    /* ---------- search ---------- */
+    $("searchForm").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var q = $("q").value.trim();
+      var msg = $("searchMsg"), list = $("results");
+      list.innerHTML = ""; msg.hidden = false; msg.className = "msg";
+      if (q.replace(/[^a-z0-9]/gi, "").length < 3) { msg.textContent = "Type at least 3 letters of the name."; return; }
+      msg.textContent = "Checking...";
+      rpc("bottle_library_check", { p_query: q }).then(function (rows) {
+        rows = rows || [];
+        if (!rows.length) {
+          msg.innerHTML = "";
+          var t = el("span", null, "Not in yet, add it. ");
+          var b = el("button", "pill pill-out", "Add “" + q + "” below");
+          b.type = "button";
+          b.addEventListener("click", function () { prefill(q, null); });
+          msg.appendChild(t); msg.appendChild(b);
+          return;
+        }
+        msg.hidden = true;
+        rows.forEach(function (r) {
+          var li = el("li");
+          var left = el("div");
+          left.appendChild(el("div", "rname", r.name));
+          if (r.size_ml) left.appendChild(el("div", "rsize", sizeLabel(r.size_ml)));
+          li.appendChild(left);
+          if (r.in_library) {
+            li.appendChild(el("span", "pill pill-in", "Already in"));
+          } else {
+            var b = el("button", "pill pill-out", "Not in yet, add it");
+            b.type = "button";
+            b.addEventListener("click", function () { prefill(r.name, r.size_ml); });
+            li.appendChild(b);
+          }
+          list.appendChild(li);
+        });
+      }).catch(function (e) { msg.className = "msg err"; msg.textContent = friendly(e); });
+    });
+
+    /* ---------- bottle rows ---------- */
+    var SIZES = [["700", "70cl"], ["1000", "1L"], ["750", "75cl"], ["500", "50cl"], ["other", "Other"]];
+    var TYPES = [["spirit", "Spirit"], ["liqueur", "Liqueur"], ["wine", "Wine"], ["cordial", "Cordial or syrup"]];
+    var rowSeq = 0;
+
+    function select(opts, val) {
+      var s = document.createElement("select");
+      opts.forEach(function (o) { var op = el("option", null, o[1]); op.value = o[0]; s.appendChild(op); });
+      if (val != null) s.value = val;
+      return s;
+    }
+    function field(labelText, input, cls, hint) {
+      var d = el("div", cls || null);
+      var id = "f" + (++rowSeq);
+      input.id = id;
+      var l = el("label", null, labelText); l.htmlFor = id;
+      d.appendChild(l); d.appendChild(input);
+      if (hint) d.appendChild(el("div", "hint", hint));
+      return d;
+    }
+    function addRow(data) {
+      var box = $("bottles");
+      if (box.children.length >= MAX) { formMsg("You can send up to 30 at a time. Send these, then do the next lot.", true); return null; }
+      data = data || {};
+      var row = el("div", "bottle");
+      var head = el("div", "bottle-head");
+      var title = el("strong");
+      head.appendChild(title);
+      var rm = el("button", "remove", "Remove"); rm.type = "button";
+      rm.addEventListener("click", function () { row.remove(); if (!box.children.length) addRow(); renumber(); });
+      head.appendChild(rm);
+      row.appendChild(head);
+
+      var f = el("div", "fields");
+      var name = el("input"); name.maxLength = 120; name.placeholder = "e.g. Gordon's London Dry Gin"; name.value = data.name || ""; name.dataset.k = "name";
+      var sizeSel = select(SIZES, "700"); sizeSel.dataset.k = "size";
+      var other = el("input"); other.type = "number"; other.inputMode = "numeric"; other.min = "50"; other.max = "3000"; other.placeholder = "Size in ml, e.g. 350"; other.dataset.k = "other";
+      var type = select(TYPES, data.type || "spirit"); type.dataset.k = "type";
+      var weight = el("input"); weight.type = "number"; weight.inputMode = "decimal"; weight.min = "100"; weight.max = "6000"; weight.step = "0.1"; weight.placeholder = "e.g. 1180"; weight.dataset.k = "weight";
+      var abv = el("input"); abv.type = "number"; abv.inputMode = "decimal"; abv.min = "0"; abv.max = "80"; abv.step = "0.1"; abv.placeholder = "e.g. 37.5"; abv.dataset.k = "abv";
+
+      f.appendChild(field("Bottle name", name, "full"));
+      f.appendChild(field("Size", sizeSel));
+      f.appendChild(field("Type", type));
+      var otherWrap = field("Size in ml", other, "full");
+      otherWrap.hidden = true;
+      f.appendChild(otherWrap);
+      f.appendChild(field("Weight in grams", weight, null, "Full, sealed, cap on."));
+      f.appendChild(field("ABV % (optional)", abv, null, "Off the label."));
+      row.appendChild(f);
+
+      sizeSel.addEventListener("change", function () { otherWrap.hidden = sizeSel.value !== "other"; if (!otherWrap.hidden) other.focus(); });
+      if (data.size_ml) {
+        var s = String(Math.round(Number(data.size_ml)));
+        if (SIZES.some(function (o) { return o[0] === s; })) sizeSel.value = s;
+        else { sizeSel.value = "other"; other.value = s; otherWrap.hidden = false; }
+      }
+      if (data.weight) weight.value = data.weight;
+      if (data.abv) abv.value = data.abv;
+      if (data.note) { var n = el("div", "row-note bad", data.note); row.appendChild(n); }
+      box.appendChild(row);
+      renumber();
+      return row;
+    }
+    function renumber() {
+      var rows = $("bottles").children;
+      for (var i = 0; i < rows.length; i++) rows[i].querySelector(".bottle-head strong").textContent = "Bottle " + (i + 1);
+      $("addRow").disabled = rows.length >= MAX;
+    }
+    function rowVal(row, k) { var n = row.querySelector('[data-k="' + k + '"]'); return n ? n.value.trim() : ""; }
+    function prefill(name, size) {
+      var rows = $("bottles").children, target = null;
+      for (var i = 0; i < rows.length; i++) if (!rowVal(rows[i], "name") && !rowVal(rows[i], "weight")) { target = rows[i]; break; }
+      if (target) target.remove();
+      var row = addRow({ name: name, size_ml: size });
+      if (!row) return;
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(function () { row.querySelector('[data-k="weight"]').focus({ preventScroll: true }); }, 400);
+    }
+    $("addRow").addEventListener("click", function () {
+      var row = addRow(); if (row) row.querySelector('[data-k="name"]').focus();
+    });
+    function formMsg(t, bad) { var m = $("formMsg"); m.hidden = !t; m.textContent = t || ""; m.className = "msg" + (bad ? " err" : ""); }
+
+    /* ---------- submit ---------- */
+    var RESULT = {
+      verified: ["good", "Verified, it's in the library", "A second pub's weight agrees with yours, so it's gone straight in. Thank you."],
+      waiting: ["info", "Got it, thanks", "It's waiting for a second pub to weigh one, or for me to check it."],
+      already_in: ["info", "We've already got this one", "Cheers anyway. Bottles already in the library don't count towards the free month."],
+      already_sent: ["info", "You've sent this one before", "We've not counted it twice."],
+      check_weight: ["warn", "That weight doesn't look right", "It doesn't fit a full bottle of that size. Check it's full and sealed and the scales are on grams, then send it again."],
+      check_details: ["warn", "Something's missing on this one", "Check the name, size and weight, then send it again."]
+    };
+
+    $("subForm").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      formMsg("");
+      var pub = $("pub").value.trim(), email = $("email").value.trim();
+      if (pub.length < 2) { formMsg("Pop your pub's name in first.", true); $("pub").focus(); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { formMsg("That email doesn't look quite right. Have another look.", true); $("email").focus(); return; }
+
+      var rows = Array.prototype.slice.call($("bottles").children), bottles = [], used = [];
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        var name = rowVal(r, "name"), w = rowVal(r, "weight");
+        if (!name && !w) continue;
+        var sizeV = rowVal(r, "size"), size = sizeV === "other" ? rowVal(r, "other") : sizeV;
+        var problem = !name ? "Add the bottle name." :
+          !(Number(size) >= 50 && Number(size) <= 3000) ? "Put the size in ml (between 50 and 3000)." :
+          !(Number(w) >= 100 && Number(w) <= 6000) ? "Put the full weight in grams (between 100 and 6000)." :
+          (rowVal(r, "abv") && !(Number(rowVal(r, "abv")) >= 0 && Number(rowVal(r, "abv")) <= 80)) ? "ABV should be between 0 and 80, or leave it blank." : null;
+        var old = r.querySelector(".row-note"); if (old) old.remove();
+        if (problem) { r.appendChild(el("div", "row-note bad", problem)); r.scrollIntoView({ behavior: "smooth", block: "center" }); formMsg("Have a look at bottle " + (i + 1) + ".", true); return; }
+        var b = { name: name, size_ml: Math.round(Number(size)), type: rowVal(r, "type"), full_weight_g: Number(w) };
+        if (rowVal(r, "abv") !== "") b.abv = Number(rowVal(r, "abv"));
+        bottles.push(b); used.push(r);
+      }
+      if (!bottles.length) { formMsg("Add at least one bottle with its weight.", true); return; }
+
+      var btn = $("sendBtn"); btn.disabled = true; btn.textContent = "Sending...";
+      rpc("bottle_library_submit", { p_pub_name: pub, p_email: email, p_show_name: $("showName").checked, p_bottles: bottles })
+        .then(function (res) {
+          var results = (res && res.results) || [];
+          var out = $("out"); out.innerHTML = "";
+          var fix = [];
+          results.forEach(function (x, idx) {
+            var m = RESULT[x.result] || RESULT.check_details;
+            var li = el("li", m[0]);
+            var label = (x.name || bottles[idx].name) + (x.size_ml ? " " + sizeLabel(x.size_ml) : "");
+            li.appendChild(el("strong", null, label + ": " + m[1]));
+            li.appendChild(el("span", null, m[2]));
+            out.appendChild(li);
+            if (x.result === "check_weight" || x.result === "check_details") {
+              var src = bottles[idx]; fix.push({ name: src.name, size_ml: src.size_ml, type: src.type, weight: src.full_weight_g, abv: src.abv, note: m[1] + ". " + m[2] });
+            }
+          });
+          used.forEach(function (r) { r.remove(); });
+          fix.forEach(function (d) { addRow(d); });
+          if (!$("bottles").children.length) addRow();
+          $("outCard").hidden = false;
+          showStats(res && res.stats);
+          formMsg(fix.length ? "Fix the ones flagged above and send them again." : "All sent. Add more any time.", false);
+          $("outCard").scrollIntoView({ behavior: "smooth", block: "start" });
+        })
+        .catch(function (e) { formMsg(friendly(e), true); })
+        .then(function () { btn.disabled = false; btn.textContent = "Send my bottles"; });
+    });
+
+    addRow();
+    loadStats();
+  })();
+  </script>
+</body>
+</html>

@@ -184,3 +184,12 @@ describe("withinRange", () => {
     expect(rows.map((r) => r.entry_date)).toEqual(["2026-08-01", "2026-08-31"]);
   });
 });
+
+import { boardTakingsInRange } from "./finance";
+describe("Daily Board takings in Finances", () => {
+  it("adds nightly takings in range, skipping days already entered as takings", () => {
+    const ups = [{ business_date: "2026-09-01", total_taken: 100 }, { business_date: "2026-09-02", total_taken: 200 }, { business_date: "2026-08-31", total_taken: 50 }];
+    const entries = [{ direction: "in", category: "takings", entry_date: "2026-09-02", amount: 200 }] as any;
+    expect(boardTakingsInRange(ups, entries, "2026-09-01", "2026-09-30")).toEqual({ total: 100, days: 1 });
+  });
+});

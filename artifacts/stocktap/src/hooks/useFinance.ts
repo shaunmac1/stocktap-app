@@ -11,13 +11,19 @@ export function useFinanceEntries(venueId: string | undefined) {
     queryKey: ["finance", venueId],
     enabled: !!venueId,
     queryFn: async () => {
-      const { data, error } = await table()
-        .select("*")
-        .eq("venue_id", venueId!)
-        .order("entry_date", { ascending: false })
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as FinanceEntry[];
+      const out: FinanceEntry[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await table()
+          .select("*")
+          .eq("venue_id", venueId!)
+          .order("entry_date", { ascending: false })
+          .order("created_at", { ascending: false })
+          .range(from, from + 999);
+        if (error) throw error;
+        out.push(...((data ?? []) as FinanceEntry[]));
+        if (!data || data.length < 1000) break;
+      }
+      return out;
     },
   });
 }

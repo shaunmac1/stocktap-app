@@ -245,3 +245,22 @@ export function summarise(entries: FinanceEntry[]): FinanceSummary {
 export function withinRange(entries: FinanceEntry[], fromISO: string, toISO: string): FinanceEntry[] {
   return entries.filter((e) => e.entry_date >= fromISO && e.entry_date <= toISO);
 }
+
+/**
+ * Nightly takings logged on the Daily Board, for days in range that have no
+ * "takings" entry in Finances, so money in isn't counted twice.
+ */
+export function boardTakingsInRange(
+  cashUps: Array<{ business_date: string; total_taken: number | null }>,
+  entries: FinanceEntry[],
+  fromISO: string,
+  toISO: string,
+): { total: number; days: number } {
+  const covered = new Set(entries.filter((e) => e.direction === "in" && e.category === "takings").map((e) => e.entry_date));
+  let total = 0, days = 0;
+  for (const c of cashUps) {
+    if (c.total_taken == null || c.business_date < fromISO || c.business_date > toISO || covered.has(c.business_date)) continue;
+    total += Number(c.total_taken); days++;
+  }
+  return { total: Math.round(total * 100) / 100, days };
+}

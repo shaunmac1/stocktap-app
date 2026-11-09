@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to train bar staff to count stock accurately | StockTap</title>
+  <meta name="description" content="Two people count the same shelf and get different numbers. The one-method-per-product rule, a one-shift training plan, and the noise check to run first." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/how-to-train-bar-staff-count-stock-accurately" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How to train bar staff to count stock accurately | StockTap" />
+  <meta property="og:description" content="Two people count the same shelf and get different numbers. The one-method-per-product rule, a one-shift training plan, and the noise check to run first." />
+  <meta property="og:url" content="https://stocktap.net/guides/how-to-train-bar-staff-count-stock-accurately" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to train bar staff to count stock accurately | StockTap" />
+  <meta name="twitter:description" content="Two people count the same shelf and get different numbers. The one-method-per-product rule, a one-shift training plan, and the noise check to run first." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Training bar staff to count stock: same shelf, two people, two different numbers",
+      "description": "Two people count the same shelf and get different numbers. The one-method-per-product rule, a one-shift training plan, and the noise check to run first.",
+      "datePublished": "2026-09-30",
+      "dateModified": "2026-09-30",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/how-to-train-bar-staff-count-stock-accurately"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How long does it take to train bar staff to count stock?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "One quiet shift to be useful: twenty minutes of shadow counting, then an independent count of the same section and a line-by-line compare. Accuracy on part bottles keeps improving for a few weeks after that. What takes months is doing it without conventions, because then every count is a fresh negotiation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should bar staff do the stocktake, or the licensee?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Share the counting once methods are agreed, keep the reconciling yourself. Counting is a teachable skill and an extra pair of trained hands halves the job. But the person who answers for the GP% should be the one comparing count to till, because that's where the judgement lives. It's a skill split, not a trust test."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do bar staff need scales to count spirits?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Only where the value justifies it. Tenths, called consistently, is fine for the everyday back bar. Weigh the top shelf and any line you keep arguing about, because scales end arguments. A £15 kitchen scale covers a whole bar if the tare weights are set up once."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's the most common stock counting mistake?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Mixed methods on the same product: weighed one week, eyeballed the next, so the number moves without anything leaving the shelf. Second place is unit confusion, cases against singles and 700ml against 750ml, which is a sheet problem rather than a people problem. Both are fixed by writing the method and unit on the product list."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Training bar staff to count stock: same shelf, two people, two different numbers",
+          "item": "https://stocktap.net/guides/how-to-train-bar-staff-count-stock-accurately"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Running the pub
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Running the pub</div>
+        <h1>Training bar staff to count stock: same shelf, two people, two different numbers</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-30">30 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>The first time you hand the count to somebody else, the number comes back different. Not because anyone is fiddling anything. Because you count the half-full Smirnoff as five tenths and they call it "about a third", you weigh the Jameson and they hold it up to the light, and the sheet says wine while the shelf holds three different bottle sizes. Counting is a method. If you have never actually taught the method, everyone in the building is doing a slightly different job with the same clipboard.</strong></p>
+
+<p>I say this as someone who imported his own wine list with half the bottles set at 700ml when they were 750s. The count was "wrong" for weeks and no human being had made a counting error at all. The system had, quietly, and I had signed it off.</p>
+
+<h2>Run the noise check before you train anyone</h2>
+
+<p>Here is the exercise that changes how you think about counting. Two of you count the same section independently, same evening, no conferring. Then put the sheets side by side.</p>
+
+<p>They will not match. On a back bar with forty-odd part bottles, two careful people estimating tenths can land a couple of GP points apart across the section, which is my own working figure rather than a published one. That gap is your measurement noise, and it matters because it sets the floor on what your stocktake can actually detect. Chasing a "loss" smaller than your noise is chasing a ghost, and plenty of licensees have had a miserable week over a variance that was really two honest people rounding differently. The <a href="/guides/why-does-gp-percentage-change-week-to-week-pub">week-to-week GP% guide</a> goes through the other reasons the number moves on its own.</p>
+
+<p>Once you know the noise, training has a purpose you can say out loud: shrink the gap between any two counters until the count means the same thing whoever holds the clipboard.</p>
+
+<h2>One method per product, written down</h2>
+
+<p>Most counting drift comes from one root: nobody has agreed, per product, how it gets counted. So the vodka gets weighed one week and eyeballed the next, and the number moves without a drop leaving the building.</p>
+
+<p>The fix is a method column on the product list. Something like:</p>
+
+<ul>
+<li><strong>Weigh</strong>: the dear spirits and anything you argue about. Scales don't have opinions.</li>
+<li><strong>Tenths</strong>: the everyday back bar. Fast, and fine once everyone calls tenths the same way.</li>
+<li><strong>Each</strong>: packaged bottles, cans, mixers. Count units, never "about two cases".</li>
+<li><strong>Keg weight or dipstick</strong>: draught. Never a guess.</li>
+</ul>
+
+<p>The method column is part of the list, not folklore that lives in your head. If you use software, pick something that remembers the method per product. StockTap does this with a one-tap switch between weighing and tenths on each bottle, and it remembers the choice for that product, but the agreement itself is the training. An app cannot fix a convention nobody has agreed.</p>
+
+<h2>Teach the part bottle first</h2>
+
+<p>Part bottles are where the money hides and where the drift is worst. Two conventions to nail down on day one.</p>
+
+<p>Tenths means tenths of the liquid, judged with the bottle at eye level on a flat surface, not tilted in the hand under the optics. Agree the shapes: where five tenths sits on a square Bombay bottle is not where it sits on a tall Grey Goose. Ten minutes with a row of part bottles and everyone calling their estimate out loud gets a team surprisingly close.</p>
+
+<p>Then do the arithmetic with them, because it makes people careful without anyone being blamed. A 70cl bottle holds 28 single 25ml measures. At £3.60 a single, one misread tenth is roughly £10 of retail on that one bottle. That's my arithmetic, not a statistic, and it lands every time. For the bottles where £10 matters, weigh instead: the <a href="/guides/stocktake-spirits-part-bottles">spirits and part bottles guide</a> covers the tare method and when weighing pays for the faff.</p>
+
+<h2>Draught is weighed or dipped, never eyeballed</h2>
+
+<p>"That keg's about half" is a fifty pint guess delivered with confidence. An 11-gallon keg holds 88 pints, call it mid-80s sellable after normal waste, so "about half" carries a swing of a week's wastage allowance in one line. Lifting a keg tells you almost nothing once it's below two thirds. Teach the actual methods: keg weighing against known full and empty weights, dipsticks on the casks that take them, and writing down what's actually connected rather than what the cellar sheet says should be. The <a href="/guides/keg-calibration-guide-pub-cellar">keg calibration guide</a> has the numbers per container.</p>
+
+<h2>Make the sheet speak the language of the shelf</h2>
+
+<p>Half of "counting errors" are unit errors. Singles recorded where the sheet expects cases. A 750ml wine sitting on a line set up as 700ml, which is the mistake I made across half a list. Post-mix counted in boxes on one shift and litres on the next. Before you train people on estimating, walk the shelf against the sheet and fix every line where the unit on paper is not the unit in someone's hand. The <a href="/guides/pub-stocktaking-mistakes-checklist">mistakes checklist</a> has the full set of these traps.</p>
+
+<h2>The one-shift training plan</h2>
+
+<p>You do not need a course. You need one quiet shift:</p>
+
+<ol>
+<li><strong>Twenty minutes of shadow counting.</strong> They watch you do a section, you narrate the method: weigh this, tenth that, eye level, liquid not bottle.</li>
+<li><strong>Independent counts of the same section.</strong> You both count it, separately. This is the noise check again, now with a purpose.</li>
+<li><strong>Compare line by line.</strong> Every line you disagree on is a convention that needs writing down, not a person who needs correcting. Fix the sheet, not the human.</li>
+<li><strong>Write the conventions on the list itself.</strong> Method column, bottle size, unit. Next week's count starts from the agreement, not from memory.</li>
+</ol>
+
+<p>Cost of doing this properly: two people, half an hour each, £12.71 at the National Living Wage. I have spent more than that investigating one ghost variance that turned out to be two people rounding a keg differently.</p>
+
+<h2>The till is the other half of the count</h2>
+
+<p>A stocktake number only means something against the till, so counting training is half of accuracy training. The other half is what gets rung and what gets written down: breakages on the <a href="/guides/pub-wastage-log-what-to-record">wastage log</a> the night they happen, <a href="/guides/bar-comps-freebies-stock-loss-pub">comps through their own button</a> rather than out of thin air, line cleaning noted so the pulled-through beer has a home. Vianet's dispense monitoring across 11,000 sites found 2% of drinks poured never reach the till and 61% of pubs missing their target pouring yield. None of that is fixed by better counting, and all of it shows up in the same variance number your count feeds. If the software rollout side is the problem, the <a href="/guides/staff-adoption-new-stocktaking-software">staff adoption guide</a> covers who needs to touch the app at all.</p>
+
+<p>Do the noise check this week. It takes half an hour, it costs less than a round, and it tells you whether your stocktake is measuring the bar or measuring the people counting it.</p>
+
+<h2>Common questions</h2>
+
+<h3>How long does it take to train bar staff to count stock?</h3>
+<p>One quiet shift to be useful: twenty minutes of shadow counting, then an independent count of the same section and a line-by-line compare. Accuracy on part bottles keeps improving for a few weeks after that. What takes months is doing it without conventions, because then every count is a fresh negotiation.</p>
+
+<h3>Should bar staff do the stocktake, or the licensee?</h3>
+<p>Share the counting once methods are agreed, keep the reconciling yourself. Counting is a teachable skill and an extra pair of trained hands halves the job. But the person who answers for the GP% should be the one comparing count to till, because that's where the judgement lives. It's a skill split, not a trust test.</p>
+
+<h3>Do bar staff need scales to count spirits?</h3>
+<p>Only where the value justifies it. Tenths, called consistently, is fine for the everyday back bar. Weigh the top shelf and any line you keep arguing about, because scales end arguments. A £15 kitchen scale covers a whole bar if the tare weights are set up once.</p>
+
+<h3>What's the most common stock counting mistake?</h3>
+<p>Mixed methods on the same product: weighed one week, eyeballed the next, so the number moves without anything leaving the shelf. Second place is unit confusion, cases against singles and 700ml against 750ml, which is a sheet problem rather than a people problem. Both are fixed by writing the method and unit on the product list.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>2% of drinks poured never reach the till and 61% of pubs miss their target pouring yield: <a href="https://cask-marque.co.uk/wp-content/uploads/2019/11/Vianet-Insight-Report-19-20.pdf" rel="noopener">Vianet Beer Insight Report 2019/20</a>, dispense data across 11,000 sites.</li>
+<li>National Living Wage £12.71 from April 2026: <a href="https://www.gov.uk/national-minimum-wage-rates" rel="noopener">gov.uk minimum wage rates</a>.</li>
+<li>The £10-per-misread-tenth, 88-pint keg swing and two-GP-point noise figures are the author's arithmetic and single-venue working figures, illustrative rather than published statistics. The 700ml wine import error is the author's own, from one venue.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/staff-adoption-new-stocktaking-software">Staff adoption: why stocktaking software rollouts die in week three</a></li>
+          <li><a href="/guides/stocktake-spirits-part-bottles">How to count spirits and part bottles</a></li>
+          <li><a href="/guides/pub-stocktaking-mistakes-checklist">The pub stocktaking mistakes checklist</a></li>
+          <li><a href="/guides/keg-calibration-guide-pub-cellar">Keg calibration for the pub cellar</a></li>
+          <li><a href="/guides/bar-shift-handover-stock-discrepancy">Shift handovers and stock discrepancies</a></li>
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

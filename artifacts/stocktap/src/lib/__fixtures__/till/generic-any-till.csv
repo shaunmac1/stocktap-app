@@ -1,0 +1,10 @@
+SYNTHETIC TEST FILE - a made-up 'any till' product sales export
+Product Sales Report;01/11/2026 - 07/11/2026
+Code;Item Description;Qty Sold;Net £;Gross £
+101;Carling Pint;412;£1,682.33;£2,018.80
+102;Carling 1/2;57;£121.13;£145.35
+201;Gordon's Gin (single);143;£417.08;£500.50
+202;Gordon's Gin (double);38;£196.33;£235.60
+301;Merlot Large Glass;29;£181.25;£217.50
+999;Refund - Carling Pint;-2;-£8.17;-£9.80
+;Grand Total;677;£2,589.95;£3,107.95

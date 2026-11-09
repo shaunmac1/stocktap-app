@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to do a food stocktake in a pub kitchen (with the GP sum) | StockTap</title>
+  <meta name="description" content="Count at cost ex VAT, then opening plus purchases minus credits minus closing. A worked pub kitchen example, and the three mistakes that fake your food GP." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/pub-kitchen-food-stocktake-how-to" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How to do a food stocktake in a pub kitchen (with the GP sum) | StockTap" />
+  <meta property="og:description" content="Count at cost ex VAT, then opening plus purchases minus credits minus closing. A worked pub kitchen example, and the three mistakes that fake your food GP." />
+  <meta property="og:url" content="https://stocktap.net/guides/pub-kitchen-food-stocktake-how-to" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to do a food stocktake in a pub kitchen (with the GP sum) | StockTap" />
+  <meta name="twitter:description" content="Count at cost ex VAT, then opening plus purchases minus credits minus closing. A worked pub kitchen example, and the three mistakes that fake your food GP." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "How to do a food stocktake in a pub kitchen: the count, the GP sum, and the three mistakes that make it lie",
+      "description": "Count at cost ex VAT, then opening plus purchases minus credits minus closing. A worked pub kitchen example, and the three mistakes that fake your food GP.",
+      "datePublished": "2026-10-23",
+      "dateModified": "2026-10-23",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/pub-kitchen-food-stocktake-how-to"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do you work out food GP from a stocktake?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Add opening stock and food purchases ex VAT, take off credit notes and closing stock, and that is the food used. Take staff food out, then divide the gross profit by food sales with VAT removed. For example £9,100 sales ex VAT and £3,215 cost of food sold is 64.7%."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should a kitchen stocktake be valued with or without VAT?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Without. Value stock at the latest invoice price ex VAT, and take VAT off food sales too, because food sold in a pub is standard-rated. Most food you buy is zero-rated, but crisps, nuts, confectionery and drinks are standard-rated."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How often should a pub do a food stocktake?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Monthly at minimum, lined up with your accounts and ideally with the bar stocktake. Weekly gives a more useful number. A five-minute weekly count of your ten most expensive lines catches problems between full counts."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why has my food GP suddenly gone up?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually a missing invoice or a delivery counted in the wrong period. A food GP that jumps several points without a menu change normally crashes the next period when the invoice turns up."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should staff meals count against kitchen GP?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Give staff food a cost, for example a flat cost per meal times the meals on the rota, and take it off food used before you work out GP. Otherwise staff meals look like waste."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "How to do a food stocktake in a pub kitchen: the count, the GP sum, and the three mistakes that make it lie",
+          "item": "https://stocktap.net/guides/pub-kitchen-food-stocktake-how-to"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Stocktaking &amp; variance</div>
+
+      <header class="article-header">
+        <div class="article-category">Stocktaking &amp; variance</div>
+        <h1>How to do a food stocktake in a pub kitchen: the count, the GP sum, and the three mistakes that make it lie</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-10-23">23 October 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>A pub kitchen stocktake isn't counted like the bar. You don't chase each line. You count everything in the fridges, freezers and dry store at cost price, ex VAT, and do one sum: opening stock, plus purchases, minus credits, minus closing stock, is what the food cost you. Take staff food out, divide by food sales with the VAT taken off, and you've got your kitchen GP. Do it at the same time every month, with the deliveries cut off properly, and the number means something. Skip either and it doesn't.</strong></p>
+
+<p>Most of what ranks for "food stocktake" is American software blogs talking about "inventory" and par sheets for restaurants with a purchasing manager. A pub kitchen is usually one chef, a walk-in, two chest freezers and a pile of invoices in a folder. This is the method for that kitchen, with a worked example, the three mistakes that make a food GP lie, and what to do when it comes out wrong.</p>
+
+<h2>Why it's worth the hour</h2>
+
+<p>WRAP measured food waste across UK hospitality and found pubs threw away 173,000 tonnes of food a year, costing the sector £357 million, about 41p for every meal served. In pubs, over 20% of the weight of food bought ended up wasted, around one meal in five. Divide the cost across the 45,087 pubs serving food in that study and it's roughly £7,900 a pub a year. Those figures are old, costed for 2011 and published in 2013, and nobody has redone the pub split since, so treat them as the scale of the problem rather than this year's number. The point stands. The kitchen is where pubs lose money they never see, because unlike the bar, nobody counts it line by line.</p>
+
+<h2>Before you count</h2>
+
+<ul>
+<li><strong>Pick a fixed time.</strong> Same day, same point in the week, every period. After the last service and before the next delivery is ideal. Sunday night after close works for a lot of pubs.</li>
+<li><strong>Cut off the deliveries.</strong> Anything delivered before the count is counted and its invoice goes in this period. Anything delivered after goes in the next. Write the count time on top of the sheet and stick to it.</li>
+<li><strong>Get every invoice in.</strong> Including the cash-and-carry receipt in the chef's jacket and the butcher who bills monthly. A missing invoice is the most common reason a food GP looks brilliant.</li>
+<li><strong>Get the credit notes.</strong> Short deliveries and returns you've been credited for come off purchases. The ones you're still waiting for, note them, don't guess.</li>
+<li><strong>Have the staff food tally.</strong> Whatever your staff meal policy is, it needs a number. More on that below.</li>
+</ul>
+
+<h2>The count itself</h2>
+
+<p>Count in shelf order, not sheet order, and then build the sheet in shelf order so next month is quicker. Walk-in, prep fridges, under-counter fridges on the line, freezers, dry store. Same route every time.</p>
+
+<ul>
+<li><strong>Whole packs:</strong> count them. Twelve tins of chopped tomatoes is twelve.</li>
+<li><strong>Bulk and loose:</strong> weigh them. Half a sack of chips, a tub of grated cheese, a box of loose chicken thighs. Kitchen scales and a cost per kilo from the invoice beats any guess.</li>
+<li><strong>Open packs:</strong> estimate to the nearest quarter, or weigh if it's expensive. A quarter of a 5 litre tub of mayonnaise is cheap and doesn't need agonising over. A third of a beef fillet does.</li>
+<li><strong>Prepped food:</strong> pick a rule and keep it. Either cost it at the ingredients in it, or leave small amounts out every time. Consistency matters more than precision, because the GP comes from the change between two counts, and if both counts are done the same way the error mostly cancels.</li>
+<li><strong>Bar snacks:</strong> decide once whether crisps and nuts are wet or dry stock, and never move them. The difference matters for your GP, and the reasons are in <a href="/guides/wet-stock-vs-dry-stock-pub-stocktake">wet stock vs dry stock</a>.</li>
+</ul>
+
+<p>Value everything at the latest invoice price, ex VAT. Most food you buy is zero-rated anyway, but not all of it. HMRC's food guidance lists crisps, roasted and salted nuts, confectionery and most drinks including juice as standard-rated even when you buy them as ingredients. If your cash-and-carry receipt shows VAT on a line, take it off before it goes on the sheet.</p>
+
+<h2>The sum, with a worked example</h2>
+
+<p>Here's a four-week period for a pub doing about £2,700 a week in food, inc VAT. The numbers are mine and illustrative, but the sum is the one every food stocktaker does.</p>
+
+<table>
+<caption>Kitchen GP for one four-week period, at cost, ex VAT</caption>
+<thead><tr><th>Line</th><th>Amount</th></tr></thead>
+<tbody>
+<tr><td>Opening stock (last period's closing count)</td><td>£1,850</td></tr>
+<tr><td>Plus food purchases, ex VAT</td><td>£3,240</td></tr>
+<tr><td>Minus credit notes received</td><td>£45</td></tr>
+<tr><td>Minus closing stock (tonight's count)</td><td>£1,720</td></tr>
+<tr><td><strong>Food used</strong></td><td><strong>£3,325</strong></td></tr>
+<tr><td>Minus staff food, at cost</td><td>£110</td></tr>
+<tr><td><strong>Cost of food sold</strong></td><td><strong>£3,215</strong></td></tr>
+<tr><td>Food sales inc VAT</td><td>£10,920</td></tr>
+<tr><td>Food sales ex VAT (divide by 1.2)</td><td>£9,100</td></tr>
+<tr><td><strong>Gross profit</strong></td><td><strong>£5,885, or 64.7%</strong></td></tr>
+</tbody>
+</table>
+
+<p>64.7% is a decent pub kitchen. In my <a href="/guides/kitchen-gp-bonus-scheme-pub">kitchen GP bonus guide</a> I put a community local's food GP around 65%, with 60 to 68% doing well depending on the menu. Food you sell in a pub is always standard-rated, because it's supplied in the course of catering, so the VAT must come off the sales before you divide.</p>
+
+<h2>The three mistakes that make a food GP lie</h2>
+
+<p>Same pub, same period, same food. Watch what each mistake does to the number.</p>
+
+<table>
+<caption>What each mistake does to the same 64.7%</caption>
+<thead><tr><th>Mistake</th><th>GP it shows</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>None, done properly</td><td>64.7%</td><td>The real figure</td></tr>
+<tr><td>Forgot to take VAT off sales</td><td>70.6%</td><td>Sales look a fifth bigger than they are</td></tr>
+<tr><td>One £400 invoice missing</td><td>69.1%</td><td>The food's been counted or eaten but never paid for on paper</td></tr>
+<tr><td>Staff food not taken out</td><td>63.5%</td><td>The kitchen gets blamed for meals it gave away on purpose</td></tr>
+</tbody>
+</table>
+
+<p>Two of those flatter the kitchen and one punishes it. The dangerous ones are the flattering ones, because nobody investigates a good number. A food GP that jumps four points in a month without a menu change is almost always a missing invoice, and it comes back to bite the next period when the invoice turns up and the GP crashes. If yours bounces like that, read <a href="/guides/why-does-gp-percentage-change-week-to-week-pub">why GP changes week to week</a> before anyone gets told off.</p>
+
+<h2>Staff food needs a number</h2>
+
+<p>Feeding your team is a cost, not a loss, and it shouldn't sit inside the kitchen's GP looking like waste. Pick a simple method and stick to it. The easiest is a flat cost per staff meal, say £2.50 at cost, times the meals on the rota, taken off food used. Or put staff meals through the till on a zero-priced button and cost them from that. Either is fine. What isn't fine is no number at all, because then every staff meal is quietly marked down as the chef's fault.</p>
+
+<h2>When the GP comes out wrong</h2>
+
+<p>Work down this list in order. It runs from the quickest to check to the slowest, and the first three take ten minutes.</p>
+
+<ol>
+<li><strong>Cut-off.</strong> Was a delivery counted but its invoice put in next period, or the other way round?</li>
+<li><strong>Missing invoices or credits.</strong> Check the supplier statements against what you've entered.</li>
+<li><strong>Arithmetic and VAT.</strong> Sales ex VAT? Purchases ex VAT? Same as last time?</li>
+<li><strong>Price rises.</strong> If a supplier put chicken up 8% and the menu didn't move, the GP falls and it's nobody's fault but the menu's. <a href="/guides/supplier-price-rise-tracking-invoices">Tracking price rises off your invoices</a> catches it early.</li>
+<li><strong>Waste that wasn't written down.</strong> Out-of-date stock binned, a dropped tray, a returned plate. A <a href="/guides/pub-wastage-log-what-to-record">wastage log</a> turns these from mystery into a line.</li>
+<li><strong>Portions.</strong> Chips by the scoop drift up over weeks. Weigh ten portions one night and compare with the spec.</li>
+<li><strong>Theft.</strong> Last on the list for a reason. It happens, but it's rarely the first answer, and starting there with your team is how you lose a good chef.</li>
+</ol>
+
+<h2>Two things I'd add that nobody tells you</h2>
+
+<p><strong>Write the cost on the shelf.</strong> Put the cost price on a sticker on the shelf edge under every expensive line: steak, fish, cheese, the good oil. It makes the count quicker because nobody's hunting through invoices. And it changes how people treat stock. A chef who can see what a block of cheddar costs handles the end of it differently.</p>
+
+<p><strong>Count your top ten every week, the rest every month.</strong> In a lot of pub kitchens a handful of proteins and dairy lines make up most of the stock value. Count just those every week, in five minutes, and compare with what you bought and what the till says you sold. You won't get a GP from it, but you'll spot a problem in week one instead of week four. It's the kitchen version of <a href="/guides/pub-line-checks-50-a-week">line checks on the bar</a> between full counts.</p>
+
+<h2>How often to count</h2>
+
+<p>Monthly is the minimum for a full food count, and lines up with most pubs' accounts. Weekly gets you a more useful number but costs an hour a week. Whichever you pick, don't change the interval and compare across it, and line the count up with your bar stocktake if you can so the whole pub is measured over the same days. More on choosing an interval in <a href="/guides/how-often-should-a-pub-do-a-stocktake">how often to do a stocktake</a>.</p>
+
+<p>The count is also your stock rotation check. The FSA's Safer Food, Better Business pack has a stock control section, and it's illegal to sell or use food after its use-by date. Anything you find past its use-by on count night goes in the bin and on the wastage log, and the count is the one time every shelf gets looked at.</p>
+
+
+<h2>Common questions</h2>
+
+<h3>How do you work out food GP from a stocktake?</h3>
+<p>Add opening stock and food purchases ex VAT, take off credit notes and closing stock, and that is the food used. Take staff food out, then divide the gross profit by food sales with VAT removed. For example £9,100 sales ex VAT and £3,215 cost of food sold is 64.7%.</p>
+
+<h3>Should a kitchen stocktake be valued with or without VAT?</h3>
+<p>Without. Value stock at the latest invoice price ex VAT, and take VAT off food sales too, because food sold in a pub is standard-rated. Most food you buy is zero-rated, but crisps, nuts, confectionery and drinks are standard-rated.</p>
+
+<h3>How often should a pub do a food stocktake?</h3>
+<p>Monthly at minimum, lined up with your accounts and ideally with the bar stocktake. Weekly gives a more useful number. A five-minute weekly count of your ten most expensive lines catches problems between full counts.</p>
+
+<h3>Why has my food GP suddenly gone up?</h3>
+<p>Usually a missing invoice or a delivery counted in the wrong period. A food GP that jumps several points without a menu change normally crashes the next period when the invoice turns up.</p>
+
+<h3>Should staff meals count against kitchen GP?</h3>
+<p>No. Give staff food a cost, for example a flat cost per meal times the meals on the rota, and take it off food used before you work out GP. Otherwise staff meals look like waste.</p>
+
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Pubs 173,000 tonnes, £357 million, 45,087 outlets serving food, 41p per meal, over 20% of food purchased wasted by weight (costs estimated for 2011): WRAP, <a href="https://bfff.co.uk/wp-content/uploads/2014/01/WRAP-Waste-in-the-UK-Hospitality-and-Food-Service-Sector-2012-Report.pdf" rel="noopener">Overview of Waste in the UK Hospitality and Food Service Sector</a> (PDF, hosted by BFFF). The £7,900 a pub figure is my division of those two numbers.</li>
+<li>Crisps, nuts, confectionery and drinks standard-rated; food supplied in the course of catering always standard-rated: HMRC, <a href="https://www.gov.uk/guidance/food-products-and-vat-notice-70114" rel="noopener">Food products and VAT (VAT Notice 701/14)</a>.</li>
+<li>Use-by dates: Food Standards Agency, <a href="https://www.food.gov.uk/safety-hygiene/best-before-and-use-by-dates" rel="noopener">Best before and use-by dates</a>. Stock control: FSA, <a href="https://www.food.gov.uk/business-guidance/safer-food-better-business" rel="noopener">Safer Food, Better Business</a>.</li>
+<li>Pub food GP around 65%, 60 to 68% doing well: my <a href="/guides/kitchen-gp-bonus-scheme-pub">kitchen GP bonus guide</a>, which carries its own source. The worked example, mistake table and £2.50 staff meal are my own illustrative figures.</li>
+</ul>
+</div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Just had a stocktake? Send me the sheets</h2>
+        <p>Any stocktaker&#x2019;s report, your own spreadsheet or a till export. I&#x2019;ll set your whole bar up in StockTap for you, with your products and prices in and your closing stock as the starting point, so your first count shows a real variance. Free, completely confidential, used for nothing else, and deleted once you&#x2019;re set up.</p>
+        <a href="mailto:trainingforchatbots@gmail.com?subject=Set%20up%20my%20bar%20in%20StockTap&amp;body=Hi%20Shaun%2C%20my%20stocktake%20sheets%20are%20attached.%20Pub%20name%3A%20" class="cta-btn">Email me your sheets</a>
+        <p style="margin:1rem 0 0;">Rather do it yourself? <a href="/auth?mode=signup">Start the free trial</a>, no card needed.</p>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/wet-stock-vs-dry-stock-pub-stocktake">Wet stock vs dry stock in a pub stocktake</a></li>
+          <li><a href="/guides/kitchen-gp-bonus-scheme-pub">Kitchen GP bonus schemes</a></li>
+          <li><a href="/guides/supplier-price-rise-tracking-invoices">Tracking supplier price rises</a></li>
+          <li><a href="/guides/pub-wastage-log-what-to-record">What to record in a wastage log</a></li>
+          <li><a href="/guides/why-does-gp-percentage-change-week-to-week-pub">Why GP changes week to week</a></li>
+          <li><a href="/guides/christmas-menu-pricing-pub-gp-2026">Christmas menu pricing and GP</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

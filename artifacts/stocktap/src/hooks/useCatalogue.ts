@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import type { SafeCatalogueItem } from "@/lib/catalogue-picker";
+import { rankCatalogueResults, type SafeCatalogueItem } from "@/lib/catalogue-picker";
 import { estimateDefaultPrices, type CatalogueNameRow, type HygieneProduct } from "@/lib/library-hygiene";
 
 /**
@@ -109,7 +109,7 @@ export function useCatalogueSearch(
         if ((error as any).message?.includes("does not exist")) return [] as SafeCatalogueItem[];
         throw error;
       }
-      return (data ?? []) as unknown as SafeCatalogueItem[];
+      return rankCatalogueResults((data ?? []) as unknown as SafeCatalogueItem[], query);
     },
     enabled: !!venueId && enabled,
     staleTime: 30_000,

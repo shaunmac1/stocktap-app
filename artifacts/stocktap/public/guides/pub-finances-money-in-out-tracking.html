@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pub finances: tracking money in and money out | StockTap</title>
+  <meta name="description" content="The till total was never yours. A one-page weekly money habit for licensees: the VAT set-aside, the direct debit calendar, and where GP% plugs in." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/pub-finances-money-in-out-tracking" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Pub finances: tracking money in and money out | StockTap" />
+  <meta property="og:description" content="The till total was never yours. A one-page weekly money habit for licensees: the VAT set-aside, the direct debit calendar, and where GP% plugs in." />
+  <meta property="og:url" content="https://stocktap.net/guides/pub-finances-money-in-out-tracking" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pub finances: tracking money in and money out | StockTap" />
+  <meta name="twitter:description" content="The till total was never yours. A one-page weekly money habit for licensees: the VAT set-aside, the direct debit calendar, and where GP% plugs in." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Money in, money out: the one page that says whether the pub actually earned anything this week",
+      "description": "The till total was never yours. A one-page weekly money habit for licensees: the VAT set-aside, the direct debit calendar, and where GP% plugs in.",
+      "datePublished": "2026-09-30",
+      "dateModified": "2026-09-30",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/pub-finances-money-in-out-tracking"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Do I need accounting software to run a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not for the weekly picture. A one-page money in, money out, still owed habit covers the decisions you make in the building. You do need proper accounts at year-end, and if you're VAT registered your returns now go through Making Tax Digital software, but that's your accountant's layer. The mistake is having the accountant's layer and no weekly page, because accounts arrive months after the week they describe."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much of the till should I set aside for VAT?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A sixth of gross takings weekly is the crude rule that works, since VAT is 20% on top and therefore a sixth of the inc-VAT price. Your real bill is lower because you reclaim VAT on purchases, so the pot runs a little fat, which is exactly the right direction for it to be wrong in."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should I track takings including VAT or excluding it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Write down the inc-VAT figure the till hands you, think in ex-VAT. Comparisons that matter, GP%, stock value against sales, week against week, all break if one side includes VAT and the other doesn't. Pick the basis once and label the page so nobody has to guess later."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's the difference between profit and cash?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Timing and stock, mostly. A profitable month can be skint because the VAT quarter landed and three deliveries are sitting on the shelf as stock rather than in the bank as money. An unprofitable month can feel fine because nothing lumpy went out. The money page tracks cash; the GP% report tracks profit on what you sold; run both and the pub stops being able to surprise you."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Money in, money out: the one page that says whether the pub actually earned anything this week",
+          "item": "https://stocktap.net/guides/pub-finances-money-in-out-tracking"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Money &amp; Margins
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Money &amp; Margins</div>
+        <h1>Money in, money out: the one page that says whether the pub actually earned anything this week</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-30">30 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Friday night the till says £4,900 and the bank app looks healthy. Monday the brewery direct debit lands, Wednesday it's wages, and somewhere in week eleven the VAT quarter arrives and eats what was left. The till total was never yours. On a £5.34 pint, 89p is VAT before you start, and with duty inside the price about £1.39 of every pint goes to the Treasury. The pub can be busy and skint at the same time, and the only defence is a money page you actually look at weekly.</strong></p>
+
+<p>This is not accounting. Your accountant still does the accounts. This is the one-page habit that means nothing on the bank statement ever surprises you.</p>
+
+<h2>Why the bank balance lies</h2>
+
+<p>Money comes in every day and goes out in lumps. Takings drip in daily and feel like progress. The brewery invoice lands weekly in one hit, rent monthly, the electricity quarterly, and VAT four times a year in a lump that has flattened better pubs than mine. So on any given Tuesday the balance is really a question of which direct debits have been through yet, not of how the pub is doing.</p>
+
+<p>The second lie is that the till total sounds like your money. Strip a £5.34 pint: 89p of it is output VAT you are collecting for HMRC, and roughly 50p of what's left is draught duty you already paid inside the beer price. Then the card machine takes its 9p on the way through. The <a href="/guides/pub-vat-2026-what-a-pub-pays">VAT guide</a> and the <a href="/guides/pub-card-machine-fees-2026">card fees guide</a> carry those sums in full. What's actually yours out of that pint is a much smaller number than the one on the till roll, and a weekly page is how you keep remembering that.</p>
+
+<h2>The one-page week</h2>
+
+<p>Same day every week, twenty minutes, three columns.</p>
+
+<p><strong>Money in.</strong> Takings by till category: wet, food, machines, functions. Write the inc-VAT figure the till gives you, but do your thinking ex-VAT, for the same reason your stock valuation is ex-VAT if you're registered: the VAT slice was never yours. The <a href="/guides/ex-vat-vs-inc-vat-stock-value">ex-VAT guide</a> explains why mixing the two bases wrecks every comparison downstream.</p>
+
+<p><strong>Money out.</strong> What actually left this week: brewery, wages, rent if it fell this week, utilities, card fees, the odd cash purchase that never makes it to a ledger. Not what you were invoiced. What left.</p>
+
+<p><strong>Still owed.</strong> Both directions. Invoices you've received but not paid yet, and anything owed to you: function deposits promised, machine share not yet collected, a supplier credit for <a href="/guides/ullage-wastage-claims-pub">returned ullage</a> that hasn't appeared. This column is the one that stops Monday surprises, because Monday's direct debit was sitting in it since Thursday.</p>
+
+<h2>The set-asides</h2>
+
+<p>Two pots, moved weekly, ideally to an account the card machine can't see.</p>
+
+<p><strong>The VAT pot.</strong> A wet-led pub doing 800 pints a week at the average price is collecting roughly £712 a week of output VAT on that draught alone, my arithmetic from the published rates. You'll reclaim VAT on purchases against it, so the net bill is smaller, but the habit that works is crude: a sixth of takings into the pot weekly, and the quarter-end becomes a transfer instead of a crisis.</p>
+
+<p><strong>The lumpy bills pot.</strong> Divide every quarterly and annual bill by week and treat it as spent. A £1,000-a-month Sky bill is £230 a week whether the week was good or not; a £12,000-a-year electricity bill is another £230. The <a href="/guides/sky-sports-cost-pub-2026">Sky guide</a> and the <a href="/guides/pub-electricity-cost-per-pint-2026">electricity guide</a> put per-pint numbers on both. Once the lumpy bills are weekly on paper, "good week" starts meaning something real.</p>
+
+<h2>Know your direct debit calendar</h2>
+
+<p>Write down every direct debit and standing order with the day of the month it lands, stick it inside the office cupboard door, and read it before you look at the bank balance. Half the panic in pub finances is a balance being read without knowing whether the big three have been through yet this month. The other half is a price rise arriving quietly by invoice, which is why <a href="/guides/supplier-price-rise-tracking-invoices">checking invoice prices line by line</a> belongs in the same weekly twenty minutes.</p>
+
+<h2>Where the stock number plugs in</h2>
+
+<p>The money page and the stocktake answer different questions and you need both. Takings tell you what was sold; only a count tells you what left the building, and the gap between those two is the difference between busy and profitable. GP% is the bridge: if takings are fine but <a href="/guides/pub-gp-percentage-benchmark-2026">GP%</a> has slipped two points, the money page will feel it weeks later, and by then the cause has gone cold.</p>
+
+<p>Stock is also cash wearing a disguise. Every case on the shelf is money that can't pay a bill, which is why <a href="/guides/dead-stock-pub-what-to-do">dead stock</a> belongs in your money thinking, and why the year-end figures your accountant wants start from a proper <a href="/guides/pub-stock-valuation-year-end-accounts">stock valuation</a>. If the accounts figure and your own stock number never seem to match, the <a href="/guides/stock-value-doesnt-match-accounts-pub">reconciliation guide</a> walks the six usual gaps.</p>
+
+<h2>What to keep it in</h2>
+
+<p>A notebook works. A spreadsheet works, and plenty of good operators never leave one. StockTap has a Finances screen that does the shape described here: takings, spending and payments in one place, money in, money out and what's still owed, with the VAT to reclaim on purchases tracked as you log them. It's a running ledger for the licensee, so the week never surprises you. It is not accounting software, it won't file anything, and your accountant still does year-end. Whatever you use, the tool matters less than the habit: same page, same day, every week.</p>
+
+<h2>Common questions</h2>
+
+<h3>Do I need accounting software to run a pub?</h3>
+<p>Not for the weekly picture. A one-page money in, money out, still owed habit covers the decisions you make in the building. You do need proper accounts at year-end, and if you're VAT registered your returns now go through Making Tax Digital software, but that's your accountant's layer. The mistake is having the accountant's layer and no weekly page, because accounts arrive months after the week they describe.</p>
+
+<h3>How much of the till should I set aside for VAT?</h3>
+<p>A sixth of gross takings weekly is the crude rule that works, since VAT is 20% on top and therefore a sixth of the inc-VAT price. Your real bill is lower because you reclaim VAT on purchases, so the pot runs a little fat, which is exactly the right direction for it to be wrong in.</p>
+
+<h3>Should I track takings including VAT or excluding it?</h3>
+<p>Write down the inc-VAT figure the till hands you, think in ex-VAT. Comparisons that matter, GP%, stock value against sales, week against week, all break if one side includes VAT and the other doesn't. Pick the basis once and label the page so nobody has to guess later.</p>
+
+<h3>What's the difference between profit and cash?</h3>
+<p>Timing and stock, mostly. A profitable month can be skint because the VAT quarter landed and three deliveries are sitting on the shelf as stock rather than in the bank as money. An unprofitable month can feel fine because nothing lumpy went out. The money page tracks cash; the GP% report tracks profit on what you sold; run both and the pub stops being able to surprise you.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Average UK pint £5.34: Morning Advertiser pint survey, May 2026, worked through with the VAT and duty split in our <a href="/guides/average-price-of-a-pint-uk-2026">pint price guide</a> and <a href="/guides/pub-vat-2026-what-a-pub-pays">VAT guide</a>.</li>
+<li>VAT at 20%, charged on top of the duty element: <a href="https://www.gov.uk/how-vat-works" rel="noopener">gov.uk, how VAT works</a>; draught duty rates at <a href="https://www.gov.uk/guidance/alcohol-duty-rates" rel="noopener">gov.uk alcohol duty rates</a>.</li>
+<li>The £712-a-week output VAT figure (800 pints at £5.34), the 89p-per-pint VAT slice, the ~£1.39 Treasury total and the weekly conversions of Sky and electricity bills are the author's arithmetic from published rates and prices, illustrative for a wet-led pub.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/pub-vat-2026-what-a-pub-pays">Pub VAT 2026: what a pub actually pays</a></li>
+          <li><a href="/guides/pub-card-machine-fees-2026">Card machine fees: what they take per pint</a></li>
+          <li><a href="/guides/stock-value-doesnt-match-accounts-pub">When your stock value doesn't match the accounts</a></li>
+          <li><a href="/guides/pub-stock-valuation-year-end-accounts">Stock valuation for year-end accounts</a></li>
+          <li><a href="/guides/dead-stock-pub-what-to-do">Dead stock: find it, price it, move it</a></li>
+          <li><a href="/guides/supplier-price-rise-tracking-invoices">Catching supplier price rises on invoices</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

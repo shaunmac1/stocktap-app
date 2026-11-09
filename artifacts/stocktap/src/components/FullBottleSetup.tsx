@@ -34,7 +34,8 @@ export function FullBottleSetup({ product, venueId, userId, onDone, onUseTenths,
 
   const save = async () => {
     try {
-      await calibrate.mutateAsync({ product, venueId, userId, weightG });
+      // Setting a bottle up mid-count isn't a count of that bottle: the open bottle is weighed next.
+      await calibrate.mutateAsync({ product, venueId, userId, weightG, recordReading: false });
       if (switchToWeigh) await updateProduct.mutateAsync({ id: product.id, venue_id: venueId, counting_method: "weigh" });
       toast({ title: "Bottle set up", description: `${product.name}: now weigh the open bottle.` });
       setWeightStr("0");

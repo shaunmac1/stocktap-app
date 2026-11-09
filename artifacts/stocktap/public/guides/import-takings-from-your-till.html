@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to get your takings out of your till and into StockTap | StockTap</title>
+  <meta name="description" content="Where the daily takings report lives on Square, Zettle, SumUp, Epos Now, Lightspeed, Toast, ICRTouch, Zonal and Tevalis, and how to bring it into StockTap." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/import-takings-from-your-till" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How to get your takings out of your till and into StockTap | StockTap" />
+  <meta property="og:description" content="Where the daily takings report lives on Square, Zettle, SumUp, Epos Now, Lightspeed, Toast, ICRTouch, Zonal and Tevalis, and how to bring it into StockTap." />
+  <meta property="og:url" content="https://stocktap.net/guides/import-takings-from-your-till" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to get your takings out of your till and into StockTap | StockTap" />
+  <meta name="twitter:description" content="Where the daily takings report lives on Square, Zettle, SumUp, Epos Now, Lightspeed, Toast, ICRTouch, Zonal and Tevalis, and how to bring it into StockTap." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "How to get your daily takings out of your till (Square, Zettle, SumUp, Epos Now and more)",
+      "description": "Where the daily takings report lives on Square, Zettle, SumUp, Epos Now, Lightspeed, Toast, ICRTouch, Zonal and Tevalis, and how to bring it into StockTap.",
+      "datePublished": "2026-09-30",
+      "dateModified": "2026-09-30",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/import-takings-from-your-till"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can StockTap bring in takings from my till?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, from a file. Export your till's daily sales or takings report as CSV or Excel and paste it into the Daily Board, or pick the file. StockTap reads one row per day or days across the top, lets you pick which money column is what you took, and shows you the days, dates and total before saving."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which figure should I pick, gross or net?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Pick the total including VAT, the same figure you would put on the Board at close. On Square that is Total collected, because Square's Gross sales is before VAT."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does StockTap pull product sales from my till?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not yet. StockTap brings in daily takings from a file today. Till figures for a Spot Check are typed in by hand."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>How to get your daily takings out of your till (Square, Zettle, SumUp, Epos Now and more)</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-30">30 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Every till can give you a spreadsheet of what you took each day. It's usually three or four clicks in the back office, on a laptop rather than the till itself. Paste it into StockTap's Daily Board, or pick the file, and your weeks, months and last-year comparisons fill straight in. Below is where the report lives on each of the tills pubs actually use, taken from each maker's own help pages, with the traps I'd want to know about first.</strong></p>
+
+<p>One thing to be straight about before the steps: StockTap brings in <em>daily takings</em> from a file today. It doesn't pull product-by-product sales from your till yet, so the till figure on a Spot Check still goes in by hand. When a till link is live, this page will say so.</p>
+
+<h2>What StockTap will read</h2>
+<ul>
+<li><strong>One row per day.</strong> A date, then what you took. Extra columns are fine: if there's more than one money column (gross, net, VAT, discounts), StockTap lists them and you tap the one that's what you took.</li>
+<li><strong>Days across the top.</strong> Some tills put each day in its own column with rows like Gross sales, Tax and Total collected. StockTap reads that too, and you pick the row.</li>
+<li><strong>UK dates</strong> like 29/09/2026, 29-Sep-2026 or 2026-09-29, with or without a time on the end. Totals rows and headings are left out and it tells you what it left out.</li>
+<li><strong>It checks before it saves.</strong> You see how many days, the date range, the total and the biggest single day. If the biggest day looks daft, you've probably picked the wrong column.</li>
+</ul>
+<p>Pick the figure <strong>including VAT</strong>, the same number you'd put on the Board at close. Where to find it: on the Daily Board, tap <em>Bring in past takings</em>, then paste or pick the CSV.</p>
+
+<h2>Square</h2>
+<p><strong>Where:</strong> Square Dashboard on a computer: <em>Reports &gt; Sales &gt; Sales summary</em>. Set <em>Summary</em> to <em>Daily</em>, pick your dates, then the export button and <em>Start export</em>. You get a CSV.</p>
+<p><strong>Watch for:</strong> Square's daily export puts the days across the top, one per column. StockTap reads it that way round, so there's no need to flip it in Excel. Square's "Gross sales" is before VAT; the figure that includes VAT is <em>Total collected</em>, and that's the one StockTap picks first. Late-night trade counts towards whichever day your reporting hours start, set under <em>Reports &gt; Settings</em>.</p>
+
+<h2>Zettle by PayPal</h2>
+<p><strong>Where:</strong> my.zettle.com on a computer, <em>Reports</em>, pick the dates, then <em>Export</em> and <em>Excel report</em>. Zettle's help says the Go app can't export to Excel.</p>
+<p><strong>Watch for:</strong> Zettle shows sales by day on screen for ranges up to a month. I couldn't confirm from Zettle's own pages that the Excel file has one row per day, so export a month at a time and check the preview. "Total sales" includes VAT.</p>
+
+<h2>SumUp POS (the old Goodtill back office)</h2>
+<p><strong>Where:</strong> <em>Reports &gt; Advanced Reports &gt; Advanced Sales Report</em>. Set the dates, set the report type to <em>daily</em>, <em>Run Report</em>, then <em>CSV</em>. If it won't run first time, <em>Email Report</em> sends it to you.</p>
+
+<h2>SumUp POS Pro</h2>
+<p><strong>Where:</strong> back office, <em>Reports</em> tab, <em>Accounting</em>, <em>Export</em>, and choose <em>Detailed CSV</em>, which SumUp describes as split by calendar day.</p>
+<p><strong>Watch for:</strong> if your till closes after midnight, the detailed file puts each sale on its calendar day, midnight to midnight, which won't always match the night you think of it as.</p>
+
+<h2>SumUp card reader only (no POS)</h2>
+<p>The SumUp app and me.sumup.com show a daily revenue breakdown, but the download is a PDF. I couldn't find a CSV of daily takings for this setup, so here it's copy the figures across by hand, or type a month into a spreadsheet and paste that.</p>
+
+<h2>Epos Now</h2>
+<p><strong>Where:</strong> Back Office on a computer, the grid icon at the top right, <em>Reporting &gt; Sales Report</em>, choose <em>Time Period</em>, set your dates and the interval to daily, <em>Apply</em>, then CSV or Excel from the buttons at the bottom. Epos Now say exports only work from a laptop or computer.</p>
+
+<h2>Lightspeed Restaurant (K-Series)</h2>
+<p><strong>Where:</strong> Back Office, <em>Reports &gt; Sales Summary</em>, set the time interval to <em>Daily</em>, then <em>Download</em> as CSV or XLSX. Another route is <em>Reports &gt; All reports &gt; Monthly Turnover</em>, which splits a month by day with a gross or net switch.</p>
+<p><strong>Watch for:</strong> in the UK, Lightspeed's "net sales" has service charge taken off. Pick the gross figure for the Board.</p>
+
+<h2>Toast</h2>
+<p><strong>Where:</strong> Toast Web, <em>Reports &gt; Sales &gt; Sales summary</em>, then the download icon for CSV or XLS.</p>
+<p><strong>Watch for:</strong> Toast counts a sale on the day the bill was opened, not paid, and only keeps 15 months online. I couldn't confirm the export has one row per day, so check the preview before you bring it in.</p>
+
+<h2>ICRTouch (TouchOffice Web)</h2>
+<p>TouchOffice Web exports reports as CSV, and product sales live under the PLU Sales reports. I couldn't find ICRTouch's own instructions for a one-row-per-day takings report. If your dealer set up a daily or Z report for you, export that as CSV and paste it in. TouchOffice Web and the till's Z read can differ if they cover different periods, so compare like with like.</p>
+
+<h2>Zonal (Aztec)</h2>
+<p>Aztec reports run in a Windows program on the office PC, not a website, and export as HTML, XLS or CSV from the toolbar. Zonal's recommended <em>Statement of Trade</em> is built to be viewed by the week, and I couldn't confirm a daily export from their guides. Zonal's CSV can include totals rows; StockTap leaves those out and tells you.</p>
+
+<h2>Tevalis</h2>
+<p>Tevalis reports live in Business Analytics, in the browser, with CSV and Excel export and reports that can be emailed to you on a schedule. Their release notes list sales reports broken down by day, but I couldn't find step-by-step instructions to link to, so ask Tevalis support which daily report to schedule.</p>
+
+<h2>Beanstore (Flooid)</h2>
+<p>Beanstore is a till system sold to big estates rather than single pubs, so if you're on it, the company that runs your estate chose it and controls the back office. I couldn't find anything public on what reports a tenant or partner can download. If you can see a daily sales report in whatever portal you're given, export it as CSV and paste it in. If you can't, ask whoever runs your estate, in writing, what you're entitled to see. If all you've got is the figure off the Z read each night, the Board takes that in two seconds.</p>
+
+<h2>If your till isn't here</h2>
+<p>Look for a sales, takings or trading report with a daily breakdown, export it as CSV or Excel, and paste it in. If the till only gives PDFs, copy the date and total columns into a spreadsheet first. Either way, StockTap shows you exactly what it's going to bring in before anything is saved.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li><a href="https://squareup.com/help/gb/en/article/5381-in-app-summaries-and-reports" rel="nofollow noopener" target="_blank">Square: summaries and reports</a> and <a href="https://my.squareup.com/help/gb/en/article/8363-view-item-category-and-modifiers-sales-reports" rel="nofollow noopener" target="_blank">item sales reports</a>; days-as-columns layout from the <a href="https://community.squareup.com/t5/Orders-Menu-Items-Catalog/How-to-find-top-quot-day-sales-quot/m-p/219763" rel="nofollow noopener" target="_blank">Square Community</a>.</li>
+<li><a href="https://www.zettle.com/gb/help/articles/1084803-about-reports" rel="nofollow noopener" target="_blank">Zettle: about reports</a>.</li>
+<li><a href="https://support.thegoodtill.com/support/advanced-sales-report" rel="nofollow noopener" target="_blank">SumUp POS (Goodtill): Advanced Sales Report</a>; <a href="https://help.sumup.com/en-GB/pos/articles/75000060877" rel="nofollow noopener" target="_blank">SumUp POS Pro: accounting export</a>; <a href="https://help.sumup.com/en-GB/articles/7zi3nFMMLXYh7tZrFmrHM1-article-my-revenue-report" rel="nofollow noopener" target="_blank">SumUp revenue report</a>.</li>
+<li><a href="https://support.eposnow.com/s/article/Reporting-Sales-Report" rel="nofollow noopener" target="_blank">Epos Now: Sales Report</a>.</li>
+<li><a href="https://k-series-support.lightspeedhq.com/hc/en-us/articles/1260804657229-Understanding-the-Sales-Summary" rel="nofollow noopener" target="_blank">Lightspeed K-Series: Sales Summary</a> and <a href="https://k-series-support.lightspeedhq.com/hc/en-us/articles/4403164197403-Monthly-Turnover" rel="nofollow noopener" target="_blank">Monthly Turnover</a>.</li>
+<li><a href="https://support.toasttab.com/en/article/Sales-Summary-Report" rel="nofollow noopener" target="_blank">Toast: Sales Summary report</a>.</li>
+<li><a href="https://icrtouch.com/products/touchoffice-web/" rel="nofollow noopener" target="_blank">ICRTouch: TouchOffice Web</a>.</li>
+<li><a href="https://product.zonal.co.uk/pos/Content/Aztec/Help-Guides/Reports/Exporting.htm" rel="nofollow noopener" target="_blank">Zonal Aztec: exporting reports</a> and <a href="https://knowledge.zonal.co.uk/pos/Content/Aztec/Help-Guides/Reports/Statement-of-Trade.htm" rel="nofollow noopener" target="_blank">Statement of Trade</a>.</li>
+<li><a href="https://website.tevalis.com/products/business-analytics/" rel="nofollow noopener" target="_blank">Tevalis: Business Analytics</a>.</li>
+<li><a href="https://www.flooid.com/us/platform/" rel="nofollow noopener" target="_blank">Flooid: platform overview</a>.</li>
+<li>Menu names are as each maker's help pages described them on 30 September 2026. Till makers move menus about, so if a name has changed, look for the nearest sales or takings report.</li>
+</ul>
+</div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Bring your takings in free</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/epos-integration-pub-stock-control">EPOS integration and pub stock control: what it does and doesn't fix</a></li>
+          <li><a href="/guides/switching-from-spreadsheet-to-stocktaking-software">Switching from a spreadsheet to stocktaking software</a></li>
+          <li><a href="/guides/till-not-matching-stocktake">Why your till and your stocktake never agree</a></li>
+          <li><a href="/videos">How-to videos, including bringing in past takings</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

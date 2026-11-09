@@ -20,7 +20,7 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
   const tap = async (tid, t = 10000) => { const l = p.locator(`[data-testid="${tid}"]`).first(); await l.waitFor({ state: 'visible', timeout: t }); await l.scrollIntoViewIfNeeded(); await l.click({ force: true }); await sleep(500); };
   const pad = async (str, scope) => { const s = scope ? p.locator(scope) : p.locator('[data-testid="add-entry-sheet"]'); for (const ch of str) { await s.getByRole('button', { name: ch, exact: true }).first().click(); await sleep(120); } };
   const text = async tid => (await p.locator(`[data-testid="${tid}"]`).first().innerText()).trim();
-  const openEntry = async id => { await tap(`counting-product-${P(id)}`); await sleep(500); await tap('button-add-entry'); await tap('button-location-unspecified'); await sleep(600); };
+  const openEntry = async id => { await tap(`counting-product-${P(id)}`); await sleep(500); await tap('button-add-entry'); if (await p.locator('[data-testid="button-location-unspecified"]').count()) await tap('button-location-unspecified'); await sleep(600); };
   const results = [];
   const check = (name, ok, detail = '') => { results.push(`${ok ? 'PASS' : 'FAIL'} ${name} ${detail}`); };
   try {
@@ -77,7 +77,7 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
     // 4. Bombay: weigh, no weights, no full bottle to hand -> count in tenths instead
     await openEntry(4);
     await tap('button-use-tenths'); await sleep(500); await shot('10-bombay-tenths-instead');
-    check('tenths-instead switches to tenths input', await p.locator('[data-testid="tenths-input"]').isVisible() && await p.locator('[data-testid="tenths-instead-note"]').isVisible());
+    check('tenths-instead switches to tenths input', await p.locator('[data-testid="tenths-input"]').isVisible() && (await p.locator('[data-testid="button-bottle-method-tenths"]').getAttribute('aria-checked')) === 'true');
     await tap('tenths-quick-2.5');
     check('save enabled when counting in tenths instead', !(await p.locator('[data-testid="button-save-entry"]').isDisabled()));
     await tap('button-save-entry'); await sleep(1200);
@@ -86,8 +86,8 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
 
     // 5. House vodka again: counted in tenths, no weights -> offer to weigh a full bottle and switch to weight
     await openEntry(3);
-    check('upgrade link offered on a tenths spirit with no weights', await p.locator('[data-testid="button-upgrade-to-weigh"]').isVisible());
-    await tap('button-upgrade-to-weigh'); await shot('12-vodka-upgrade');
+    check('Weigh is one tap away on a tenths spirit with no weights', await p.locator('[data-testid="button-bottle-method-weigh"]').isVisible());
+    await tap('button-bottle-method-weigh'); await shot('12-vodka-upgrade');
     await pad('1110', '[data-testid="full-bottle-setup"]'); await tap('button-save-full-weight'); await sleep(2500);
     const logC = await (await fetch('http://localhost:8899/__log')).json();
     const hv = logC.products.find(x => x.id === P(3));

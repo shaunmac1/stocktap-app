@@ -1,0 +1,9 @@
+SYNTHETIC TEST FILE - guessed Sharp layout with column headings; not a real till export
+"PLU NO","PLU TEXT","QTY","AMOUNT"
+"00001","CARLING PINT","412","2018.80"
+"00002","CARLING HALF","57","145.35"
+"00005","GORDONS GIN SGL","143","500.50"
+"00005","GORDONS GIN SGL","3-","10.50-"
+"","TOTAL","609","2654.15"
+DEPARTMENT
+"1","DRAUGHT","469","2164.15"

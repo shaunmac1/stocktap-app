@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stocktaking with Zettle: what it tracks, what it can’t | StockTap</title>
+  <meta name="description" content="Zettle's inventory, imports and reports from their own pages, where unit counting fails in a pub (draught and spirits), and the weekly count that fills the gap." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/stocktaking-with-zettle" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Stocktaking with Zettle: what it tracks, what it can’t | StockTap" />
+  <meta property="og:description" content="Zettle's inventory, imports and reports from their own pages, where unit counting fails in a pub (draught and spirits), and the weekly count that fills the gap." />
+  <meta property="og:url" content="https://stocktap.net/guides/stocktaking-with-zettle" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Stocktaking with Zettle: what it tracks, what it can’t | StockTap" />
+  <meta name="twitter:description" content="Zettle's inventory, imports and reports from their own pages, where unit counting fails in a pub (draught and spirits), and the weekly count that fills the gap." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Stocktaking with Zettle: what the £29 reader tracks, and the counting it can’t see",
+      "description": "Zettle's inventory, imports and reports from their own pages, where unit counting fails in a pub (draught and spirits), and the weekly count that fills the gap.",
+      "datePublished": "2026-10-02",
+      "dateModified": "2026-10-02",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/stocktaking-with-zettle"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can Zettle do a full pub stocktake on its own?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. It can hold stock figures for packaged products and knock them down per sale, which earns its keep for bottles, cans and snacks. Draught and open spirits need a physical count, because the till records serves rung, not liquid used, and the difference between those two is most of a pub's stock loss."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Zettle stop me selling when stock hits zero?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Their own help page says inventory will never prevent you from selling, and stock can run negative. Good for service, but it means a negative or odd stock figure is a prompt to recount and correct, not information."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I get my product list out of Zettle?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "my.zettle.com, Products, then Export. You get a spreadsheet with names, prices, cost prices, barcodes, SKUs, categories and stock quantities. The same screen does imports, in .xls, .xlsx or .csv, up to 2,000 rows per file."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which till is this series doing next?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Square and SumUp are next on the list, then ICRTouch. If yours isn't covered yet, the EPOS integration guide covers the general case of making any till and any stock system talk to each other."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Stocktaking with Zettle: what the £29 reader tracks, and the counting it can’t see",
+          "item": "https://stocktap.net/guides/stocktaking-with-zettle"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Stocktaking with Zettle: what the £29 reader tracks, and the counting it can’t see</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-10-02">2 October 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Zettle runs the card side of thousands of small pubs: a reader from £29, 1.75% a transaction, no monthly fee. Its stock side is more honest than most tills about what it is, a unit counter. That makes it decent for bottles and cans and blind for draught and spirits, and the difference is exactly where pub stock goes missing.</strong></p>
+
+<p>This is the second in a series on stocktaking with specific tills, the <a href="/guides/stocktaking-with-epos-now">Epos Now one is here</a>. Same deal as last time: everything below about Zettle comes from Zettle's own published help pages, checked today, and I'll be straight about what needs a count rather than a till.</p>
+
+<h2>What Zettle's inventory side actually does</h2>
+
+<p>Inventory tracking is per product, switched on product by product, and lives in the app and at my.zettle.com under Products. Once it's on, every sale knocks the stock figure down. Three details from their own pages worth knowing before you lean on it:</p>
+
+<ul>
+<li><strong>It warns late by pub standards.</strong> The default low-stock alert appears in the cart when an item has "only 3 left or fewer". You can set your own threshold per product, and for packaged stock you should, because 3 bottles is one round.</li>
+<li><strong>It never stops a sale.</strong> Their words: "Inventory will never prevent you from selling." Stock happily goes negative, which is the right call for a busy bar and also means the inventory figure drifts quietly until somebody corrects it.</li>
+<li><strong>Stock can go in through a spreadsheet.</strong> The product import accepts .xls, .xlsx and .csv, and if you fill in the "In stock" column, "the inventory tracking for this item will automatically be activated".</li>
+</ul>
+
+<h2>The plumbing: getting your list in and out</h2>
+
+<p>The import template carries name, custom unit, VAT rate, price, cost price, barcode, SKU, category, stock quantity and variants, up to 3 options and 100 variants per product. Limits are 2,000 rows per file and 10,000 products a day, which no pub will ever hit, my own full list is 270 lines. The useful direction is out: my.zettle.com, Products, Export, and you have your whole library as a spreadsheet, cost prices included if you ever filled them in.</p>
+
+<p>Reports export the same way. The sales by product report shows "name, variant, category, sold quantity, returns, discounts and total" for any date range, and exports as PDF, Excel or raw-data Excel. The raw-data one is the export a stocktake cares about.</p>
+
+<h2>Where unit counting stops working</h2>
+
+<p>Zettle decrements what was rung, not what was poured. For a case of bottled lager those are the same thing, which is why inventory tracking is fine on packaged stock. On draught and spirits they are not the same thing at all.</p>
+
+<p>Worked example, my arithmetic. Say vodka is on Zettle as a 25ml serve and you loaded 4 full 70cl bottles, 112 serves. Since then the till has rung 50 serves, so Zettle says 62 left, 2.2 bottles. You put the open bottle on a scale and count the sealed ones: 1.7 bottles. The half bottle between those two numbers, about 14 serves, £48 at £3.40 a shot, is invisible to the till forever, because the till only ever knew what was rung. Free pours, over-pours, spillage, an unlogged swap, none of it passes through the card reader. Vianet's meter data across 11,000 pubs puts drinks poured that never reach the till at 2%, and that's before pouring losses.</p>
+
+<p>Draught is worse, because a keg isn't a unit at all. An 88-pint keg only turns into 88 rung pints if nothing is lost to <a href="/guides/beer-line-cleaning-stock-variance">line cleaning</a>, fobbing and drip, and it never is. The <a href="/guides/draught-beer-wastage-whats-normal">draught wastage guide</a> covers what normal looks like; no unit counter can see any of it.</p>
+
+<h2>The routine that makes Zettle useful for stock</h2>
+
+<p>None of this makes Zettle a bad till. It makes it half the system, the half that knows what was sold. The other half is a count of what's physically there, and the gap between the two is the number that runs the pub.</p>
+
+<ul>
+<li><strong>Keep the library clean.</strong> Duplicate products with two names split your sales history and wreck any comparison. One product, one till button, one name.</li>
+<li><strong>Count weekly, even just the worst five lines.</strong> Weigh the open spirits, count the sealed stock. <a href="/guides/how-to-train-bar-staff-count-stock-accurately">One counting method per product</a>, every time.</li>
+<li><strong>Export sales by product for the exact period between counts.</strong> Raw-data Excel, dated from last count to this one. That's your rung figure per line.</li>
+<li><strong>Compare counted usage against rung sales line by line.</strong> The difference is your variance, and <a href="/guides/acceptable-stocktake-variance">here's what acceptable looks like</a> before you lose sleep over it.</li>
+</ul>
+
+<h2>Does StockTap plug into Zettle?</h2>
+
+<p>Not natively, no, and I'd rather say that plainly than imply a sync that doesn't exist. What works today is CSV both ways: export your products from my.zettle.com and import them into StockTap, cost prices come across with them, then count by weighing or tenths and type the till's total into the daily spot check to get the variance. The export-import round trip on a 270-line library is a few minutes, and you only do it once at setup.</p>
+
+<p>On fees, nothing here changes what we found in September: Zettle's published rate is 1.75% per card transaction, re-checked today, and the <a href="/guides/pub-card-machine-fees-2026">card fees guide</a> has what that costs per pint and where the crossover to a contract deal sits.</p>
+
+<h2>Common questions</h2>
+
+<h3>Can Zettle do a full pub stocktake on its own?</h3>
+<p>No. It can hold stock figures for packaged products and knock them down per sale, which earns its keep for bottles, cans and snacks. Draught and open spirits need a physical count, because the till records serves rung, not liquid used, and the difference between those two is most of a pub's stock loss.</p>
+
+<h3>Does Zettle stop me selling when stock hits zero?</h3>
+<p>No. Their own help page says inventory will never prevent you from selling, and stock can run negative. Good for service, but it means a negative or odd stock figure is a prompt to recount and correct, not information.</p>
+
+<h3>How do I get my product list out of Zettle?</h3>
+<p>my.zettle.com, Products, then Export. You get a spreadsheet with names, prices, cost prices, barcodes, SKUs, categories and stock quantities. The same screen does imports, in .xls, .xlsx or .csv, up to 2,000 rows per file.</p>
+
+<h3>Which till is this series doing next?</h3>
+<p>Square and SumUp are next on the list, then ICRTouch. If yours isn't covered yet, the <a href="/guides/epos-integration-pub-stock-control">EPOS integration guide</a> covers the general case of making any till and any stock system talk to each other.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Inventory behaviour, low-stock alerts, selling never blocked: <a href="https://www.zettle.com/gb/help/articles/2771896-inventory" rel="noopener">Zettle help: Inventory</a>, checked 2 October 2026.</li>
+<li>Import and export formats, template columns, the In stock column activating tracking, 2,000-row and 10,000-a-day limits: <a href="https://www.zettle.com/gb/help/articles/2399581-import-and-export-your-products" rel="noopener">Zettle help: Import and export your products</a>, checked 2 October 2026.</li>
+<li>Report types, sales by product fields, PDF, Excel and raw-data exports: <a href="https://www.zettle.com/gb/help/articles/1084803-about-reports" rel="noopener">Zettle help: About reports</a>, checked 2 October 2026.</li>
+<li>Reader from £29 and the 1.75% transaction fee: <a href="https://www.zettle.com/gb/payments/card-reader" rel="noopener">Zettle's card reader page</a>, checked 2 October 2026.</li>
+<li>2% of drinks poured never reach the till: <a href="https://cask-marque.co.uk/wp-content/uploads/2019/11/Vianet-Insight-Report-19-20.pdf" rel="noopener">Vianet Insight Report 2019/20</a>, meter data from 11,000 pubs.</li>
+<li>The vodka example and the serve arithmetic are my own illustrations.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Just had a stocktake? Send me the sheets</h2>
+        <p>Any stocktaker&#x2019;s report, your own spreadsheet or a till export. I&#x2019;ll set your whole bar up in StockTap for you, with your products and prices in and your closing stock as the starting point, so your first count shows a real variance. Free, completely confidential, used for nothing else, and deleted once you&#x2019;re set up.</p>
+        <a href="mailto:trainingforchatbots@gmail.com?subject=Set%20up%20my%20bar%20in%20StockTap&amp;body=Hi%20Shaun%2C%20my%20stocktake%20sheets%20are%20attached.%20Pub%20name%3A%20" class="cta-btn">Email me your sheets</a>
+        <p style="margin:1rem 0 0;">Rather do it yourself? <a href="/auth?mode=signup">Start the free trial</a>, no card needed.</p>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/stocktaking-with-epos-now">Stocktaking with Epos Now</a></li>
+          <li><a href="/guides/pub-card-machine-fees-2026">Card machine fees per pint 2026</a></li>
+          <li><a href="/guides/epos-integration-pub-stock-control">EPOS integration for pub stock control</a></li>
+          <li><a href="/guides/till-not-matching-stocktake">Till not matching the stocktake</a></li>
+          <li><a href="/guides/how-to-train-bar-staff-count-stock-accurately">Training bar staff to count stock accurately</a></li>
+          <li><a href="/guides/acceptable-stocktake-variance">What counts as acceptable variance</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

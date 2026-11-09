@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stocktaking with Epos Now: a pub guide | StockTap</title>
+  <meta name="description" content="How to run a proper pub stocktake alongside Epos Now: the reports worth exporting, getting your product list out as CSV, and the losses the till can&#x27;t see." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/stocktaking-with-epos-now" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Stocktaking with Epos Now: a pub guide | StockTap" />
+  <meta property="og:description" content="How to run a proper pub stocktake alongside Epos Now: the reports worth exporting, getting your product list out as CSV, and the losses the till can&#x27;t see." />
+  <meta property="og:url" content="https://stocktap.net/guides/stocktaking-with-epos-now" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Stocktaking with Epos Now: a pub guide | StockTap" />
+  <meta name="twitter:description" content="How to run a proper pub stocktake alongside Epos Now: the reports worth exporting, getting your product list out as CSV, and the losses the till can&#x27;t see." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Stocktaking with Epos Now: what the till knows, and the counting it can't do",
+      "description": "How to run a proper pub stocktake alongside Epos Now: the reports worth exporting, getting your product list out as CSV, and the losses the till can't see.",
+      "datePublished": "2026-10-01",
+      "dateModified": "2026-10-01",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/stocktaking-with-epos-now"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does Epos Now do stocktaking on its own?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It tracks theoretical stock and reports on it well, with stock levels, margins and non-sellers all exportable. A physical count is still a separate job, because the till only knows what was typed and rung in, never what's actually in the cellar. You need both numbers to see a variance."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I get my product list out of Epos Now?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Back Office reports export to CSV and Excel, and the Bulk Import app's templates hold products, stock, barcodes, categories and SKUs in a clean spreadsheet layout. Export, tidy the sizes and cost prices, then import into whatever you count with."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does StockTap integrate directly with Epos Now?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not natively, no. It's CSV export from Epos Now and CSV import into StockTap, which takes an evening to set up once and nothing after that. The comparison between counted stock and till sales is done at the count, and that part works the same whether the sales arrived by API or by spreadsheet."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's the fastest routine if I'm short on time?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A weekly full count plus a daily spot check on your five fastest lines against the till. The weekly count finds the size of any problem, the spot checks narrow it to a day. Anything less than weekly and you're reading history, not catching anything."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Stocktaking with Epos Now: what the till knows, and the counting it can't do",
+          "item": "https://stocktap.net/guides/stocktaking-with-epos-now"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Stocktaking with Epos Now: what the till knows, and the counting it can't do</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-10-01">1 October 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Epos Now will tell you what you sold, to the penny, exported to a spreadsheet before your coffee's gone cold. What it can't tell you is what's actually in the cellar. The till's stock figure is arithmetic: what you typed in, minus what got rung through. Nobody has ever poured a short delivery, a line clean or a dropped bottle of Smirnoff through a till.</strong></p>
+
+<p>This is the first in a set of guides on stocktaking alongside the till you already run, because the question I get asked isn't "which till should I buy", it's "I've got Epos Now, how do I do a proper stocktake with it". Here's the answer I'd give over the bar.</p>
+
+<h2>What Epos Now gives you out of the box</h2>
+
+<p>Credit where it's due, the stock side of Epos Now is better than most licensees ever use. From their own pages: a Stock Levels report showing what the system thinks is on hand, with sale value, margin and margin percentage per product. A Non-Selling Stock report that lists anything with zero sales over a period you pick. Top selling products sortable by quantity. Sales split by wet and dry. And every report can be viewed on screen or exported as CSV, Word, Excel or print.</p>
+
+<p>There's also a Bulk Import app that works off CSV and Excel templates, built for adding and editing products, stock levels, barcodes, categories and SKUs in bulk. That matters more than it sounds, because the same template thinking is what gets your product list out cleanly, and your list is the foundation of every count you'll ever do.</p>
+
+<h2>Why the till's stock figure drifts anyway</h2>
+
+<p>Epos Now's stock number is what the trade calls theoretical stock. Opening stock, plus the deliveries somebody typed in, minus the sales that went through a button. Every step of that chain leaks. Deliveries get signed without being counted. Staff press <a href="/guides/stock-variance-till-buttons">the wrong button</a> on a busy Friday. Line cleaning sends beer down the drain that no report will ever see. A <a href="/guides/prepaid-pints-one-in-the-pump">pint left in the pump</a> gets poured a day after it was rung in.</p>
+
+<p>None of that is an Epos Now fault. It's true of every till ever made, because a till records transactions, not liquid. Vianet's dispense monitoring across 11,000 sites found 2% of drinks poured never reach the till at all. The only way to know what you actually have is to count it, and the only way to know what you've lost is to compare the count with what the till expected. That comparison is the whole job. The till can only ever hold up its half of it.</p>
+
+<h2>Getting your products out of Epos Now and into a count</h2>
+
+<p><strong>Step one: export your product list.</strong> Back Office reports export to CSV or Excel, and the Bulk Import templates give you the same data in a clean, columned layout. You want product name, category, cost price and selling price as a minimum.</p>
+
+<p><strong>Step two: tidy it before you import it anywhere.</strong> This is where counts go wrong months later. Wine listed with no size, kegs with no capacity, cost prices from two price rises ago. I imported my own 270-line list and the tidying took longer than the importing, all of it worth it. The <a href="/guides/pub-stocktaking-software-setup-time-onboarding">setup time guide</a> breaks down what that evening actually looks like, and the <a href="/guides/pub-stocktaking-mistakes-checklist">mistakes checklist</a> covers the traps, 700ml wines being my own favourite confession.</p>
+
+<p><strong>Step three: import the CSV into your stocktaking app.</strong> StockTap takes a product CSV straight in, and most serious rivals do too. From there the count itself is the usual discipline: spirits and part bottles <a href="/guides/stocktake-spirits-part-bottles">weighed, not squinted at</a>, kegs by weight, packaged by unit.</p>
+
+<p><strong>Step four: compare counted against theoretical.</strong> Export product-level sales from Epos Now for the period between counts, and line it up against what actually left the shelves. Say the till reckons a keg should have 32 pints left in it. The scale says 24. That's 8 pints gone on one line in one week, £42.72 at the £5.34 average pint, and the till on its own would never have told you. That sum is my arithmetic, not an Epos Now report, which is exactly the point.</p>
+
+<h2>The honest bit about integration</h2>
+
+<p>StockTap has no native Epos Now link today. No API connection, no live sales feed. CSV out of Epos Now, CSV in, and the two systems meet in the comparison, not in the plumbing. If a vendor's live POS integration is what you want, some rivals do have one, and the <a href="/guides/epos-integration-pub-stock-control">EPOS integration guide</a> covers who connects to what and what it costs.</p>
+
+<p>My view, having looked hard at it: a live feed buys you convenience, not a count. However the sales numbers arrive, somebody still has to weigh the bottle. The pubs that catch their losses aren't the ones with the fanciest plumbing, they're the ones that count every week and look at the variance line.</p>
+
+<h2>A routine that works with Epos Now</h2>
+
+<ul>
+<li><strong>Weekly:</strong> full count, compare against the till's sales for the week, write the variance down in pints and pounds. Not percentages, pints and pounds. <a href="/guides/how-often-should-a-pub-do-a-stocktake">How often to count</a> covers why weekly beats monthly for catching anything while the trail is warm.</li>
+<li><strong>Daily, on busy weeks:</strong> spot check your five fastest lines against the till reading. Ten minutes, and it narrows any loss to a day instead of a week.</li>
+<li><strong>Monthly:</strong> run Epos Now's Non-Selling Stock report and act on it. <a href="/guides/dead-stock-pub-what-to-do">Dead stock</a> is money sitting on a shelf going out of date.</li>
+<li><strong>Carefully:</strong> their employee report flags refunds, voids and no-sales by staff member. Read that by reason and time of day, not by name. Most variance is <a href="/guides/till-voids-refunds-stock-variance-pub">process, not people</a>, and a witch hunt costs you a good barman faster than any stock loss.</li>
+</ul>
+
+<h2>Common questions</h2>
+
+<h3>Does Epos Now do stocktaking on its own?</h3>
+<p>It tracks theoretical stock and reports on it well, with stock levels, margins and non-sellers all exportable. A physical count is still a separate job, because the till only knows what was typed and rung in, never what's actually in the cellar. You need both numbers to see a variance.</p>
+
+<h3>How do I get my product list out of Epos Now?</h3>
+<p>Back Office reports export to CSV and Excel, and the Bulk Import app's templates hold products, stock, barcodes, categories and SKUs in a clean spreadsheet layout. Export, tidy the sizes and cost prices, then import into whatever you count with.</p>
+
+<h3>Does StockTap integrate directly with Epos Now?</h3>
+<p>Not natively, no. It's CSV export from Epos Now and CSV import into StockTap, which takes an evening to set up once and nothing after that. The comparison between counted stock and till sales is done at the count, and that part works the same whether the sales arrived by API or by spreadsheet.</p>
+
+<h3>What's the fastest routine if I'm short on time?</h3>
+<p>A weekly full count plus a daily spot check on your five fastest lines against the till. The weekly count finds the size of any problem, the spot checks narrow it to a day. Anything less than weekly and you're reading history, not catching anything.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Stock Levels, Non-Selling Stock, top products, wet/dry split and CSV/Excel/Word export: <a href="https://www.eposnow.com/uk/resources/8-functional-reports-you-can-generate-in-epos-now/" rel="noopener">Epos Now, 8 functional reports</a> (checked 1 October 2026).</li>
+<li>CSV and Excel bulk import of products, stock, barcodes, categories and SKUs: <a href="https://www.eposnow.com/uk/store/software/apps/bulk-import/" rel="noopener">Epos Now Bulk Import app</a> (checked 1 October 2026).</li>
+<li>2% of drinks poured never reach the till, from monitoring across 11,000 sites: <a href="https://cask-marque.co.uk/wp-content/uploads/2019/11/Vianet-Insight-Report-19-20.pdf" rel="noopener">Vianet Insight Report 2019/20</a>.</li>
+<li>The 8-pints worked example and the £42.72 figure are my own arithmetic at the Morning Advertiser's £5.34 average pint, shown as an illustration.</li>
+<li>StockTap is not affiliated with Epos Now. Their features are described from their own published pages as at the date checked.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/epos-integration-pub-stock-control">EPOS integration and pub stock control</a></li>
+          <li><a href="/guides/till-not-matching-stocktake">Till not matching the stocktake: where to look</a></li>
+          <li><a href="/guides/pub-stocktaking-software-setup-time-onboarding">How long stocktaking software takes to set up</a></li>
+          <li><a href="/guides/stocktake-spirits-part-bottles">Weighing spirits and part bottles</a></li>
+          <li><a href="/guides/dead-stock-pub-what-to-do">Dead stock: what to do with it</a></li>
+          <li><a href="/guides/pub-stocktaking-software-compared">Pub stocktaking software compared</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

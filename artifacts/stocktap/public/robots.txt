@@ -7,6 +7,7 @@ Allow: /terms
 Allow: /privacy
 Allow: /guides
 Allow: /about
+Allow: /tv/
 
 # App screens — authenticated only, do not index
 Disallow: /auth
@@ -19,9 +20,9 @@ Disallow: /ledger
 Disallow: /invoice-scan
 Disallow: /suggestions
 
-# Static assets — images crawlable for Article/og:image; rest blocked
-Allow: /assets/*.png$
-Allow: /assets/*.jpg$
-Disallow: /assets/
+# Static assets (scripts, styles, images) must stay crawlable so Google can render the pages
+Allow: /assets/
 
 Sitemap: https://stocktap.net/sitemap.xml
+Sitemap: https://stocktap.net/tv/sitemap.xml
+Sitemap: https://stocktap.net/safety/sitemap.xml

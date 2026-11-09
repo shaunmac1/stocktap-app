@@ -4,16 +4,17 @@ import {
   useProducts, useLocations, useStocktakes,
   useCreateStocktake, useCloseStocktake, useAddReading,
   useCountLocations, useLineEntries, addLineEntry, deleteLineEntry,
-  useAddCountLocation, useBottleShapes, useUpdateProduct,
+  useAddCountLocation, useBottleShapes, useUpdateProduct, recomputeOpenEntriesForProduct,
   type BottleShape,
 } from "@/hooks/api";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSaveStocktakeSchedule } from "@/hooks/useStocktakeCadence";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { NumberPad } from "@/components/NumberPad";
+import { NumberPad, MultiFieldPad } from "@/components/NumberPad";
 import { db } from "@/lib/db";
 import type { LocalLineEntry } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
@@ -23,8 +24,14 @@ import {
   calcProductGpPercent, formatGBP,
   computeCategoryReading, resolveMeasureMl, draughtCapacityMl, productCapacityMl,
   CATEGORY_METHODS, METHOD_LABELS, CATEGORY_LABELS, ML_PER_PINT,
+  formatGallonsPints, pintsToGallonsAndPints, litreContainerMl, postmixDrinkLitresPerBox,
   type CountingMethod, type ProductCategory, type CategoryReadingInput,
 } from "@/lib/calculations";
+import { isLitreOnBottles } from "@/lib/library-hygiene";
+import { describeQuantity } from "@/lib/stock-display";
+import { ContainerSizePicker } from "@/components/ContainerSizePicker";
+import { containerSizeLabel } from "@/lib/container-sizes";
+import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import { TenthsInput } from "@/components/TenthsInput";
 import { FullBottleSetup } from "@/components/FullBottleSetup";
@@ -43,6 +50,32 @@ type Step = "list" | "select" | "counting" | "summary";
 type CountingView = "products" | "detail";
 type Product = Database["public"]["Tables"]["products"]["Row"] & { locations?: { name: string } | null };
 type LegacyReading = { productId: string; mlRemaining: number; count?: number };
+
+/** " · 50L keg", " · 12L box", " · 330ml" — whatever size matters for this line. */
+function productSizeLabel(p: { category?: string | null; counting_method?: string | null; container_l?: number | null; container_type?: string | null; size_ml?: number | null }): string {
+  const draught = (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(p.counting_method ?? "");
+  if (draught) return p.container_l ? ` · ${p.container_l}L ${p.container_type === "cask" ? "cask" : "keg"}` : "";
+  if (p.counting_method === "litre" && p.container_l) return ` · ${p.container_l}L box`;
+  return p.size_ml ? ` · ${p.size_ml >= 1000 ? `${p.size_ml / 1000}L` : `${p.size_ml}ml`}` : "";
+}
+
+/** Search that ignores case, accents and apostrophes: "gordons" finds "Gordon's". */
+const norm = (t: string) => (t ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/['\u2019.\-/&]/g, "").replace(/\s+/g, " ").trim();
+
+/** One plain line under a product in the count list: how it gets counted. */
+function howCounted(p: { category?: string | null; counting_method?: string | null; empty_weight_g?: number | null; dip_full_mm?: number | null; unit?: string | null }): string {
+  const m = p.counting_method ?? (p.unit === "count" ? "each" : "tenths");
+  switch (m) {
+    case "weigh": return p.empty_weight_g != null ? "Weigh the open bottle" : "Weigh a full one first, or count in tenths";
+    case "tenths": case "photo_tap": return p.empty_weight_g != null ? "Tenths, or weigh it" : "Tenths: full is 10, half is 5";
+    case "keg_weight": return "Pints left in the open keg + full kegs";
+    case "dipstick": return p.dip_full_mm ? "Dip it (mm) + full casks" : "Pints on the dip rod + full casks";
+    case "tenths_pints": return "Tenths left in the cask + full ones";
+    case "dozen": return "Full cases + loose ones";
+    case "litre": return p.category === "postmix" ? "Boxes or litres of drink" : "Litres left";
+    default: return "Count them";
+  }
+}
 
 function formatDate(ts: string) {
   try { return format(new Date(ts), "d MMM yyyy, HH:mm"); } catch { return ts; }
@@ -108,6 +141,40 @@ export default function Stocktake() {
   const [entryWeightStr, setEntryWeightStr] = useState("0");
   const [entryNumStr, setEntryNumStr] = useState("0");
   const [entryFullContainersStr, setEntryFullContainersStr] = useState("0");
+  // Draught can be typed as kegs (full kegs + pints in the part keg) or as a total in
+  // gallons + pints, like a stocktaker's sheet. Remembered on this device.
+  const [kegMode, setKegModeState] = useState<"kegs" | "gallons">(() => {
+    try { return (localStorage.getItem("stocktap:keg-mode") as "kegs" | "gallons") || "kegs"; } catch { return "kegs"; }
+  });
+  const setKegMode = (m: "kegs" | "gallons") => {
+    setKegModeState(m);
+    try { localStorage.setItem("stocktap:keg-mode", m); } catch { /* private mode */ }
+  };
+  // Postmix can be typed as boxes (1.4) or as litres of drink (100.8, as Venners writes it).
+  const [postmixMode, setPostmixModeState] = useState<"boxes" | "litres">(() => {
+    try { return (localStorage.getItem("stocktap:postmix-mode") as "boxes" | "litres") || "litres"; } catch { return "litres"; }
+  });
+  const setPostmixMode = (m: "boxes" | "litres") => {
+    setPostmixModeState(m);
+    try { localStorage.setItem("stocktap:postmix-mode", m); } catch { /* private mode */ }
+  };
+  // Casks: most cellar dip rods are marked in pints, so that's offered alongside a ruler in mm.
+  const [dipModePref, setDipModePref] = useState<"pints" | "mm">(() => {
+    try { return (localStorage.getItem("stocktap:dip-mode") as "pints" | "mm") || "pints"; } catch { return "pints"; }
+  });
+  const setDipMode = (m: "pints" | "mm") => {
+    setDipModePref(m);
+    try { localStorage.setItem("stocktap:dip-mode", m); } catch { /* private mode */ }
+  };
+  const [dipDepthDraft, setDipDepthDraft] = useState("");
+  // The spot last counted in (bar, cellar...) is used for the next count too, so a
+  // walk round the bar isn't two taps per bottle. "Change" is one tap away.
+  const [lastLocation, setLastLocation] = useState<{ id: string; name: string } | null>(null);
+  const [confirmNew, setConfirmNew] = useState(false);
+  const [showTips, setShowTips] = useState(false);
+  const entryScrollRef = React.useRef<HTMLDivElement>(null);
+  const [entryGallonsStr, setEntryGallonsStr] = useState("0");
+  const [entryPintsStr, setEntryPintsStr] = useState("0");
   const [newLocationInput, setNewLocationInput] = useState("");
   const [showNewLocationField, setShowNewLocationField] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
@@ -143,6 +210,13 @@ export default function Stocktake() {
     return products.filter(p => idSet.has(p.id)).sort((a, b) => a.name.localeCompare(b.name));
   }, [products, selectedProductIds]);
 
+  // The count list runs in the order you'd walk it: draught, then spirits, wines, bottles...
+  const countListOrder = useMemo(() => {
+    const order = Object.keys(CATEGORY_LABELS);
+    const rank = (c: string | null) => { const i = order.indexOf(c ?? ""); return i === -1 ? 99 : i; };
+    return [...filteredProducts].sort((a, b) => rank(a.category) - rank(b.category) || a.name.localeCompare(b.name));
+  }, [filteredProducts]);
+
   const vendorOptions = useMemo(() => {
     if (!products) return [];
     const s = new Set<string>();
@@ -150,16 +224,36 @@ export default function Stocktake() {
     return Array.from(s).sort((a, b) => a.localeCompare(b));
   }, [products]);
 
+  // Location chips: one per name, and only locations that actually have products in them —
+  // a chip that filters to nothing (or a second "Main Bar") just confuses.
+  const usableLocations = useMemo(() => {
+    const withProducts = new Set((products ?? []).map(p => p.location_id).filter(Boolean) as string[]);
+    const seen = new Set<string>();
+    return (locations ?? []).filter(l => {
+      const key = l.name.trim().toLowerCase();
+      if (!withProducts.has(l.id) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [locations, products]);
+
   const pickableProducts = useMemo(() => {
     if (!products) return [];
     let list = products;
     if (selectedLocationId !== "all") list = list.filter(p => p.location_id === selectedLocationId);
     if (selectedCategory !== "all") list = list.filter(p => p.category === selectedCategory);
     if (selectedVendor !== "all") list = list.filter(p => p.vendor === selectedVendor);
-    const q = searchStr.trim().toLowerCase();
-    if (q) list = list.filter(p => p.name.toLowerCase().includes(q));
+    const q = norm(searchStr);
+    if (q) list = list.filter(p => norm(p.name).includes(q));
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
   }, [products, selectedLocationId, selectedCategory, selectedVendor, searchStr]);
+
+  // Only categories you actually stock, with how many of each.
+  const categoryCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of products ?? []) if (p.category) m.set(p.category, (m.get(p.category) ?? 0) + 1);
+    return m;
+  }, [products]);
 
   const toggleProductSel = (id: string) =>
     setSelectedProductIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]);
@@ -213,27 +307,42 @@ export default function Stocktake() {
       // photo_tap requires a bottle shape — fall back gracefully if none is set
       : entryResolvedMethod === "photo_tap" && !activeShape
         ? (activeProduct?.empty_weight_g != null ? "weigh" : "tenths")
-        // count-unit products (packaged, minerals) must never land on the litres pad
-        : activeProduct?.unit === "count" && entryResolvedMethod === "litre"
+        // Cans and bottles that were imported as "litre" are counted each. Real bulk lines
+        // (postmix, juice by the litre, cordial, syrup) keep the litres pad.
+        : entryResolvedMethod === "litre" && activeProduct && isLitreOnBottles(activeProduct as any)
           ? "each"
           : entryResolvedMethod);
+
+  // Without a full depth, mm can't be turned into pints, so the dip rod's pints are the way in.
+  const dipMode = dipModePref;
+  const dipByPints = entryActiveMethod === "dipstick" && dipMode === "pints";
 
   const entryCategoryInput: CategoryReadingInput | null = useMemo(() => {
     if (!entryActiveMethod) return null;
     const fc = parseFloat(entryFullContainersStr) || 0;
+    // Pints read off the dip rod work exactly like pints left in a keg.
+    if (dipByPints) return { method: "keg_weight", partialPints: parseFloat(entryNumStr) || 0, fullContainers: fc };
     switch (entryActiveMethod) {
       case "dipstick":    return { method: entryActiveMethod, dipMm: parseFloat(entryNumStr) || 0, fullContainers: fc };
-      case "keg_weight":  return { method: entryActiveMethod, partialPints: parseFloat(entryNumStr) || 0, fullContainers: fc };
+      case "keg_weight":
+        return kegMode === "gallons"
+          ? { method: entryActiveMethod, totalPints: (parseFloat(entryGallonsStr) || 0) * 8 + (parseFloat(entryPintsStr) || 0) }
+          : { method: entryActiveMethod, partialPints: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "tenths_pints":return { method: entryActiveMethod, tenths: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "tenths":      return { method: entryActiveMethod, tenths: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "dozen":       return { method: entryActiveMethod, fullPacks: fc, partUnits: parseFloat(entryNumStr) || 0 };
       case "each":        return { method: entryActiveMethod, count: parseFloat(entryNumStr) || 0 };
-      case "litre":       return { method: entryActiveMethod, litres: parseFloat(entryNumStr) || 0 };
+      case "litre":       return {
+        method: entryActiveMethod,
+        litres: activeProduct?.category === "postmix" && postmixMode === "boxes"
+          ? (parseFloat(entryNumStr) || 0) * postmixDrinkLitresPerBox(activeProduct as any)
+          : parseFloat(entryNumStr) || 0,
+      };
       case "weigh":       return { method: entryActiveMethod, weightG: parseFloat(entryWeightStr) || 0, fullContainers: parseFloat(entryFullContainersStr) || 0 };
       case "photo_tap":   return { method: entryActiveMethod, tapY: photoTapY, fullContainers: fc };
       default: return null;
     }
-  }, [entryActiveMethod, entryNumStr, entryFullContainersStr, entryWeightStr, photoTapY]);
+  }, [entryActiveMethod, entryNumStr, entryFullContainersStr, entryWeightStr, photoTapY, kegMode, entryGallonsStr, entryPintsStr, postmixMode, activeProduct, dipByPints]);
 
   const entryMeasureMl = resolveMeasureMl(activeProduct?.measure_ml, venue?.measure_ml);
 
@@ -300,6 +409,9 @@ export default function Stocktake() {
     return null;
   }, [entryActiveMethod, entryWeightStr, activeProduct]);
 
+  // Nothing typed at all: the Save button says so, so a slip isn't saved as "none left" by accident.
+  const entryIsZero = !!entryActiveMethod && (entryCategoryResult ? entryCategoryResult.mlRemaining <= 0 && !(entryCategoryResult.fullContainers ?? 0) && !(parseFloat(entryNumStr) || 0) : false);
+
   const entryTenths = entryCategoryResult
     ? entryCategoryResult.tenths
     : entryMl !== null && activeProduct?.size_ml
@@ -365,6 +477,34 @@ export default function Stocktake() {
   }, [lineEntries, legacyReadings, products, venue?.measure_ml]);
 
   const totalSummaryValue = summaryLines.reduce((s, l) => s + l.val, 0);
+
+  // Review groups lines by category (draught, spirits, wines...) with a subtotal each,
+  // alphabetical inside — far easier to check against a stocktaker's sheet.
+  const summaryGroups = useMemo(() => {
+    const order = Object.keys(CATEGORY_LABELS);
+    const groups = new Map<string, typeof summaryLines>();
+    for (const line of summaryLines) {
+      const key = line.prod.category ?? "other";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(line);
+    }
+    return Array.from(groups.entries())
+      .sort((a, b) => (order.indexOf(a[0]) === -1 ? 99 : order.indexOf(a[0])) - (order.indexOf(b[0]) === -1 ? 99 : order.indexOf(b[0])))
+      .map(([key, lines]) => ({
+        key,
+        label: CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] ?? "Other",
+        lines: [...lines].sort((a, b) => a.prod.name.localeCompare(b.prod.name)),
+        total: lines.reduce((s, l) => s + l.val, 0),
+      }));
+  }, [summaryLines]);
+
+  // Per-line quantity in the unit that line is counted in (gallons, units, litres, tenths).
+  const summaryQuantityLabel = (line: { prod: Product; mlRemaining: number; count?: number }) => {
+    const entries = entriesByProduct.get(line.prod.id);
+    if (entries && entries.length > 0) return describeQuantity(line.prod as any, entries as any).short;
+    const method = line.prod.counting_method ?? (line.prod.unit === "count" ? "each" : "tenths");
+    return describeQuantity(line.prod as any, [{ method, full_containers: null, part_value: line.count ?? null, ml_remaining: line.mlRemaining }]).short;
+  };
 
   // ─── Handlers ────────────────────────────────────────────────────────────────
 
@@ -443,6 +583,7 @@ export default function Stocktake() {
 
   const resetEntryForm = () => {
     setEntryWeightStr("0"); setEntryNumStr("0"); setEntryFullContainersStr("0");
+    setEntryGallonsStr("0"); setEntryPintsStr("0");
     setEntryLocationId(""); setEntryLocationName("");
     setEntryStep("location"); setShowAddEntry(false);
     setNewLocationInput(""); setShowNewLocationField(false);
@@ -450,6 +591,16 @@ export default function Stocktake() {
 
   const pickLocation = (id: string, name: string) => {
     setEntryLocationId(id); setEntryLocationName(name); setEntryStep("value");
+  };
+
+  // Straight to the number pad in the last spot counted (or "no specific location" when the
+  // pub has no spots set up). Picking a spot is only asked the first time.
+  const openAddEntry = () => {
+    setShowAddEntry(true);
+    const known = lastLocation && (!lastLocation.id || (countLocations ?? []).some(l => l.id === lastLocation.id));
+    if (known) pickLocation(lastLocation!.id, lastLocation!.name);
+    else if (!(countLocations?.length)) pickLocation("", "Unspecified");
+    else setEntryStep("location");
   };
 
   const addNewLocationAndPick = async () => {
@@ -479,6 +630,37 @@ export default function Stocktake() {
     }
   };
 
+  // Keg / cask / postmix box size, changeable right here on the count screen.
+  const [showSizePicker, setShowSizePicker] = useState(false);
+  const [sizeDraft, setSizeDraft] = useState("");
+  const isDraughtProduct = !!activeProduct && ((activeProduct.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(activeProduct.counting_method ?? ""));
+  const isBoxProduct = !!activeProduct && !isDraughtProduct && (activeProduct.category === "postmix" || (activeProduct.counting_method === "litre" && activeProduct.container_l != null));
+  const sizeKind = isBoxProduct ? "postmix" : (activeProduct?.container_type ?? "keg");
+  useEffect(() => { setShowSizePicker(false); setSizeDraft(activeProduct?.container_l != null ? String(activeProduct.container_l) : ""); }, [activeProduct?.id, activeProduct?.container_l]);
+  const changeContainerSize = async (litres: number) => {
+    if (!activeProduct || !venue?.id || !(litres > 0)) return;
+    const oldL = activeProduct.container_l != null ? Number(activeProduct.container_l) : null;
+    if (oldL != null && Math.abs(oldL - litres) < 0.001) { setShowSizePicker(false); return; }
+    try {
+      await updateProductForSize.mutateAsync({
+        id: activeProduct.id, venue_id: venue.id, container_l: litres,
+        ...(isBoxProduct ? { container_type: "bag_in_box" } : {}),
+      } as any);
+      const fixed = await recomputeOpenEntriesForProduct({
+        id: activeProduct.id, venue_id: venue.id, size_ml: activeProduct.size_ml ?? null, pack_size: activeProduct.pack_size ?? null,
+        counting_method: activeProduct.counting_method, container_l: litres, old_container_l: oldL,
+      });
+      if (fixed > 0) { queryClient.invalidateQueries({ queryKey: ["line-entries", activeStocktakeId] }); await refetchEntries(); }
+      setShowSizePicker(false);
+      toast({
+        title: "Size changed",
+        description: `${activeProduct.name} is now a ${containerSizeLabel(litres, sizeKind)}.${fixed > 0 ? ` Updated ${fixed} ${fixed === 1 ? "count" : "counts"} typed in kegs.` : ""}`,
+      });
+    } catch (err: any) {
+      toast({ title: "Couldn't change the size", description: String(err?.message ?? err), variant: "destructive" });
+    }
+  };
+
   const saveLineEntry = async () => {
     if (!activeProduct || !venue?.id || !user?.id || !activeStocktakeId) return;
 
@@ -489,6 +671,11 @@ export default function Stocktake() {
     }
     if (underEmptyWarning) {
       toast({ title: "Check the weight", description: underEmptyWarning, variant: "destructive" });
+      return;
+    }
+
+    if (entryActiveMethod === "dipstick" && !dipByPints && !activeProduct.dip_full_mm) {
+      toast({ title: "Set the full depth first", description: "Or tap Pints on the rod and type the pints.", variant: "destructive" });
       return;
     }
 
@@ -507,12 +694,17 @@ export default function Stocktake() {
     try {
       const rawMl = entryCategoryResult ? entryCategoryResult.mlRemaining : (entryMl ?? 0);
       const ml = Math.max(0, rawMl);
-      const fullContainers = entryCategoryResult?.fullContainers ?? null;
+      const typedAsTotal = entryActiveMethod === "keg_weight" && kegMode === "gallons";
+      // A total typed in gallons + pints is saved as the total (no full-keg split), so it
+      // stays right if the keg size is changed afterwards.
+      const fullContainers = typedAsTotal ? null : entryCategoryResult?.fullContainers ?? null;
       // For weigh entries the raw gram reading is the authoritative part_value
       const partValue = entryActiveMethod === "weigh"
         ? parseFloat(entryWeightStr) || null
-        : parseFloat(entryNumStr) || null;
-      const method: LocalLineEntry["method"] = (entryActiveMethod ?? (
+        : typedAsTotal
+          ? Math.round((ml / ML_PER_PINT) * 1000) / 1000
+          : parseFloat(entryNumStr) || null;
+      const method: LocalLineEntry["method"] = (dipByPints ? "keg_weight" : entryActiveMethod ?? (
         activeProduct.unit === "count" ? "count" :
         activeProduct.empty_weight_g != null ? "weigh" : "tenths"
       )) as LocalLineEntry["method"];
@@ -536,6 +728,7 @@ export default function Stocktake() {
       });
       queryClient.invalidateQueries({ queryKey: ["line-entries", activeStocktakeId] });
       await refetchEntries();
+      setLastLocation({ id: entryLocationId, name: entryLocationName || "Unspecified" });
       resetEntryForm();
     } catch (err: any) {
       toast({ title: "Error saving entry", description: String(err?.message ?? err), variant: "destructive" });
@@ -544,10 +737,33 @@ export default function Stocktake() {
     }
   };
 
+  // Deleting a count is one tap, so it must be one tap to put back.
   const removeEntry = async (id: string) => {
+    const removed = (lineEntries ?? []).find(e => e.id === id);
     await deleteLineEntry(id);
     queryClient.invalidateQueries({ queryKey: ["line-entries", activeStocktakeId] });
     await refetchEntries();
+    if (removed) {
+      const prod = products?.find(p => p.id === removed.product_id);
+      const what = prod ? describeQuantity(prod as any, [removed as any]).short : "";
+      toast({
+        title: "Count removed",
+        description: `${prod?.name ?? "Entry"}${what ? ` · ${what}` : ""}`,
+        action: (
+          <ToastAction
+            altText="Undo"
+            data-testid="button-undo-delete-entry"
+            onClick={async () => {
+              await addLineEntry({ ...removed, sync_status: "pending", updated_at: new Date().toISOString() });
+              queryClient.invalidateQueries({ queryKey: ["line-entries", activeStocktakeId] });
+              await refetchEntries();
+            }}
+          >
+            Undo
+          </ToastAction>
+        ),
+      });
+    }
   };
 
   const finishStocktake = async () => {
@@ -620,6 +836,18 @@ export default function Stocktake() {
     }
   };
 
+  // Next line still to count after the one open, in list order (wraps round).
+  const nextUncounted = (() => {
+    if (!activeProductId) return null;
+    const order = countListOrder;
+    const i = order.findIndex(p => p.id === activeProductId);
+    for (let k = 1; k <= order.length; k++) {
+      const p = order[(i + k) % order.length];
+      if (p && p.id !== activeProductId && !(entriesByProduct.get(p.id) ?? []).length) return p;
+    }
+    return null;
+  })();
+
   // ─── STEP: list ──────────────────────────────────────────────────────────────
 
   if (step === "list") {
@@ -634,7 +862,7 @@ export default function Stocktake() {
               <CardContent className="p-4 space-y-3">
                 <div className="font-bold text-sm">First count done. The number that matters comes next.</div>
                 <p className="text-sm text-muted-foreground">
-                  A single count tells you what you've got. The second one, a week from now, tells you what moved — and that's where the missing money shows up. Book it and StockTap will remind you.
+                  A single count tells you what you've got. The second one, a week from now, tells you what moved, and that's where the missing money shows up. Book it and StockTap will remind you.
                 </p>
                 <div className="flex gap-2">
                   <Button className="flex-1 h-11 font-semibold" onClick={bookSecondCount} disabled={bookingSecondCount} data-testid="button-book-second-count">
@@ -647,12 +875,48 @@ export default function Stocktake() {
               </CardContent>
             </Card>
           )}
-          <Button size="lg" className="w-full h-16 text-lg font-bold shadow-md" onClick={() => setStep("select")} data-testid="button-new-stocktake">
-            Start New Stocktake
-          </Button>
+          {(() => {
+            const openOne = (stocktakes ?? []).find(s => s.status === "open");
+            return (
+              <>
+                <Button size="lg" className="w-full h-16 text-lg font-bold shadow-md" onClick={() => (openOne ? setConfirmNew(v => !v) : setStep("select"))} data-testid="button-new-stocktake">
+                  Start New Stocktake
+                </Button>
+                {confirmNew && openOne && (
+                  <Card className="border-[#E0A343]/40 bg-[#E0A343]/10" data-testid="card-confirm-new">
+                    <CardContent className="p-4 space-y-3">
+                      <p className="text-sm">You've already got a count open from {formatDate(openOne.opened_at)}. Carry on with that one? Starting another means two counts on the go, and Reports compares closed counts only.</p>
+                      <div className="flex gap-2">
+                        <Button className="flex-1 h-11 font-semibold" onClick={() => { setConfirmNew(false); openStocktake(openOne); }} data-testid="button-carry-on-open">Carry on that count</Button>
+                        <Button variant="outline" className="h-11" onClick={() => { setConfirmNew(false); setStep("select"); }} data-testid="button-start-another">Start another</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            );
+          })()}
+          <Card data-testid="card-stocktake-tips">
+            <CardContent className="p-0">
+              <button type="button" className="w-full flex items-center justify-between p-4 text-left" onClick={() => setShowTips(v => !v)} aria-expanded={showTips} data-testid="button-stocktake-tips">
+                <span className="font-semibold text-sm">How a count works, and weigh or tenths?</span>
+                <span className="text-xs font-semibold text-primary">{showTips ? "Hide" : "Show"}</span>
+              </button>
+              {showTips && (
+                <div className="px-4 pb-4 space-y-2 text-sm text-muted-foreground" data-testid="stocktake-tips">
+                  <p><strong className="text-foreground">1. Pick what to count.</strong> The whole bar, or just the spirits on a Tuesday. You don't have to do everything at once.</p>
+                  <p><strong className="text-foreground">2. Count each line where it is.</strong> Same drink behind the bar and in the cellar? Count it in both spots and StockTap adds them up.</p>
+                  <p><strong className="text-foreground">Weigh or tenths?</strong> Tenths is a look at the bottle: full is 10, half is 5. Quick, and a good start. Weighing is spot on to the ml, and you set a bottle up once by putting one full sealed bottle on the scale. Do it for the dear ones first.</p>
+                  <p><strong className="text-foreground">Draught.</strong> Kegs: pints left in the open keg plus the full ones. Casks: the pints on your dip rod plus the full ones.</p>
+                  <p><strong className="text-foreground">3. Review and close.</strong> Closing saves the value. Count again next week and Reports shows what moved and what went missing.</p>
+                  <p>It all saves on the phone as you go, so a bad signal in the cellar doesn't lose anything.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
           <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest pt-2">Past Stocktakes</h2>
           {!stocktakes?.length ? (
-            <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No stocktakes yet</CardContent></Card>
+            <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No counts yet. Tap Start New Stocktake and pick a few lines to try it.</CardContent></Card>
           ) : (
             <div className="space-y-2">
               {stocktakes.map(st => (
@@ -660,10 +924,12 @@ export default function Stocktake() {
                   <CardContent className="p-4 flex justify-between items-center">
                     <div>
                       <div className="font-semibold text-sm">{formatDate(st.opened_at)}</div>
-                      {st.total_value != null && st.total_value > 0 ? (
+                      {st.status === "open" ? (
+                        <OpenCountProgress stocktake={st as any} totalProducts={products?.length ?? 0} />
+                      ) : st.total_value != null && st.total_value > 0 ? (
                         <div className="text-sm text-muted-foreground">{formatGBP(st.total_value)}</div>
                       ) : (
-                        <div className="text-xs text-muted-foreground capitalize">{st.status}</div>
+                        <div className="text-xs text-muted-foreground">Closed</div>
                       )}
                     </div>
                     <Button size="sm" variant="outline" onClick={e => { e.stopPropagation(); openStocktake(st); }} data-testid={`button-open-stocktake-${st.id}`}>
@@ -687,23 +953,23 @@ export default function Stocktake() {
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-border bg-card sticky top-0 z-10 space-y-3">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setStep("list")}><ArrowLeft /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setStep("list")} data-testid="button-back-to-list" aria-label="Back"><ArrowLeft /></Button>
             <div>
               <h1 className="text-xl font-bold text-primary">Choose what to count</h1>
-              <p className="text-xs text-muted-foreground">Pick any bottles — you don't have to do the whole bar</p>
+              <p className="text-xs text-muted-foreground">Pick any lines. You don't have to do the whole bar.</p>
             </div>
           </div>
-          <Input placeholder="Search products…" value={searchStr} onChange={e => setSearchStr(e.target.value)} data-testid="input-stocktake-search" />
+          <Input placeholder={`Search ${products?.length ?? 0} products…`} value={searchStr} onChange={e => setSearchStr(e.target.value)} data-testid="input-stocktake-search" />
           <div className="flex gap-2 overflow-x-auto pb-1">
-            <button className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedLocationId === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedLocationId("all")}>All locations</button>
-            {locations?.map(loc => (
-              <button key={loc.id} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedLocationId === loc.id ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedLocationId(loc.id)}>{loc.name}</button>
+            <button className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedLocationId === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedLocationId("all")} data-testid="button-location-filter-all">All locations</button>
+            {usableLocations.map(loc => (
+              <button key={loc.id} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedLocationId === loc.id ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedLocationId(loc.id)} data-testid={`button-location-filter-${loc.id}`}>{loc.name}</button>
             ))}
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1">
             <button className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedCategory === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedCategory("all")} data-testid="button-category-filter-all">All categories</button>
-            {(Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[]).map(cat => (
-              <button key={cat} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedCategory === cat ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedCategory(cat)} data-testid={`button-category-filter-${cat}`}>{CATEGORY_LABELS[cat]}</button>
+            {(Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[]).filter(cat => categoryCounts.has(cat)).map(cat => (
+              <button key={cat} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedCategory === cat ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedCategory(cat)} data-testid={`button-category-filter-${cat}`}>{CATEGORY_LABELS[cat]} {categoryCounts.get(cat)}</button>
             ))}
           </div>
           {vendorOptions.length > 0 && (
@@ -715,20 +981,20 @@ export default function Stocktake() {
             </div>
           )}
           <div className="flex items-center justify-between text-xs">
-            <button className="font-semibold text-primary" onClick={allVisibleSelected ? clearSelection : selectAllVisible}>{allVisibleSelected ? "Clear all" : "Select all shown"}</button>
-            <span className="text-muted-foreground">{selectedProductIds.length} selected</span>
+            <button className="font-semibold text-primary" onClick={allVisibleSelected ? clearSelection : selectAllVisible} data-testid="button-select-all-shown">{allVisibleSelected ? "Clear all" : `Select all ${pickableProducts.length} shown`}</button>
+            <span className="text-muted-foreground" data-testid="text-selected-count">{selectedProductIds.length} selected{selectedProductIds.length > 0 && !allVisibleSelected ? <> · <button type="button" className="underline" onClick={clearSelection} data-testid="button-clear-selection">clear</button></> : null}</span>
           </div>
         </div>
         <div className="p-4 space-y-2 flex-1 overflow-auto pb-28">
           {pickableProducts.length === 0 ? (
-            <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No products match</CardContent></Card>
+            <Card><CardContent className="p-4 text-center text-muted-foreground text-sm" data-testid="select-no-results">{searchStr.trim() ? `Nothing called “${searchStr.trim()}”. Add it in the Library first.` : "Nothing in this filter"}</CardContent></Card>
           ) : pickableProducts.map(p => {
             const checked = selectedProductIds.includes(p.id);
             return (
               <button key={p.id} onClick={() => toggleProductSel(p.id)} data-testid={`select-product-${p.id}`} className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-colors ${checked ? "border-primary bg-primary/5" : "border-border"}`}>
                 <div>
                   <div className="font-semibold text-sm">{p.name}</div>
-                  <div className="text-xs text-muted-foreground">{p.category ? (CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category) : "—"}{p.size_ml ? ` · ${p.size_ml}ml` : ""}</div>
+                  <div className="text-xs text-muted-foreground">{p.category ? (CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category) : "—"}{productSizeLabel(p)} · {howCounted(p)}</div>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${checked ? "border-primary bg-primary" : "border-muted-foreground/40"}`}>
                   {checked && <CheckCircle className="w-4 h-4 text-primary-foreground" />}
@@ -778,8 +1044,8 @@ export default function Stocktake() {
     // ── products list view
     if (countingView === "products") {
       const enteredCount = Array.from(entriesByProduct.keys()).filter(pid => selectedProductIds.includes(pid)).length;
-      const q = countingSearch.trim().toLowerCase();
-      const searched = q ? filteredProducts.filter(p => p.name.toLowerCase().includes(q)) : filteredProducts;
+      const q = norm(countingSearch);
+      const searched = q ? countListOrder.filter(p => norm(p.name).includes(q)) : countListOrder;
       const leftCount = filteredProducts.length - enteredCount;
       const visibleProducts = searched.filter(p => !leftOnly || !(entriesByProduct.get(p.id) ?? []).length);
       return (
@@ -797,7 +1063,7 @@ export default function Stocktake() {
                 </Button>
                 <div>
                   <h1 className="text-xl font-bold text-primary">Counting</h1>
-                  <p className="text-xs text-muted-foreground mt-0.5">{enteredCount} of {filteredProducts.length} entered</p>
+                  <p className="text-xs text-muted-foreground mt-0.5" data-testid="text-count-progress">{enteredCount} of {filteredProducts.length} counted · saved as you go</p>
                 </div>
               </div>
               <Button size="sm" variant="outline" onClick={() => setStep("summary")} data-testid="button-review-stocktake">
@@ -827,36 +1093,17 @@ export default function Stocktake() {
               <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No products selected</CardContent></Card>
             ) : visibleProducts.length === 0 ? (
               <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">{q ? "No products match that search" : "Everything is counted"}</CardContent></Card>
-            ) : visibleProducts.map(p => {
+            ) : visibleProducts.map((p, idx) => {
               const entries = entriesByProduct.get(p.id) ?? [];
-              const totalMl = entries.reduce((s, e) => s + e.ml_remaining, 0);
-              const isKeg = p.counting_method === "keg_weight";
-              const pints = isKeg && entries.length > 0 ? totalMl / ML_PER_PINT : null;
-              const isEachOrDozenProd = p.counting_method === "each" || p.counting_method === "dozen" ||
-                (!p.counting_method && (p.category === "minerals" || p.category === "packaged"));
-              const isDraughtProd = p.counting_method === "dipstick" || p.counting_method === "tenths_pints";
-              const listEffCap = isDraughtProd
-                ? draughtCapacityMl(p.container_l)
-                : p.counting_method === "dozen"
-                ? (p.pack_size ?? 12) * (p.size_ml || 1)
-                : isEachOrDozenProd ? (p.size_ml || 1) : (p.size_ml ?? 700);
-              const tenths = !isKeg && entries.length > 0 ? calcTenths(totalMl, listEffCap) : null;
-              const val = p.cost_price && !isKeg && entries.length > 0 ? calcWeighValuation(totalMl, listEffCap, p.cost_price) : null;
+              const q = entries.length > 0 ? describeQuantity(p as any, entries as any) : null;
               const pending = entries.some(e => e.sync_status === "pending");
-              // Use the saved entry method as the display source of truth — the product's
-              // counting_method may differ (e.g. "litre" on a product whose entries were
-              // correctly saved as "each" after the Bug 2 fix).
-              const entryMethod = entries.length > 0 ? entries[0].method : null;
-              const isEachCountEntries = entryMethod === "each" || entryMethod === "count";
-              const listUnitCount = isEachCountEntries
-                ? entries.reduce((s, e) => s + (e.part_value ?? 0), 0)
-                : null;
-              const listEachVal = isEachCountEntries && p.cost_price && listUnitCount != null
-                ? listUnitCount * p.cost_price
+              const heading = idx === 0 || visibleProducts[idx - 1].category !== p.category
+                ? (p.category ? (CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category) : "Other")
                 : null;
               return (
+                <React.Fragment key={p.id}>
+                {heading && <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest pt-2" data-testid={`count-group-${p.category ?? "other"}`}>{heading}</h2>}
                 <button
-                  key={p.id}
                   data-testid={`counting-product-${p.id}`}
                   onClick={() => { setActiveProductId(p.id); setCountingView("detail"); }}
                   className={`w-full flex items-start justify-between p-3 rounded-xl border text-left transition-colors ${entries.length > 0 ? "border-primary/40 bg-primary/5" : "border-border"}`}
@@ -864,16 +1111,12 @@ export default function Stocktake() {
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm truncate">{p.name}</div>
                     {entries.length === 0 ? (
-                      <div className="text-xs text-muted-foreground">No entries yet</div>
+                      <div className="text-xs text-muted-foreground" data-testid={`text-how-${p.id}`}>{howCounted(p)}</div>
                     ) : (
                       <div className="text-xs text-muted-foreground">
-                        {entries.length} {entries.length === 1 ? "entry" : "entries"}
-                        {pints != null
-                          ? ` · ${pints.toFixed(1)} pt`
-                          : listUnitCount != null
-                            ? ` · ${Math.round(listUnitCount)} units`
-                            : tenths != null ? ` · ${tenths.toFixed(1)} tenths` : null}
-                        {(listEachVal ?? val) != null && ` · ${formatGBP((listEachVal ?? val)!)}`}
+                        {q?.short ?? ""}
+                        {entries.length > 1 && ` · ${entries.length} spots`}
+                        {q?.value != null && ` · ${formatGBP(q.value)}`}
                       </div>
                     )}
                   </div>
@@ -883,6 +1126,7 @@ export default function Stocktake() {
                     <span className="text-xs text-muted-foreground">{entries.length > 0 ? `${entries.length}` : "+"}</span>
                   </div>
                 </button>
+                </React.Fragment>
               );
             })}
           </div>
@@ -902,7 +1146,7 @@ export default function Stocktake() {
               </Button>
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-bold text-primary leading-tight truncate">{activeProduct.name}</h2>
-                <p className="text-xs text-muted-foreground">{activeProduct.category ? (CATEGORY_LABELS[activeProduct.category as keyof typeof CATEGORY_LABELS] ?? activeProduct.category) : "—"}{activeProduct.size_ml ? ` · ${activeProduct.size_ml}ml` : ""}</p>
+                <p className="text-xs text-muted-foreground">{activeProduct.category ? (CATEGORY_LABELS[activeProduct.category as keyof typeof CATEGORY_LABELS] ?? activeProduct.category) : "—"}{productSizeLabel(activeProduct)}</p>
               </div>
             </div>
           </div>
@@ -910,37 +1154,28 @@ export default function Stocktake() {
           {/* Entry list */}
           <div className="flex-1 overflow-auto p-4 pb-32 space-y-2">
             {productEntries.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">No entries for this product yet.<br />Tap below to add your first location entry.</div>
+              <div className="text-center py-8 text-muted-foreground text-sm space-y-2" data-testid="text-detail-empty">
+                <p>Not counted yet. {howCounted(activeProduct)}.</p>
+                <p className="text-xs">Got some behind the bar and some in the cellar? Add a count for each spot and they're added up.</p>
+              </div>
             ) : productEntries.map(entry => {
-              const isKegEntry = entry.method === "keg_weight";
-              const entPints = isKegEntry ? entry.ml_remaining / ML_PER_PINT : null;
-              const isEachOrDozenEntry = entry.method === "each" || entry.method === "dozen";
-              const isDraughtEntry = entry.method === "dipstick" || entry.method === "tenths_pints";
-              const entEffCap = isDraughtEntry
-                ? draughtCapacityMl(activeProduct.container_l)
-                : entry.method === "dozen"
-                ? (activeProduct.pack_size ?? 12) * (activeProduct.size_ml || 1)
-                : isEachOrDozenEntry ? (activeProduct.size_ml || 1) : (activeProduct.size_ml ?? 700);
-              const entTenths = !isKegEntry ? calcTenths(entry.ml_remaining, entEffCap) : null;
-              const entVal = activeProduct.cost_price && !isKegEntry ? calcWeighValuation(entry.ml_remaining, entEffCap, activeProduct.cost_price) : null;
+              const eq = describeQuantity(activeProduct as any, [entry as any]);
               return (
                 <Card key={entry.id} data-testid={`entry-card-${entry.id}`}>
                   <CardContent className="p-3 flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                        <span className="text-sm font-medium truncate">{entry.count_location_name || "Unspecified"}</span>
+                        <span className="text-sm font-medium truncate">{!entry.count_location_name || entry.count_location_name === "Unspecified" ? "No specific spot" : entry.count_location_name}</span>
                         {entry.sync_status === "pending"
                           ? <CloudOff className="w-3 h-3 text-[#E0A343] shrink-0" />
                           : <Cloud className="w-3 h-3 text-[#3FAE74] shrink-0" />}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {isKegEntry
-                          ? `${entPints!.toFixed(1)} pt`
-                          : entTenths != null
-                            ? `${entTenths.toFixed(1)} tenths · ${Math.round(entry.ml_remaining)}ml`
-                            : `${Math.round(entry.ml_remaining)}ml`}
-                        {entVal != null && ` · ${formatGBP(entVal)}`}
+                        {eq.short}
+                        {eq.kind === "draught" && entry.full_containers ? ` · ${entry.full_containers} full + ${(entry.part_value ?? 0).toFixed(1)} pt` : ""}
+                        {eq.kind === "bottles" && ` · ${eq.detail}`}
+                        {eq.value != null && ` · ${formatGBP(eq.value)}`}
                       </div>
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0" onClick={() => removeEntry(entry.id)} data-testid={`button-delete-entry-${entry.id}`}>
@@ -954,51 +1189,21 @@ export default function Stocktake() {
             {/* Running total */}
             {productEntries.length > 0 && (
               <div className="rounded-xl bg-accent p-4 text-center mt-2">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Total across all locations</div>
-                {isKegProduct ? (
-                  <>
-                    <div className="text-3xl font-bold text-primary font-mono tabular-nums">
-                      {productTotalPints.toFixed(1)}
-                      <span className="text-base font-normal text-muted-foreground ml-1">pt</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-0.5">
-                      {(productTotalMl / 1000).toFixed(1)}L
-                    </div>
-                  </>
-                ) : entryResolvedMethod === "litre" ? (
-                  <>
-                    <div className="text-3xl font-bold text-primary font-mono tabular-nums">
-                      {(productTotalMl / 1000).toFixed(1)}
-                      <span className="text-base font-normal text-muted-foreground ml-1">L</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-0.5">
-                      {Math.round(productTotalMl)}ml
-                      {activeProduct.cost_price && activeProduct.container_l && ` · ${formatGBP(calcWeighValuation(productTotalMl, activeProduct.container_l * 1000, activeProduct.cost_price))}`}
-                    </div>
-                  </>
-                ) : isEachOrDozen ? (
-                  <>
-                    <div className="text-3xl font-bold text-primary font-mono tabular-nums">
-                      {Math.round(productTotalMl / (activeProduct.size_ml || 1))}
-                      <span className="text-base font-normal text-muted-foreground ml-1">units</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-0.5">
-                      {activeProduct.size_ml ? `${activeProduct.size_ml}ml each` : "unit size not set in Library"}
-                      {activeProduct.cost_price && ` · ${formatGBP(calcWeighValuation(productTotalMl, productEffectiveCapMl, activeProduct.cost_price))}`}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-3xl font-bold text-primary font-mono tabular-nums">
-                      {productTotalTenths != null ? `${productTotalTenths.toFixed(1)}` : "—"}
-                      <span className="text-base font-normal text-muted-foreground ml-1">tenths</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-0.5">
-                      {Math.round(productTotalMl)}ml
-                      {activeProduct.cost_price && productEffectiveCapMl > 0 && ` · ${formatGBP(calcWeighValuation(productTotalMl, productEffectiveCapMl, activeProduct.cost_price))}`}
-                    </div>
-                  </>
-                )}
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Total across all spots</div>
+                {(() => {
+                  const tq = describeQuantity(activeProduct as any, productEntries as any);
+                  return (
+                    <>
+                      <div className="text-3xl font-bold text-primary font-mono tabular-nums" data-testid="text-product-total">
+                        {tq.main}
+                        {tq.unit && <span className="text-base font-normal text-muted-foreground ml-1">{tq.unit}</span>}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-0.5">
+                        {[tq.detail, tq.value != null ? formatGBP(tq.value) : ""].filter(Boolean).join(" · ")}
+                      </div>
+                    </>
+                  );
+                })()}
                 {parLevel != null && productEntries.length > 0 && (
                   <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tabular-nums ${
                     parFraction >= 1 ? "bg-[#3FAE74]/20 text-[#3FAE74]" :
@@ -1017,11 +1222,27 @@ export default function Stocktake() {
             )}
           </div>
 
-          {/* Add entry button */}
-          <div className="p-4 border-t border-border bg-card sticky bottom-0">
-            <Button size="lg" className="w-full h-14 font-bold text-base" onClick={() => { setShowAddEntry(true); setEntryStep("location"); }} data-testid="button-add-entry">
-              <Plus className="w-5 h-5 mr-2" /> Add location entry
-            </Button>
+          {/* Add a count, then straight on to the next line */}
+          <div className="p-4 border-t border-border bg-card sticky bottom-0 space-y-2">
+            {productEntries.length > 0 && nextUncounted ? (
+              <>
+                <Button size="lg" className="w-full h-14 font-bold text-base" onClick={() => { setActiveProductId(nextUncounted.id); openAddEntry(); }} data-testid="button-next-product">
+                  <span className="truncate">Next: {nextUncounted.name}</span>
+                </Button>
+                <Button variant="outline" className="w-full h-11 font-semibold" onClick={openAddEntry} data-testid="button-add-entry">
+                  <Plus className="w-4 h-4 mr-1" /> Some in another spot too
+                </Button>
+              </>
+            ) : (
+              <Button size="lg" className="w-full h-14 font-bold text-base" onClick={openAddEntry} data-testid="button-add-entry">
+                <Plus className="w-5 h-5 mr-2" /> {productEntries.length ? "Add another spot" : "Count it"}
+              </Button>
+            )}
+            {productEntries.length > 0 && !nextUncounted && (
+              <Button size="lg" variant="outline" className="w-full h-12 font-semibold" onClick={() => setStep("summary")} data-testid="button-all-counted-review">
+                All counted · Review &amp; close
+              </Button>
+            )}
           </div>
 
           {/* Add entry bottom sheet — z-[60] so it sits above the z-50 bottom nav */}
@@ -1032,13 +1253,13 @@ export default function Stocktake() {
                 {/* Sheet header */}
                 <div className="flex items-center justify-between p-4 border-b border-border">
                   {entryStep === "value" ? (
-                    <button onClick={() => setEntryStep("location")} className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                      <ArrowLeft className="w-4 h-4" /> Back
+                    <button onClick={() => setEntryStep("location")} className="flex items-center gap-1 text-sm font-medium text-primary" data-testid="button-change-spot">
+                      <MapPin className="w-4 h-4" /> Change spot
                     </button>
                   ) : <div />}
                   <div className="text-center flex-1">
                     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                      {entryStep === "location" ? "Pick a location" : entryLocationName}
+                      {entryStep === "location" ? "Where is it?" : entryLocationName === "Unspecified" || !entryLocationName ? "No specific spot" : entryLocationName}
                     </div>
                   </div>
                   <button onClick={resetEntryForm} className="text-muted-foreground" data-testid="button-close-entry-sheet">
@@ -1046,7 +1267,7 @@ export default function Stocktake() {
                   </button>
                 </div>
 
-                <div className="overflow-auto flex-1 p-4 space-y-3">
+                <div className="overflow-auto flex-1 p-4 space-y-3" ref={entryScrollRef}>
                   {entryStep === "location" ? (
                     <>
                       {/* No location option */}
@@ -1056,7 +1277,7 @@ export default function Stocktake() {
                         data-testid="button-location-unspecified"
                       >
                         <div className="w-8 h-8 rounded-full border-2 border-border flex items-center justify-center shrink-0 text-xs">—</div>
-                        <span className="text-sm font-medium">No specific location</span>
+                        <span className="text-sm font-medium">No specific spot</span>
                       </button>
 
                       {/* Count location list */}
@@ -1094,15 +1315,18 @@ export default function Stocktake() {
                           data-testid="button-add-new-location"
                         >
                           <Plus className="w-5 h-5 text-muted-foreground shrink-0" />
-                          <span className="text-sm font-medium text-muted-foreground">Add new location...</span>
+                          <span className="text-sm font-medium text-muted-foreground">Add a spot (bar, cellar, back fridge)…</span>
                         </button>
                       )}
                     </>
                   ) : (
                     <>
                       {/* Value entry step */}
-                      <div className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">
-                        {entryActiveMethod ? METHOD_LABELS[entryActiveMethod] : "Enter amount"}
+                      <div className="text-center mb-2">
+                        <div className="text-sm font-bold truncate" data-testid="text-entry-product">{activeProduct.name}</div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                          {entryActiveMethod === "keg_weight" ? "Kegs" : entryActiveMethod === "dipstick" ? "Cask" : needsFullBottle ? "Set this bottle up" : entryActiveMethod === "each" ? "Count them" : entryActiveMethod ? METHOD_LABELS[entryActiveMethod] : "Enter amount"}
+                        </div>
                       </div>
 
                       {isBottleLine && activeProduct && entryResolvedMethod !== "photo_tap" && (
@@ -1111,9 +1335,9 @@ export default function Stocktake() {
                             <button
                               type="button"
                               role="radio"
-                              aria-checked={entryActiveMethod === "weigh"}
+                              aria-checked={entryActiveMethod === "weigh" || needsFullBottle}
                               onClick={() => { setBottleMethodOverride(prev => ({ ...prev, [activeProduct.id]: "weigh" })); setEntryNumStr("0"); }}
-                              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${entryActiveMethod === "weigh" ? "bg-primary text-primary-foreground" : "text-muted-foreground"} disabled:opacity-40`}
+                              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${entryActiveMethod === "weigh" || needsFullBottle ? "bg-primary text-primary-foreground" : "text-muted-foreground"} disabled:opacity-40`}
                               data-testid="button-bottle-method-weigh"
                             >
                               Weigh
@@ -1159,10 +1383,14 @@ export default function Stocktake() {
                           userId={user.id}
                           switchToWeigh={activeProduct.counting_method !== "weigh"}
                           useTenthsLabel="No full bottle to hand? Count this one in tenths"
+                          onDone={() => entryScrollRef.current?.scrollTo({ top: 0 })}
                           onUseTenths={() => setBottleMethodOverride(prev => ({ ...prev, [activeProduct.id]: "tenths" }))}
                         />
                       )}
 
+                      {entryActiveMethod === "weigh" && (
+                        <p className="text-xs text-muted-foreground text-center" data-testid="tip-weigh">Open bottle on the scale, then type the grams. Pourer off if you can: the bottle was set up with its cap on.</p>
+                      )}
                       {entryActiveMethod === "weigh" && <NumberPad value={entryWeightStr} onChange={setEntryWeightStr} label="Weight (grams)" allowDecimal />}
                       {entryActiveMethod === "weigh" && overCalibrationWarning && (
                         <div className="rounded-xl border border-[#E5544B]/40 bg-[#E5544B]/10 p-3 text-sm text-[#E5544B]">
@@ -1174,6 +1402,36 @@ export default function Stocktake() {
                           {underEmptyWarning}
                         </div>
                       )}
+                      {(isDraughtProduct || (isBoxProduct && entryActiveMethod === "litre")) && (
+                        <div className="rounded-xl border border-border p-3" data-testid="container-size-row">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="text-sm">
+                              <span className="text-muted-foreground">{isBoxProduct ? "Box size" : activeProduct?.container_type === "cask" ? "Cask size" : "Keg size"}: </span>
+                              <span className="font-semibold" data-testid="text-container-size">{activeProduct?.container_l ? containerSizeLabel(Number(activeProduct.container_l), sizeKind) : "not set"}</span>
+                              {activeProduct?.category === "postmix" && activeProduct?.container_l ? <span className="text-muted-foreground" data-testid="text-postmix-yield"> · makes {postmixDrinkLitresPerBox(activeProduct as any)}L</span> : null}
+                            </div>
+                            <button type="button" className="text-sm font-semibold text-primary underline" onClick={() => setShowSizePicker(v => !v)} data-testid="button-change-container-size">
+                              {showSizePicker ? "Cancel" : "Change"}
+                            </button>
+                          </div>
+                          {showSizePicker && (
+                            <div className="mt-3 space-y-3">
+                              <ContainerSizePicker
+                                id="count-container-size"
+                                kind={sizeKind}
+                                label={isBoxProduct ? "How big is the box?" : "How big is the keg?"}
+                                value={sizeDraft}
+                                onChange={setSizeDraft}
+                                onPreset={changeContainerSize}
+                                testId="count"
+                              />
+                              <Button type="button" variant="outline" className="w-full" disabled={!(parseFloat(sizeDraft) > 0)} onClick={() => changeContainerSize(parseFloat(sizeDraft))} data-testid="button-save-container-size">
+                                Use {parseFloat(sizeDraft) > 0 ? `${parseFloat(sizeDraft)}L` : "this size"}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {entryActiveMethod === "tenths_pints" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />}
                       {entryActiveMethod === "tenths" && (<>
                           <TenthsInput value={entryNumStr} onChange={setEntryNumStr} shapePath={activeProduct?.shape_path} fillCurve={activeProduct?.fill_curve} imageUrl={activeProduct?.image_path} sizeMl={activeProduct?.size_ml ?? null} onSizeChange={changeBottleSize} />
@@ -1182,26 +1440,91 @@ export default function Stocktake() {
                           </button>
                           {showTypedTenths && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />}
                         </>)}
-                      {entryActiveMethod === "keg_weight" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Pints remaining" allowDecimal />}
-                      {entryActiveMethod === "dipstick" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Dip reading (mm)" allowDecimal />}
-                      {entryActiveMethod === "dipstick" && !activeProduct?.dip_full_mm && (
-                        <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm text-[#E0A343]">
-                          Full-tank depth not calibrated — the mm reading cannot convert to volume or value. Set the tank depth in the Product Library first.
+                      {entryActiveMethod === "keg_weight" && (
+                        <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1" role="radiogroup" aria-label="How to enter draught">
+                          {(["kegs", "gallons"] as const).map(m => (
+                            <button
+                              key={m}
+                              type="button"
+                              role="radio"
+                              aria-checked={kegMode === m}
+                              onClick={() => setKegMode(m)}
+                              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${kegMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                              data-testid={`button-keg-mode-${m}`}
+                            >
+                              {m === "kegs" ? "Kegs + pints" : "Gallons + pints"}
+                            </button>
+                          ))}
                         </div>
                       )}
-                      {entryActiveMethod === "dozen" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Part units (loose)" allowDecimal />}
-                      {entryActiveMethod === "dozen" && !activeProduct?.size_ml && (
-                        <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm text-[#E0A343]">
-                          No unit size set — add the bottle/can size (ml) in the Product Library for accurate ml and £ tracking.
+                      {entryActiveMethod === "keg_weight" && (
+                        <p className="text-xs text-muted-foreground text-center" data-testid="tip-keg">{kegMode === "kegs" ? "Pints left in the open keg (off a keg scale, or your best guess by lifting it), then the full ones not tapped yet." : "The total for this line, as a stocktaker's sheet writes it: 5 gal 4 pt."}</p>
+                      )}
+                      {entryActiveMethod === "keg_weight" && kegMode === "kegs" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Pints left in the open keg" allowDecimal />}
+                      {entryActiveMethod === "keg_weight" && kegMode === "gallons" && (
+                        <MultiFieldPad
+                          testId="gallons-pad"
+                          fields={[
+                            { key: "gal", label: "Gallons", value: entryGallonsStr, onChange: setEntryGallonsStr },
+                            { key: "pt", label: "Pints", value: entryPintsStr, onChange: setEntryPintsStr, allowDecimal: true },
+                          ]}
+                        />
+                      )}
+                      {entryActiveMethod === "dipstick" && (
+                        <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1" role="radiogroup" aria-label="How to dip the cask">
+                          {(["pints", "mm"] as const).map(m => (
+                            <button key={m} type="button" role="radio" aria-checked={dipMode === m}
+                              onClick={() => { setDipMode(m); setEntryNumStr("0"); }}
+                              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${dipMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                              data-testid={`button-dip-mode-${m}`}>
+                              {m === "pints" ? "Pints on the rod" : "Ruler (mm)"}
+                            </button>
+                          ))}
                         </div>
                       )}
+                      {entryActiveMethod === "dipstick" && dipMode === "pints" && (
+                        <>
+                          <p className="text-xs text-muted-foreground text-center" data-testid="tip-dip-pints">Dip the cask and read the pints off the rod, then the full casks not tapped yet.</p>
+                          <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Pints left in the open cask" allowDecimal />
+                        </>
+                      )}
+                      {entryActiveMethod === "dipstick" && dipMode === "mm" && activeProduct?.dip_full_mm && (
+                        <NumberPad value={entryNumStr} onChange={setEntryNumStr} label={`Dip reading (mm, full is ${activeProduct.dip_full_mm})`} allowDecimal />
+                      )}
+                      {entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm && (
+                        <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 space-y-2" data-testid="dip-depth-setup">
+                          <p className="text-sm">To use a ruler, StockTap needs how deep this cask is when it's full, in mm. Dip a full one once and type it here. Until then, the pints on your rod work fine.</p>
+                          <div className="flex gap-2">
+                            <Input type="number" inputMode="decimal" placeholder="Full depth in mm, e.g. 600" value={dipDepthDraft} onChange={e => setDipDepthDraft(e.target.value)} data-testid="input-dip-full-depth" />
+                            <Button type="button" disabled={!(parseFloat(dipDepthDraft) > 0)} data-testid="button-save-dip-depth"
+                              onClick={async () => {
+                                try {
+                                  await updateProductForSize.mutateAsync({ id: activeProduct!.id, venue_id: venue!.id, dip_full_mm: parseFloat(dipDepthDraft) } as any);
+                                  setDipDepthDraft(""); setEntryNumStr("0");
+                                  toast({ title: "Full depth saved", description: `${activeProduct!.name}: now dip it in mm.` });
+                                } catch (err: any) {
+                                  toast({ title: "Couldn't save that", description: String(err?.message ?? err), variant: "destructive" });
+                                }
+                              }}>Save</Button>
+                          </div>
+                        </div>
+                      )}
+                      {entryActiveMethod === "dozen" && <p className="text-xs text-muted-foreground text-center" data-testid="tip-dozen">Loose ones first, then full cases underneath. {activeProduct?.pack_size ?? 12} to a case.</p>}
+                      {entryActiveMethod === "dozen" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Loose ones (not in a full case)" allowDecimal />}
                       {entryActiveMethod === "each" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Units" allowDecimal />}
-                      {entryActiveMethod === "each" && !activeProduct?.size_ml && (
-                        <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm text-[#E0A343]">
-                          No unit size set — add the bottle/can size (ml) in the Product Library for accurate ml and £ tracking.
+                      {entryActiveMethod === "litre" && activeProduct?.category === "postmix" && (
+                        <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1" role="radiogroup" aria-label="How to enter postmix">
+                          {(["boxes", "litres"] as const).map(m => (
+                            <button key={m} type="button" role="radio" aria-checked={postmixMode === m}
+                              onClick={() => { setPostmixMode(m); setEntryNumStr("0"); }}
+                              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${postmixMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                              data-testid={`button-postmix-mode-${m}`}>
+                              {m === "boxes" ? "Boxes" : "Litres of drink"}
+                            </button>
+                          ))}
                         </div>
                       )}
-                      {entryActiveMethod === "litre" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Litres" allowDecimal />}
+                      {entryActiveMethod === "litre" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label={activeProduct?.category === "postmix" ? (postmixMode === "boxes" ? "Boxes (e.g. 1.4)" : "Litres of drink") : "Litres"} allowDecimal />}
 
                       {entryActiveMethod === "photo_tap" && (
                         <div className="space-y-3">
@@ -1268,16 +1591,16 @@ export default function Stocktake() {
                         <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />
                       )}
 
-                      {(entryActiveMethod === "keg_weight" || entryActiveMethod === "dipstick" || entryActiveMethod === "tenths_pints" || entryActiveMethod === "dozen" || entryActiveMethod === "weigh" || entryActiveMethod === "tenths") && (
+                      {((entryActiveMethod === "keg_weight" && kegMode === "kegs") || (entryActiveMethod === "dipstick" && (dipMode === "pints" || !!activeProduct?.dip_full_mm)) || entryActiveMethod === "tenths_pints" || entryActiveMethod === "dozen" || entryActiveMethod === "weigh" || entryActiveMethod === "tenths") && (
                         entryActiveMethod === "keg_weight" && !activeProduct?.container_l ? (
                           <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm text-[#E0A343]">
-                            Keg capacity not set — full barrel counting is disabled. Set the keg size (e.g. 50L or 9 gal) in the Product Library to count full barrels.
+                            No keg size yet, so full kegs can't be added. Tap Change next to Keg size above and pick it.
                           </div>
                         ) : (
                           <NumberPad
                             value={entryFullContainersStr}
                             onChange={setEntryFullContainersStr}
-                            label={entryActiveMethod === "dozen" ? "Full packs" : (entryActiveMethod === "weigh" || entryActiveMethod === "tenths") ? "Full sealed bottles" : "Full containers (spare)"}
+                            label={entryActiveMethod === "dozen" ? "Full cases" : (entryActiveMethod === "weigh" || entryActiveMethod === "tenths") ? "Full sealed bottles" : entryActiveMethod === "keg_weight" ? "Full kegs (not tapped)" : activeProduct?.container_type === "keg" ? "Full kegs (not tapped)" : "Full casks (not tapped)"}
                           />
                         )
                       )}
@@ -1285,19 +1608,55 @@ export default function Stocktake() {
                       {/* Real-time result — only show once the user has typed a non-zero value */}
                       {(entryCategoryResult || (entryTenths != null && entryTenths > 0) || (entryMl != null && entryMl > 0)) && (
                         <div className="bg-background rounded-xl border border-border p-4 text-center">
-                          {entryActiveMethod === "keg_weight" ? (
-                            <>
-                              <div className="text-3xl font-bold text-primary font-mono tabular-nums">
-                                {((entryCategoryResult?.mlRemaining ?? 0) / ML_PER_PINT).toFixed(1)}
-                                <span className="text-base font-normal text-muted-foreground ml-1">pt</span>
-                              </div>
-                              {entryCategoryResult?.fullContainers != null && entryCategoryResult.fullContainers > 0 && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {entryCategoryResult.fullContainers} full + {(parseFloat(entryNumStr) || 0).toFixed(1)} pt part
+                          {(entryActiveMethod === "keg_weight" || entryActiveMethod === "dipstick") ? (() => {
+                            const totalPints = (entryCategoryResult?.mlRemaining ?? 0) / ML_PER_PINT;
+                            const full = entryCategoryResult?.fullContainers ?? 0;
+                            const partPints = (((entryCategoryResult?.mlRemaining ?? 0) - full * (activeProduct?.container_l ?? 0) * 1000) / ML_PER_PINT);
+                            return (
+                              <>
+                                <div className="text-3xl font-bold text-primary font-mono tabular-nums" data-testid="text-keg-result">
+                                  {formatGallonsPints(totalPints)}
                                 </div>
-                              )}
-                            </>
-                          ) : entryActiveMethod === "each" ? (
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {totalPints.toFixed(1)} pints
+                                  {activeProduct?.container_l ? ` · ${full} full ${entryActiveMethod === "dipstick" ? (full === 1 ? "cask" : "casks") : (full === 1 ? "keg" : "kegs")} + ${partPints.toFixed(1)} pt in the open one` : ""}
+                                </div>
+                                {activeProduct?.cost_price && entryCategoryResult ? (
+                                  <div className="text-sm text-muted-foreground">{formatGBP(entryCategoryResult.valueGbp)} stock value</div>
+                                ) : null}
+                              </>
+                            );
+                          })() : entryActiveMethod === "dozen" ? (() => {
+                            const units = (entryCategoryResult?.fullContainers ?? 0) * (activeProduct?.pack_size ?? 12) + (parseFloat(entryNumStr) || 0);
+                            return (
+                              <>
+                                <div className="text-3xl font-bold text-primary font-mono tabular-nums">
+                                  {Math.round(units * 100) / 100}
+                                  <span className="text-base font-normal text-muted-foreground ml-1">units</span>
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
+                                  <div>{entryCategoryResult?.fullContainers ?? 0} × {activeProduct?.pack_size ?? 12} + {parseFloat(entryNumStr) || 0} loose</div>
+                                  {activeProduct?.cost_price && <div>{formatGBP((units / (activeProduct.pack_size ?? 12)) * activeProduct.cost_price)} stock value</div>}
+                                </div>
+                              </>
+                            );
+                          })() : entryActiveMethod === "litre" ? (() => {
+                            const litres = (entryCategoryResult?.mlRemaining ?? 0) / 1000;
+                            return (
+                              <>
+                                <div className="text-3xl font-bold text-primary font-mono tabular-nums">
+                                  {Math.round(litres * 100) / 100}
+                                  <span className="text-base font-normal text-muted-foreground ml-1">L</span>
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
+                                  {activeProduct?.category === "postmix"
+                                    ? <div data-testid="text-postmix-boxes">= {(() => { const b = Math.round((litres / postmixDrinkLitresPerBox(activeProduct as any)) * 100) / 100; return `${b} ${b === 1 ? "box" : "boxes"}`; })()} ({postmixDrinkLitresPerBox(activeProduct as any)}L of drink a box)</div>
+                                    : activeProduct?.container_l ? <div>= {(() => { const b = Math.round((litres / activeProduct.container_l!) * 100) / 100; return `${b} ${b === 1 ? "box" : "boxes"}`; })()} of {activeProduct.container_l}L</div> : null}
+                                  {activeProduct?.cost_price && entryCategoryResult ? <div>{formatGBP(entryCategoryResult.valueGbp)} stock value</div> : null}
+                                </div>
+                              </>
+                            );
+                          })() : entryActiveMethod === "each" ? (
                             // Bug 2: count-unit products — show a unit count, not a clamped tenths figure
                             <>
                               <div className="text-3xl font-bold text-primary font-mono tabular-nums">
@@ -1339,8 +1698,8 @@ export default function Stocktake() {
                         </div>
                       )}
 
-                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={saveLineEntry} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle} data-testid="button-save-entry">
-                        {savingEntry ? "Saving..." : "Save Entry"}
+                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={saveLineEntry} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle || (entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm)} data-testid="button-save-entry">
+                        {savingEntry ? "Saving..." : entryIsZero ? "Save: none left" : "Save"}
                       </Button>
                     </>
                   )}
@@ -1379,7 +1738,7 @@ export default function Stocktake() {
             <CardContent className="p-4">
               <div className="text-sm text-primary-foreground/80">Total Stock Value</div>
               <div className="text-4xl font-bold font-mono tabular-nums">{formatGBP(totalSummaryValue)}</div>
-              <div className="text-sm text-primary-foreground/70 mt-0.5">{summaryLines.length} products counted</div>
+              <div className="text-sm text-primary-foreground/70 mt-0.5">{summaryLines.length} {summaryLines.length === 1 ? "line" : "lines"} counted{isViewingClosed ? "" : ". Nothing's final until you close."}</div>
             </CardContent>
           </Card>
           {uncounted.length > 0 && (
@@ -1399,20 +1758,42 @@ export default function Stocktake() {
               <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">Count</span>
             </button>
           )}
-          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Per Product</h2>
-          {summaryLines.map((line, i) => (
-            <Card key={i}>
-              <CardContent className="p-3 flex justify-between items-center">
-                <div>
+          {(() => {
+            const noPrice = summaryLines.filter(l => !l.prod.cost_price);
+            return noPrice.length > 0 ? (
+              <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm" data-testid="banner-no-price">
+                <span className="font-medium">{noPrice.length} counted {noPrice.length === 1 ? "line has" : "lines have"} no cost price</span>, so {noPrice.length === 1 ? "it's" : "they're"} £0 in this total: {noPrice.slice(0, 3).map(l => l.prod.name).join(", ")}{noPrice.length > 3 ? ` and ${noPrice.length - 3} more` : ""}. The counts are kept. Add prices in the Library (Cost prices) and the value comes right.
+              </div>
+            ) : null;
+          })()}
+          {summaryGroups.map(group => (
+            <React.Fragment key={group.key}>
+            <div className="flex items-baseline justify-between pt-2" data-testid={`summary-group-${group.key}`}>
+              <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{group.label} · {group.lines.length}</h2>
+              <span className="text-sm font-bold text-primary font-mono tabular-nums">{formatGBP(group.total)}</span>
+            </div>
+          {group.lines.map(line => (
+            <Card key={line.prod.id}
+              className={isViewingClosed ? "" : "cursor-pointer hover:border-primary/50"}
+              onClick={isViewingClosed ? undefined : () => { setActiveProductId(line.prod.id); setCountingView("detail"); setStep("counting"); }}
+              data-testid={`summary-line-${line.prod.id}`}>
+              <CardContent className="p-3 flex justify-between items-center gap-2">
+                <div className="min-w-0">
                   <div className="font-semibold text-sm">{line.prod.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {line.tenthsVal != null ? `${line.tenthsVal.toFixed(1)} tenths` : `${Math.round(line.mlRemaining)}ml`}
+                    {summaryQuantityLabel(line)}
                     {line.gp != null && ` · GP ${line.gp.toFixed(0)}%`}
+                    {!line.prod.cost_price && <span className="text-[#E0A343]"> · no price</span>}
                   </div>
                 </div>
-                <div className="font-bold text-primary font-mono tabular-nums">{formatGBP(line.val)}</div>
+                <div className="text-right shrink-0">
+                  <div className="font-bold text-primary font-mono tabular-nums">{formatGBP(line.val)}</div>
+                  {!isViewingClosed && <div className="text-[11px] text-muted-foreground">tap to fix</div>}
+                </div>
               </CardContent>
             </Card>
+          ))}
+            </React.Fragment>
           ))}
           {summaryLines.length === 0 && (
             <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No products counted yet</CardContent></Card>
@@ -1420,9 +1801,12 @@ export default function Stocktake() {
         </div>
         <div className="p-4 border-t border-border bg-card">
           {isViewingClosed ? (
+            <div className="space-y-2">
+            <Link href="/reports" className="flex items-center justify-center w-full h-12 rounded-md bg-primary text-primary-foreground font-semibold" data-testid="link-see-what-moved">See what moved in Reports</Link>
             <Button size="lg" variant="outline" className="w-full h-14 font-bold" onClick={() => { setStep("list"); setActiveStocktakeId(null); setLegacyReadings([]); setSelectedProductIds([]); }} data-testid="button-done-viewing">
               Done
             </Button>
+            </div>
           ) : (
             <Button size="lg" className="w-full h-14 text-lg font-bold" onClick={finishStocktake} disabled={closeStocktake.isPending || summaryLines.length === 0} data-testid="button-finish-stocktake">
               <CheckCircle className="w-5 h-5 mr-2" />
@@ -1435,4 +1819,16 @@ export default function Stocktake() {
   }
 
   return null;
+}
+
+/** "In progress · 3 of 9 counted" on an open count in the list. */
+function OpenCountProgress({ stocktake, totalProducts }: { stocktake: { id: string; product_ids?: string[] | null }; totalProducts: number }) {
+  const { data: entries = [] } = useLineEntries(stocktake.id);
+  const total = stocktake.product_ids?.length ?? totalProducts;
+  const done = new Set(entries.map(e => e.product_id)).size;
+  return (
+    <div className="text-xs font-semibold text-[#E0A343]" data-testid={`text-open-progress-${stocktake.id}`}>
+      In progress · {done} of {total} counted
+    </div>
+  );
 }

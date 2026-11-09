@@ -799,8 +799,8 @@ export default function Auth() {
                   data-testid="input-referral-code"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Got a code from another venue? Enter it here — they'll get a free month of Pro once
-                  you've been on Pro for 30 days.
+                  Got a code from another venue? Enter it here — they'll get a free month once
+                  you've been on a paid plan for 30 days.
                 </p>
               </div>
               {authError && (

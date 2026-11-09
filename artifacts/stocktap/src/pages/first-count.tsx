@@ -24,6 +24,11 @@ const TARGET = 20;
 // sellers in most UK pubs, so the first taps are obvious.
 const SUGGESTED_SEARCHES = ["Smirnoff", "Gordons", "Jack Daniel", "Bacardi", "Captain Morgan", "Bells", "Baileys", "Jägermeister", "Prosecco", "Pinot Grigio", "Coke", "Fever-Tree"];
 
+const METHOD_LABEL: Record<string, string> = {
+  tenths: "Counted in tenths", photo_tap: "Counted in tenths", keg_weight: "Draught: kegs and pints", dipstick: "Draught: dip reading",
+  tenths_pints: "Draught: tenths", litre: "Counted in litres", dozen: "Counted in dozens", each: "Counted each", count: "Counted each",
+};
+
 export default function FirstCount() {
   const { venue } = useAuth();
   const [, setLocation] = useLocation();
@@ -214,7 +219,7 @@ export default function FirstCount() {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold truncate">{p.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {p.full_weight_g != null && p.empty_weight_g != null ? "Weights on file" : p.counting_method === "weigh" || !p.counting_method ? "Tenths for now, or weigh it once" : "Counted each"}
+                        {p.full_weight_g != null && p.empty_weight_g != null ? "Weights on file" : p.counting_method === "weigh" || !p.counting_method ? "Tenths for now, or weigh it once" : METHOD_LABEL[p.counting_method] ?? "Counted each"}
                       </div>
                     </div>
                     <button type="button" onClick={() => remove(p.id)} className="text-xs text-muted-foreground px-2 py-1" data-testid={`first-count-remove-${p.id}`}>

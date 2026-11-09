@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stocktaking software data security and GDPR: UK pub guide | StockTap</title>
+  <meta name="description" content="Who owns your stocktake data, who can see it, where it lives and how you get it out. UK GDPR basics and six questions to ask any vendor." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/pub-stocktaking-software-data-security-gdpr-uk" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Stocktaking software data security and GDPR: UK pub guide | StockTap" />
+  <meta property="og:description" content="Who owns your stocktake data, who can see it, where it lives and how you get it out. UK GDPR basics and six questions to ask any vendor." />
+  <meta property="og:url" content="https://stocktap.net/guides/pub-stocktaking-software-data-security-gdpr-uk" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Stocktaking software data security and GDPR: UK pub guide | StockTap" />
+  <meta name="twitter:description" content="Who owns your stocktake data, who can see it, where it lives and how you get it out. UK GDPR basics and six questions to ask any vendor." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Who can see your stocktake numbers? The data questions to ask before you pick software",
+      "description": "Who owns your stocktake data, who can see it, where it lives and how you get it out. UK GDPR basics and six questions to ask any vendor.",
+      "datePublished": "2026-09-30",
+      "dateModified": "2026-09-30",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/pub-stocktaking-software-data-security-gdpr-uk"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is stocktake data personal data under UK GDPR?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Mostly no. Sales figures, stock counts and GP% are business records. Your staff accounts are personal data though, names, emails and activity, and for those you're the controller with the usual duties: keep them secure, keep them accurate, remove them when there's no reason to hold them."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can my pub company see my stocktaking software?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not unless you invite them. The audit your pubco commissions is their document and you should assume they keep every number in it, but software you pay for yourself should be invitation-only at venue level, and you should ask the vendor to confirm that plainly. Whether your agreement obliges you to share particular figures is a lease question, so read it; software doesn't change what you signed."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What happens to my data if the software company goes bust?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Practically, the protection is a recent export in your own files, not anything in the terms. Export a full CSV after every count or at least monthly. If the vendor vanished tomorrow you'd lose the tool, which is replaceable, and keep the history, which isn't."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is cloud software safe enough for a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Done properly, it's usually safer than the alternative most pubs actually run, which is a spreadsheet on one laptop, emailed about with no backup. A serious vendor patches, backs up and encrypts better than any of us do on our own. Your end of the deal is the boring part: real passwords, no shared logins, leavers removed. The ICO's security guidance covers the rest."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Who can see your stocktake numbers? The data questions to ask before you pick software",
+          "item": "https://stocktap.net/guides/pub-stocktaking-software-data-security-gdpr-uk"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Who can see your stocktake numbers? The data questions to ask before you pick software</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-30">30 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Your stocktake file is your P&amp;L in miniature. Wet sales by line, your GP%, every loss you've had this year, what you paid for every product. In a tied pub that's the raw material of a rent conversation. So before you type it into anybody's cloud, including mine, it's worth twenty minutes on three questions: who owns it, who can see it, and how you get it back out.</strong></p>
+
+<p>Almost nobody asks. The <a href="/guides/pub-stocktaking-software-buyers-checklist-2026">buyer's checklist</a> covers price and features; this is the data chapter it deserves.</p>
+
+<p class="hub-link" style="border-left:3px solid #2E6B3F;padding:8px 12px;background:rgba(46,107,63,0.06)">New to this? Start with my plain guide to <a href="/guides/stocktaking-software-for-pubs">pub stocktaking software</a>: what it does, what it costs and how to pick one.</p>
+        <h2>Whose data is it</h2>
+
+<p>UK GDPR has two roles worth knowing. The controller decides what data is collected and why. The processor handles it on the controller's instructions. When you put your venue into stocktaking software, you're the controller and the vendor is your processor. In plain terms: the numbers are yours, and the vendor works for you, not the other way round.</p>
+
+<p>Strictly, most of a stocktake is business data rather than personal data, and UK GDPR bites hardest on the personal kind. But the roles still describe the deal correctly, and the vendor's obligations to you, security, confidentiality, doing only what they're instructed to do, are the things you're checking when you ask the questions below. The ICO's <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/security/a-guide-to-data-security/" rel="noopener">data security guidance</a> is the plain-English baseline for what good handling looks like.</p>
+
+<h2>The pubco question</h2>
+
+<p>This is the one tied tenants actually care about, so let's take it straight. There are two different documents in your life. The stock audit your pub company commissions is theirs: they paid for it, their auditor produced it, and you should assume they hold every number in it. The <a href="/guides/pubco-stock-audit-what-to-expect">audit guide</a> covers living with that.</p>
+
+<p>The numbers in software you pay for yourself are a different thing. Access should be invitation-based: your team sees your venue because you added them, and nobody else does. Ask any vendor plainly: can anyone outside my team see venue-level numbers, ever? StockTap's answer is no. You invite people, you set their role, you remove them, and there is no side door for a pub company, a brewery or a stocktaker you didn't add.</p>
+
+<p>One honest caveat, and it isn't legal advice: your tenancy or lease may oblige you to share certain figures or accept audits. Software doesn't change what your agreement says. What it changes is that your own working numbers live somewhere that answers to you.</p>
+
+<h2>Where the data lives</h2>
+
+<p>Ask which country the servers are in. Under UK data protection rules, data held in the UK is straightforward and the EEA is covered by an adequacy decision, so EU hosting is the boring, compliant kind of answer. Anywhere else and the vendor should be able to name the safeguard they rely on. The ICO's <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/international-transfers/a-brief-guide-to-international-transfers/" rel="noopener">international transfers guide</a> is the short version. StockTap's data is hosted in the EU, in Frankfurt. If a vendor can't or won't tell you where your numbers physically live, that's your answer about how they think about the question.</p>
+
+<h2>Staff accounts are the actual personal data</h2>
+
+<p>The stock itself is mostly business data. The moment you invite your team, though, you're holding names, emails and activity of real people, and that part is squarely personal data with you as controller. The hygiene is not complicated, and the ICO's <a href="https://ico.org.uk/for-organisations/advice-for-small-organisations/" rel="noopener">small business guidance</a> keeps it proportionate:</p>
+
+<ul>
+<li>No shared logins. One person, one account, so the count history means something and a leaver can be removed without changing everyone's password.</li>
+<li>Remove leavers the week they leave, same as the till code and the door code.</li>
+<li>Roles matched to the job. The person doing Tuesday's count doesn't need the finance screen.</li>
+</ul>
+
+<p>This is also, quietly, a stock control feature: an account per person is what makes a count, a wastage entry or a delivery signature attributable when a variance question comes up later, without anyone having to rely on memory. The <a href="/guides/staff-adoption-new-stocktaking-software">adoption guide</a> covers who actually needs an account at all.</p>
+
+<h2>The exit is the test</h2>
+
+<p>The single most revealing data question is the leaving one. UK GDPR gives individuals a right to <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-data-portability/" rel="noopener">data portability</a> in a machine-readable format; for your business records the practical equivalent is blunter: can you, yourself, today, export everything without asking permission or phoning anyone?</p>
+
+<p>If the answer is a CSV button you can press on a Tuesday night, you're fine. If exporting your own numbers requires a conversation with the sales team, you have learned something important before paying anything. The <a href="/guides/switching-stocktaking-software-provider-uk">switching guide</a> is built on this: export first, then decide, and keep a current export in your own files regardless, because the practical protection against a vendor disappearing is a recent copy, not a clause.</p>
+
+<h2>Six questions for any vendor</h2>
+
+<table>
+<thead><tr><th>Ask</th><th>A good answer sounds like</th></tr></thead>
+<tbody>
+<tr><td>Where is my data hosted?</td><td>A country, named without hesitation. UK or EEA keeps it simple.</td></tr>
+<tr><td>Who can see my venue's numbers?</td><td>Only accounts you invite. No partner, group or supplier access you didn't create.</td></tr>
+<tr><td>Can I export everything myself, today?</td><td>Yes, CSV from the app, no phone call.</td></tr>
+<tr><td>What happens when I cancel?</td><td>A stated retention period and deletion on request, in writing.</td></tr>
+<tr><td>Is my data aggregated, shared or sold?</td><td>A clear answer in the privacy policy, not a shrug.</td></tr>
+<tr><td>How do staff accounts work?</td><td>Individual logins with roles, and you can remove people yourself.</td></tr>
+</tbody>
+</table>
+
+<p>For StockTap the answers I can give you flat out: hosted in the EU, invite-only teams with roles you control, and CSV export from the reports whenever you want it. The rest is written down in the <a href="/privacy">privacy policy</a>, which is linked in the footer of every page, where it should be.</p>
+
+<h2>Common questions</h2>
+
+<h3>Is stocktake data personal data under UK GDPR?</h3>
+<p>Mostly no. Sales figures, stock counts and GP% are business records. Your staff accounts are personal data though, names, emails and activity, and for those you're the controller with the usual duties: keep them secure, keep them accurate, remove them when there's no reason to hold them.</p>
+
+<h3>Can my pub company see my stocktaking software?</h3>
+<p>Not unless you invite them. The audit your pubco commissions is their document and you should assume they keep every number in it, but software you pay for yourself should be invitation-only at venue level, and you should ask the vendor to confirm that plainly. Whether your agreement obliges you to share particular figures is a lease question, so read it; software doesn't change what you signed.</p>
+
+<h3>What happens to my data if the software company goes bust?</h3>
+<p>Practically, the protection is a recent export in your own files, not anything in the terms. Export a full CSV after every count or at least monthly. If the vendor vanished tomorrow you'd lose the tool, which is replaceable, and keep the history, which isn't.</p>
+
+<h3>Is cloud software safe enough for a pub?</h3>
+<p>Done properly, it's usually safer than the alternative most pubs actually run, which is a spreadsheet on one laptop, emailed about with no backup. A serious vendor patches, backs up and encrypts better than any of us do on our own. Your end of the deal is the boring part: real passwords, no shared logins, leavers removed. The ICO's security guidance covers the rest.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Controller and processor roles, and security expectations: <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/security/a-guide-to-data-security/" rel="noopener">ICO, a guide to data security</a>.</li>
+<li>Right to data portability in a structured, machine-readable format: <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-data-portability/" rel="noopener">ICO, right to data portability</a>.</li>
+<li>UK adequacy for EEA-hosted data and the rules for transfers elsewhere: <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/international-transfers/a-brief-guide-to-international-transfers/" rel="noopener">ICO, a brief guide to international transfers</a>.</li>
+<li>Proportionate data protection for small businesses: <a href="https://ico.org.uk/for-organisations/advice-for-small-organisations/" rel="noopener">ICO advice for small organisations</a>.</li>
+<li>Nothing here is legal advice; tenancy and lease obligations vary, so check your own agreement.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/pub-stocktaking-software-buyers-checklist-2026">The stocktaking software buyer's checklist</a></li>
+          <li><a href="/guides/switching-stocktaking-software-provider-uk">Switching stocktaking software provider</a></li>
+          <li><a href="/guides/pubco-stock-audit-what-to-expect">Pubco stock audits: what to expect</a></li>
+          <li><a href="/guides/staff-adoption-new-stocktaking-software">Staff adoption: who actually needs an account</a></li>
+          <li><a href="/guides/pub-stocktaking-software-compared">Pub stocktaking software compared</a></li>
+          <li><a href="/guides/best-pub-stocktaking-software-2026">Best pub stocktaking software 2026</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wet stock vs dry stock in a pub stocktake | StockTap</title>
+  <meta name="description" content="Why drinks are counted line by line while food runs as a trading account, what sits on each side, and the GP% traps when you compare wet to kitchen." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/wet-stock-vs-dry-stock-pub-stocktake" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Wet stock vs dry stock in a pub stocktake | StockTap" />
+  <meta property="og:description" content="Why drinks are counted line by line while food runs as a trading account, what sits on each side, and the GP% traps when you compare wet to kitchen." />
+  <meta property="og:url" content="https://stocktap.net/guides/wet-stock-vs-dry-stock-pub-stocktake" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Wet stock vs dry stock in a pub stocktake | StockTap" />
+  <meta name="twitter:description" content="Why drinks are counted line by line while food runs as a trading account, what sits on each side, and the GP% traps when you compare wet to kitchen." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Wet stock vs dry stock: two counts, two completely different jobs",
+      "description": "Why drinks are counted line by line while food runs as a trading account, what sits on each side, and the GP% traps when you compare wet to kitchen.",
+      "datePublished": "2026-10-01",
+      "dateModified": "2026-10-01",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/wet-stock-vs-dry-stock-pub-stocktake"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What counts as wet stock in a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Everything sold across the bar: draught, packaged beer and cider, spirits, wine, minerals, postmix and low and no alcohol, with bar snacks usually included by custom. It's counted line by line because every item is a sellable unit with its own cost, selling price and GP%."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why isn't food counted line by line like drinks?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Because ingredients spread across dishes. A tub of mayo touches forty menu lines, so there's no per-item GP to count. Kitchens get a trading account instead: total stock value plus purchases measured against food income, giving one overall kitchen GP figure."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I compare my wet GP% to my food GP%?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not directly. VAT treatment differs, most food inputs carry none while all drink does, and food yield losses have no wet-side equivalent. Judge each against its own benchmark and its own history, not against each other."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How often should wet and dry stock be counted?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Common practice is wet weekly or at least monthly, with spot checks on fast lines in between, because wet variance is specific enough to act on quickly. Kitchens typically run a monthly trading account. The wet side rewards frequency more because the precision is there to use."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Wet stock vs dry stock: two counts, two completely different jobs",
+          "item": "https://stocktap.net/guides/wet-stock-vs-dry-stock-pub-stocktake"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Stocktaking &amp; variance
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Stocktaking &amp; variance</div>
+        <h1>Wet stock vs dry stock: two counts, two completely different jobs</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-10-01">1 October 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Every stocktaker splits the pub in two before they're out of the car. Wet stock is everything that crosses the bar: draught, bottles, spirits, soft drinks, usually the crisps. Dry stock is the kitchen. The two get counted differently, reported differently and judged against different GP%, and a good share of the confusion I see about "my stocktake result" comes from mixing them up.</strong></p>
+
+<h2>What wet stock covers</h2>
+
+<p>Wet stock is the bar's inventory. Draught beer and cider, bottled and canned beer, spirits, wine, minerals and postmix, low and no alcohol, and by long custom the bar snacks too. One stocktaking firm, Sterling Stock Auditors, defines it as everything that comes through the bar, and their wet report is the classic line-by-line format: cost price, opening stock, purchases, closing stock, selling price and a gross profit figure for every single product.</p>
+
+<p>Line-by-line works on the wet side because everything is a sellable unit. A bottle of Budweiser is a bottle of Budweiser. A keg holds a known number of pints. A 70cl of Bell's holds 28 single measures. Count the units, price them, and you can say exactly which line made money and which line leaked. That precision is the whole point: wet variance can be chased to the pint, which is why the <a href="/guides/how-to-read-gp-percentage-report">GP report</a> and the <a href="/guides/acceptable-stocktake-variance">variance question</a> are really wet-side conversations.</p>
+
+<h2>What dry stock covers, and why it's counted differently</h2>
+
+<p>Dry stock is food, and food refuses to behave like units. The mayo gets bought in a 10 litre tub and spread across forty dishes. The chips go in the fryer for six different menu lines. You cannot write a GP% next to a jar.</p>
+
+<p>So stocktakers run the kitchen as a trading account instead. Count the total value of what's there, add the period's purchases, knock off credits, compare the result against food income, and out comes one overall kitchen GP figure rather than a page of lines. Sterling describe exactly this split: items on the wet side, a trading account on the dry side, and the variance conversation becomes whether the one number hit target, and if not, whether that's a buying issue, a portioning issue or a pricing issue.</p>
+
+<h2>The two sides at a glance</h2>
+
+<table>
+<caption>How the wet and dry sides of the same pub get treated at a stocktake.</caption>
+<thead><tr><th></th><th>Wet stock</th><th>Dry stock</th></tr></thead>
+<tbody>
+<tr><td><strong>What's in it</strong></td><td>Draught, packaged beer, spirits, wine, minerals, postmix, snacks</td><td>Food: fresh, frozen, dry goods, oils, sauces</td></tr>
+<tr><td><strong>How it's counted</strong></td><td>Line by line: units, weights, tenths of bottles, keg weights</td><td>Total value counted, then a trading account against food income</td></tr>
+<tr><td><strong>The report</strong></td><td>GP% and variance per product</td><td>One overall kitchen GP%</td></tr>
+<tr><td><strong>What a variance means</strong></td><td>Specific: 4 pints of Carling, a bottle of vodka</td><td>General: portioning, prep waste, the bin, staff food</td></tr>
+<tr><td><strong>Who owns the number</strong></td><td>Whoever runs the bar</td><td>Whoever runs the kitchen</td></tr>
+</tbody>
+</table>
+
+<h2>The VAT trap when you compare them</h2>
+
+<p>Wet GP% and kitchen GP% are built from different ingredients, and VAT is the big one. Everything you buy for the bar carries VAT, and everything you sell over it does too, so the wet GP sum is clean once you work <a href="/guides/ex-vat-vs-inc-vat-stock-value">ex-VAT on both sides</a>. Food is messier: most raw ingredients come in with no VAT on them at all, while the hot meals you sell are standard-rated. Strip the VAT out correctly and food can show a GP% that looks healthier than the bar's while leaving fewer actual pounds behind. The <a href="/guides/pub-vat-2026-what-a-pub-pays">pub VAT guide</a> walks through the rates, and the <a href="/guides/pub-gp-percentage-benchmark-2026">GP benchmark guide</a> covers what decent looks like on each side separately, which is the only fair way to judge either.</p>
+
+<h2>Precision on one side, soup on the other</h2>
+
+<p>Here's the practical difference a licensee feels. On the wet side, measurement is sharp enough to catch small leaks fast: Vianet's monitoring across 11,000 sites found 2% of drinks poured never reach the till, and a weekly count will put a product name and a pound figure on your share of that. On the dry side the same £20 of loss hides in over-portioning, trim waste, a fryer batch that went wrong and the bits staff eat, and no count can split those apart after the fact. WRAP's hospitality research put food waste above 20% of food purchased by weight, and that work dates back to 2012, which tells you how rarely anyone has measured it properly since.</p>
+
+<p>That's also why <a href="/guides/kitchen-gp-bonus-scheme-pub">kitchen bonus schemes</a> get built on hitting a GP band rather than on variance: you can hold a bar to the pint, but you can only hold a kitchen to the trend.</p>
+
+<h2>The grey areas</h2>
+
+<p>Crisps and nuts usually count wet, because the bar sells them. Postmix counts wet, by box. Low and no alcohol counts wet. Coffee is the classic argument, beans and milk feed both sides of the house. The rule that actually matters is boring: put each product on the same side every single count. A line that hops between wet and dry makes both numbers wrong, and that consistency point is half of what you're paying a stocktaker for, or half the discipline if you <a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">do it yourself</a>.</p>
+
+<h2>Where StockTap fits, plainly</h2>
+
+<p>StockTap is built for the wet side. Weighing part bottles, tenths, keg weights, line-by-line GP% and variance against the till. That's where software earns its keep, because that's where unit-level precision exists to be captured. Kitchen GP is a trading account, and your accountant or your EPOS food reports handle that arithmetic fine. I'd rather tell you that here than have you find it out in the trial.</p>
+
+<h2>Common questions</h2>
+
+<h3>What counts as wet stock in a pub?</h3>
+<p>Everything sold across the bar: draught, packaged beer and cider, spirits, wine, minerals, postmix and low and no alcohol, with bar snacks usually included by custom. It's counted line by line because every item is a sellable unit with its own cost, selling price and GP%.</p>
+
+<h3>Why isn't food counted line by line like drinks?</h3>
+<p>Because ingredients spread across dishes. A tub of mayo touches forty menu lines, so there's no per-item GP to count. Kitchens get a trading account instead: total stock value plus purchases measured against food income, giving one overall kitchen GP figure.</p>
+
+<h3>Can I compare my wet GP% to my food GP%?</h3>
+<p>Not directly. VAT treatment differs, most food inputs carry none while all drink does, and food yield losses have no wet-side equivalent. Judge each against its own benchmark and its own history, not against each other.</p>
+
+<h3>How often should wet and dry stock be counted?</h3>
+<p>Common practice is wet weekly or at least monthly, with spot checks on fast lines in between, because wet variance is specific enough to act on quickly. Kitchens typically run a monthly trading account. The wet side rewards frequency more because the precision is there to use.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Wet and dry stocktaking definitions, the line-by-line wet report and the trading-account method for food: <a href="https://sterlingstockauditors.co.uk/what-is-the-difference-between-wet-and-dry-stocktaking/" rel="noopener">Sterling Stock Auditors</a> (checked 1 October 2026).</li>
+<li>2% of drinks poured never reach the till, across 11,000 monitored sites: <a href="https://cask-marque.co.uk/wp-content/uploads/2019/11/Vianet-Insight-Report-19-20.pdf" rel="noopener">Vianet Insight Report 2019/20</a>.</li>
+<li>Food waste above 20% of food purchased by weight: WRAP hospitality research, 2012. Old data, flagged as such; it remains the last substantial public measurement.</li>
+<li>The 28-singles and keg arithmetic are standard trade sums shown as illustrations.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/how-to-read-gp-percentage-report">How to read your GP% report</a></li>
+          <li><a href="/guides/pub-gp-percentage-benchmark-2026">Pub GP% benchmarks</a></li>
+          <li><a href="/guides/kitchen-gp-bonus-scheme-pub">Kitchen GP bonus schemes</a></li>
+          <li><a href="/guides/ex-vat-vs-inc-vat-stock-value">Ex-VAT vs inc-VAT stock value</a></li>
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself</a></li>
+          <li><a href="/guides/pub-vat-2026-what-a-pub-pays">Pub VAT: what a pub pays</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

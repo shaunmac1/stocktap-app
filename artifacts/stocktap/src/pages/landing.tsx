@@ -18,7 +18,7 @@ import {
 import HeroCarousel from "@/components/HeroCarousel";
 import { useFoundingLandlordCount } from "@/hooks/api";
 
-const FOUNDING_LANDLORD_CAP = 20;
+const FOUNDING_LANDLORD_CAP = 50;
 
 const PLANS = [
   {
@@ -30,26 +30,21 @@ const PLANS = [
     best: false,
   },
   {
-    name: "Pro",
-    price: "£19",
-    note: "a month, £190 a year",
+    name: "Premium",
+    price: "£39",
+    note: "a month",
     items: [
       "Unlimited products and locations",
       "Daily spot checks against the till",
       "Order guide, dead-stock and coverage alerts",
       "Team, rota and daily checks",
+      "Insight alerts: GP drift, variance trends",
+      "Scan delivery notes into stock and prices",
       "Offline in the cellar, CSV export",
+      "Priority support",
     ],
-    cta: "Start 14-day trial",
+    cta: "Start 14-day free trial",
     best: true,
-  },
-  {
-    name: "Premium",
-    price: "£39",
-    note: "a month, £390 a year",
-    items: ["Everything in Pro", "Insight alerts: GP drift, variance trends", "Scan delivery notes into stock and prices", "Priority support"],
-    cta: "Start 14-day trial",
-    best: false,
   },
 ];
 
@@ -79,7 +74,7 @@ const FEATURES = [
 const FEARS = [
   {
     q: "Won't this feel like I'm accusing my staff of stealing?",
-    a: "No — StockTap never names a person as the cause of a variance. It only ever shows shifts and numbers, never blame. Most variance turns out to be over-pouring, spillage or a till entry slip, not theft. Think of it as a smoke alarm, not a courtroom.",
+    a: "No — StockTap never names a person as the cause of a variance. It only ever shows shifts and numbers, never blame. Variance is often over-pouring, spillage or a till entry slip, not theft. Think of it as a smoke alarm, not a courtroom.",
   },
   {
     q: "What if my team gets defensive or the mood turns sour?",
@@ -92,7 +87,7 @@ const FEARS = [
 ];
 
 const COMPARISON_ROWS: { label: string; stocktaker: string | boolean; clipboard: string | boolean; stocktap: string | boolean }[] = [
-  { label: "Cost", stocktaker: "£125–£320 per visit", clipboard: true, stocktap: "From free" },
+  { label: "Cost", stocktaker: "Paid per visit", clipboard: true, stocktap: "From free" },
   { label: "Frequency", stocktaker: "Monthly, by appointment", clipboard: "As often as you can face it", stocktap: "Daily, in minutes" },
   { label: "Accuracy of ml/tenths maths", stocktaker: true, clipboard: false, stocktap: true },
   { label: "Works with cold, wet hands in a cellar", stocktaker: true, clipboard: false, stocktap: true },
@@ -110,7 +105,16 @@ function ComparisonCell({ value }: { value: string | boolean }) {
 const CONFIGURATOR_STEPS = [
   { icon: ShieldQuestion, title: "Tell us where the leak is", body: "Spirits behind the bar, draught lines, wine, or all of the above — we'll set your library up to match." },
   { icon: Upload, title: "Bring your lines in", body: "Import a CSV, start from our UK pub catalogue (over 2,400 spirits, liqueurs and wines plus common bottled beers and softs), or add products manually as you go." },
-  { icon: UserPlus, title: "Create your account", body: "Free to start, no card required. Most people have their first line counted within ten minutes. No scale? Count in tenths and weigh later." },
+  { icon: UserPlus, title: "Create your account", body: "Free to start, no card required. You can have your first line counted in about ten minutes. No scale? Count in tenths and weigh later." },
+];
+
+const PROBLEMS = [
+  { slug: "what-to-order", title: "I never know what to order", body: "Guessing the order on a Sunday night, then running out of the one thing that sells." },
+  { slug: "stocktake-down", title: "My stocktake says I'm down", body: "A loss on the report and no idea which line, which week or why." },
+  { slug: "busy-weekends", title: "Busy weekends catch me short", body: "Bank holidays, big matches and Christmas need a bigger order than a normal week." },
+  { slug: "checking-deliveries", title: "Deliveries take ages to check", body: "Fifty lines on a delivery email and every one typed in by hand." },
+  { slug: "postmix", title: "Postmix never adds up", body: "Litres, boxes, syrup and yield. The numbers never match what you actually use." },
+  { slug: "venners-audit", title: "Got a Venners audit?", body: "If you use Venners, drop the PDF in and see what it actually says about your bar." },
 ];
 
 const IMPORT_OPTIONS = ["Import CSV", "UK pub catalogue (2,400+ lines)", "Add manually"];
@@ -120,6 +124,11 @@ export default function Landing() {
   const [weeklySales, setWeeklySales] = useState(6000);
   const [lossPct, setLossPct] = useState(3);
   const [importChoice, setImportChoice] = useState(IMPORT_OPTIONS[1]);
+  const [tourOpen, setTourOpen] = useState(false);
+  React.useEffect(() => {
+    if (window.location.hash === "#tour") setTourOpen(true);
+  }, []);
+  const reduceMotion = useMemo(() => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches, []);
   const { data: foundingCount } = useFoundingLandlordCount();
 
   const weeklyLoss = useMemo(() => (weeklySales * lossPct) / 100, [weeklySales, lossPct]);
@@ -180,35 +189,106 @@ export default function Landing() {
 
 
       {/* Hero */}
-      <section className="max-w-4xl mx-auto px-6 pt-10 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-[#E0A343] bg-[#E0A343]/10 border border-[#E0A343]/25 rounded-full px-3 py-1 mb-6">
-          Stock-taking by weight, for pubs, bars and restaurants
+      <section className="relative overflow-hidden" data-testid="hero">
+        {!reduceMotion && (
+          <video
+            className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none"
+            src="/media/hero-bg.mp4" poster="/media/poster-hero-bg.jpg"
+            autoPlay muted loop playsInline aria-hidden="true"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111316]/70 via-[#111316]/80 to-[#111316]" aria-hidden="true" />
+        <div className="relative max-w-5xl mx-auto px-6 pt-8 pb-16 grid grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_300px] gap-10 items-center">
+          <div className="text-center md:text-left min-w-0">
+            <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-[#E0A343] bg-[#E0A343]/10 border border-[#E0A343]/25 rounded-full px-3 py-1 mb-6">
+              Built by a licensee, for pubs and bars
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-[1.08] mb-5">
+              Find the money your bar is losing before the auditor does.
+            </h1>
+            <p className="text-base sm:text-lg text-[#B9BEC6] max-w-xl mx-auto md:mx-0 mb-7 leading-relaxed">
+              Weigh every bottle on your phone, check it against the till, and see your real GP% today, not at the end of the month.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center md:justify-start justify-center gap-3">
+              <a
+                href="/tools/pub-gp-profit-leak-calculator"
+                className="inline-flex items-center justify-center rounded-md min-h-12 py-3 px-8 text-base font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90 w-full sm:w-auto text-center"
+                data-testid="button-hero-calculator"
+              >
+                Check your GP leak free
+              </a>
+              <Button
+                variant="outline"
+                className="h-12 px-6 text-base font-semibold border-[#E0A343]/60 bg-[#111316]/60 text-[#F3F1EC] hover:bg-[#1A1D21] w-full sm:w-auto"
+                onClick={() => setLocation("/auth?mode=signup")}
+                data-testid="button-hero-start"
+              >
+                Start 14 days free
+              </Button>
+            </div>
+            <p className="text-sm text-[#F3F1EC] mt-4" data-testid="hero-risk-line">
+              If StockTap doesn't help you catch at least one variance you'd have missed in your first 30 days, we refund that month in full.
+            </p>
+            <p className="text-xs text-[#8A9099] mt-3">
+              Built by a working licensee after a £755 audit chargeback. Our free GP calculator was{" "}
+              <a href="https://www.morningadvertiser.co.uk/Article/2026/09/30/licensee-launches-free-gross-profit-calculator-for-pubs/" target="_blank" rel="noopener" className="text-[#E0A343] underline underline-offset-2" data-testid="link-press-ma">covered by The Morning Advertiser</a>.
+            </p>
+            <p className="text-xs text-[#8A9099] mt-2">
+              <button className="underline underline-offset-2 hover:text-[#F3F1EC]" onClick={() => setTourOpen(true)} data-testid="button-hero-tour">Watch the tour</button>
+              {" · "}
+              <button className="underline underline-offset-2 hover:text-[#F3F1EC]" onClick={() => setLocation("/auth")} data-testid="button-hero-signin">I already have an account</button>
+            </p>
+          </div>
+          <div className="mx-auto w-[240px] sm:w-[280px]">
+            <div className="rounded-[34px] border-[6px] border-[#2A2E34] bg-black shadow-[0_30px_80px_-20px_rgba(224,163,67,0.35)] overflow-hidden aspect-[9/16]">
+              <video
+                className="w-full h-full object-cover"
+                src="/media/hero-loop.mp4" poster="/media/poster-hero.jpg"
+                autoPlay={!reduceMotion} muted loop playsInline preload="metadata"
+                aria-label="StockTap in use: order list, busy-night ordering and up and down"
+                data-testid="video-hero"
+              />
+            </div>
+          </div>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-[1.1] mb-5">
-          Catch the losses before<br className="hidden sm:block" /> they become a problem.
-        </h1>
-        <p className="text-base sm:text-lg text-[#8A9099] max-w-xl mx-auto mb-9 leading-relaxed">
-          Put the bottle on a kitchen scale, type the grams. StockTap tells you what is left, what it is worth and what went missing since the till last rang. Every day, not once a month.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button
-            className="h-12 px-8 text-base font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90 w-full sm:w-auto"
-            onClick={() => setLocation("/auth?mode=signup")}
-            data-testid="button-hero-start"
-          >
-            Start free: 14 days of Pro, no card
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 px-8 text-base font-semibold border-[#2A2E34] text-[#F3F1EC] hover:bg-[#1A1D21] w-full sm:w-auto"
-            onClick={() => setLocation("/auth")}
-            data-testid="button-hero-signin"
-          >
-            I already have an account
-          </Button>
-        </div>
-        <p className="text-xs text-[#8A9099] mt-4">Set up in under ten minutes. Works on the phone in your pocket. Cancel in two taps.</p>
       </section>
+
+      {/* Problems we fix */}
+      <section className="max-w-5xl mx-auto px-6 pb-16" data-testid="problem-grid">
+        <h2 className="text-2xl font-bold tracking-tight text-center mb-2">What's costing you?</h2>
+        <p className="text-sm text-[#8A9099] text-center mb-6">Pick the one that sounds like your week. Each has a short video of StockTap sorting it.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {PROBLEMS.map(pr => (
+            <a key={pr.slug} href={`/problems/${pr.slug}`} className="group rounded-xl border border-[#2A2E34] bg-[#1A1D21] p-5 hover:border-[#E0A343]/50 transition-colors" data-testid={`problem-${pr.slug}`}>
+              <div className="font-semibold mb-1">{pr.title}</div>
+              <div className="text-sm text-[#8A9099] leading-relaxed">{pr.body}</div>
+              <div className="text-sm font-semibold text-[#E0A343] mt-3">See how it's fixed →</div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Free audit check */}
+      <section className="max-w-5xl mx-auto px-6 pb-16">
+        <a href="/free-audit-check" className="block rounded-2xl border border-[#E0A343]/40 bg-gradient-to-br from-[#E0A343]/15 to-transparent p-6 sm:p-8 hover:border-[#E0A343]/70 transition-colors" data-testid="link-free-audit-check">
+          <div className="text-xs font-semibold uppercase tracking-widest text-[#E0A343] mb-2">Free, no sign-up</div>
+          <div className="text-2xl font-bold tracking-tight mb-2">Use Venners? Check your audit in 30 seconds.</div>
+          <p className="text-sm text-[#B9BEC6] max-w-2xl">Drop the PDF in and see your result, what's up and down by category, the lines costing you most and likely till-button mix-ups. It's read on your own device and nothing is uploaded.</p>
+          <div className="mt-4 inline-block bg-[#E0A343] text-[#111316] font-semibold rounded-lg px-5 py-3">Check my audit free →</div>
+        </a>
+      </section>
+
+      {tourOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4" onClick={() => setTourOpen(false)} data-testid="tour-modal">
+          <div className="relative w-full max-w-[380px]" onClick={e => e.stopPropagation()}>
+            <button className="absolute -top-10 right-0 text-[#F3F1EC] text-sm font-semibold" onClick={() => setTourOpen(false)} data-testid="button-tour-close">Close ✕</button>
+            <video className="w-full rounded-2xl bg-black aspect-[9/16]" src="/media/stocktap-tour.mp4" poster="/media/poster-tour.jpg" controls autoPlay playsInline data-testid="video-tour" />
+            <Button className="mt-4 w-full h-12 font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90" onClick={() => setLocation("/auth?mode=signup")} data-testid="button-tour-start">
+              Start free: 14 days with everything on, no card
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Everything you need */}
       <section className="max-w-3xl mx-auto px-6 pb-16">
@@ -282,7 +362,7 @@ export default function Landing() {
               </div>
               <Slider
                 value={[lossPct]}
-                min={2}
+                min={1}
                 max={5}
                 step={0.5}
                 onValueChange={(v) => setLossPct(v[0])}
@@ -334,7 +414,7 @@ export default function Landing() {
         <p className="text-sm text-[#8A9099] text-center mb-8 max-w-lg mx-auto">
           We're not going to pretend StockTap wins on everything — here's the honest comparison.
         </p>
-        <div className="rounded-xl border border-[#2A2E34] overflow-hidden">
+        <div className="rounded-xl border border-[#2A2E34] overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[#1A1D21] border-b border-[#2A2E34]">
@@ -367,7 +447,7 @@ export default function Landing() {
           <ShieldCheck className="w-8 h-8 text-[#3FAE74] mx-auto mb-3" />
           <h2 className="text-xl font-bold tracking-tight mb-2">Our guarantee</h2>
           <p className="text-sm text-[#8A9099] max-w-lg mx-auto leading-relaxed">
-            Start free, no card required. If StockTap doesn't help you catch at least one variance you'd have otherwise missed in your first 30 days on Pro, tell us and we'll refund that month in full — no questions, no forms.
+            Start free, no card required. If StockTap doesn't help you catch at least one variance you'd have otherwise missed in your first 30 days, tell us and we'll refund that month in full — no questions, no forms.
           </p>
         </div>
       </section>
@@ -392,7 +472,7 @@ export default function Landing() {
       {/* 3-step configurator */}
       <section className="max-w-3xl mx-auto px-6 pb-20">
         <h2 className="text-2xl font-bold tracking-tight text-center mb-2">Get set up in three steps</h2>
-        <p className="text-sm text-[#8A9099] text-center mb-8">Two minutes, most of it spent weighing your first bottle.</p>
+        <p className="text-sm text-[#8A9099] text-center mb-8">About ten minutes, most of it spent weighing your first bottle.</p>
 
         <div className="grid sm:grid-cols-3 gap-4 mb-6">
           {CONFIGURATOR_STEPS.map((s, i) => (
@@ -431,7 +511,7 @@ export default function Landing() {
 
         <div className="text-center">
           <Button
-            className="h-12 px-8 text-base font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90"
+            className="h-auto min-h-12 py-3 px-8 text-base font-semibold bg-[#E0A343] text-[#111316] hover:bg-[#E0A343]/90 whitespace-normal max-w-full"
             onClick={() => setLocation("/auth?mode=signup")}
             data-testid="button-configurator-start"
           >
@@ -453,9 +533,9 @@ export default function Landing() {
       <section id="pricing" className="max-w-4xl mx-auto px-6 pb-20">
         <h2 className="text-2xl font-bold tracking-tight text-center mb-2">Plain pricing</h2>
         <p className="text-sm text-[#8A9099] text-center mb-8">
-          Every new venue gets 14 days of Pro free, no card. After that, pick one. No VAT added, StockTap is not VAT registered.
+          Every new venue gets 14 days free with everything switched on, no card. After that it's £39 a month, or stay on Free. No VAT added, StockTap is not VAT registered.
         </p>
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {PLANS.map(plan => (
             <div
               key={plan.name}
@@ -465,7 +545,7 @@ export default function Landing() {
               <div className="flex items-center justify-between">
                 <span className="font-semibold">{plan.name}</span>
                 {plan.best && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest bg-[#E0A343] text-[#111316] rounded-full px-2 py-0.5">Most pubs</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-[#E0A343] text-[#111316] rounded-full px-2 py-0.5">Recommended</span>
                 )}
               </div>
               <div className="mt-3">
@@ -489,7 +569,7 @@ export default function Landing() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-[#8A9099] text-center mt-4">Cancel any time from Settings, two taps. Our guarantee above still applies.</p>
+        <p className="text-xs text-[#8A9099] text-center mt-4">Cancel any time from Settings. Our guarantee above still applies.</p>
       </section>
 
       {/* CTA footer */}
@@ -513,7 +593,9 @@ export default function Landing() {
             <div className="font-semibold text-[#F3F1EC] mb-2">Learn</div>
             <div className="flex flex-col gap-1.5">
               <a href="/guides/" className="hover:text-[#F3F1EC]" data-testid="link-footer-guides">Guides and articles</a>
+              <a href="/guides/stocktaking-software-for-pubs" className="hover:text-[#F3F1EC]" data-testid="link-footer-software-guide">Pub stocktaking software: how to pick</a>
               <a href="/videos/" className="hover:text-[#F3F1EC]" data-testid="link-footer-videos">How-to videos</a>
+              <a href="/problems/" className="hover:text-[#F3F1EC]" data-testid="link-footer-problems">Problems we fix</a>
               <a href="/tools/" className="hover:text-[#F3F1EC]" data-testid="link-footer-tools">Free tools</a>
               <a href="/downloads/gp-cheat-sheet.pdf" className="hover:text-[#F3F1EC]">GP cheat sheet (PDF)</a>
             </div>

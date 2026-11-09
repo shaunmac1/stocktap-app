@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useCashUps } from "@/hooks/useDailyBoard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Plus, Upload, Trash2, Pencil, Wallet, TrendingUp, TrendingDown, AlertCircle, Receipt } from "lucide-react";
 import { formatGBP } from "@/lib/calculations";
 import {
-  OUT_CATEGORIES, IN_CATEGORIES, categoryLabel, summarise, withinRange,
+  OUT_CATEGORIES, IN_CATEGORIES, categoryLabel, summarise, withinRange, boardTakingsInRange,
   VAT_RATES, netFromGross,
   type FinanceEntry, type FinanceDirection,
 } from "@/lib/finance";
@@ -72,7 +73,12 @@ export default function Finances() {
   const from = periodStart(period);
   const to = isoToday();
   const inRange = useMemo(() => withinRange(entries ?? [], from, period === "all" ? "9999-12-31" : to), [entries, from, to, period]);
-  const summary = useMemo(() => summarise(inRange), [inRange]);
+  const { data: cashUps = [] } = useCashUps(venue?.id);
+  const board = useMemo(() => boardTakingsInRange(cashUps, entries ?? [], from, period === "all" ? "9999-12-31" : to), [cashUps, entries, from, to, period]);
+  const summary = useMemo(() => {
+    const s = summarise(inRange);
+    return { ...s, income: s.income + board.total, net: s.net + board.total };
+  }, [inRange, board]);
 
   const categories = editing?.direction === "in" ? IN_CATEGORIES : OUT_CATEGORIES;
 
@@ -163,6 +169,7 @@ export default function Finances() {
           <Card><CardContent className="p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Money in</div>
             <div className="text-lg font-bold text-emerald-700 tabular-nums" data-testid="text-income">{formatGBP(summary.income)}</div>
+            {board.days > 0 && <div className="text-[10px] text-muted-foreground" data-testid="text-income-board">incl. {formatGBP(board.total)} takings from the Daily Board</div>}
           </CardContent></Card>
           <Card><CardContent className="p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><TrendingDown className="w-3.5 h-3.5 text-red-600" /> Money out</div>
@@ -188,7 +195,7 @@ export default function Finances() {
         {/* list */}
         {isLoading ? (
           <div className="space-y-2">{[1, 2, 3].map((i) => <div key={i} className="h-14 bg-muted rounded-xl animate-pulse" />)}</div>
-        ) : inRange.length === 0 ? (
+        ) : inRange.length === 0 && board.days === 0 ? (
           <div className="text-center py-14 space-y-3">
             <Wallet className="mx-auto w-12 h-12 text-muted-foreground/40" />
             <p className="text-muted-foreground font-medium">Nothing here yet</p>

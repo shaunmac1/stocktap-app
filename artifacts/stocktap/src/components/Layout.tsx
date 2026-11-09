@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Home, Coins, Thermometer, Library, ClipboardList, ScanLine, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOutstandingToday } from "@/hooks/useChecks";
+import { HelpVideos } from "@/components/HelpVideos";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -20,11 +21,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-[100dvh] w-full max-w-md mx-auto bg-background relative pb-16 shadow-xl flex flex-col">
+    <div className="min-h-[100dvh] w-full max-w-md mx-auto bg-background relative pb-32 shadow-xl flex flex-col">
 
       <main className="flex-1 flex flex-col h-full overflow-y-auto">
         {children}
       </main>
+      <HelpVideos />
 
       <nav className="fixed bottom-0 w-full max-w-md bg-card border-t border-border flex justify-around items-center p-2 pb-safe z-50">
         {navItems.map((item) => {

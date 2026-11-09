@@ -35,7 +35,7 @@ import {
   type ProductCategory,
   type CountingMethod,
 } from "@/lib/calculations";
-import { useUpdateProduct, useCalibrateFullBottle, useBottleShapes, useUpsertBottleShape, useAttachShapeToProduct, type BottleShape } from "@/hooks/api";
+import { useUpdateProduct, useCalibrateFullBottle, useBottleShapes, useUpsertBottleShape, useAttachShapeToProduct, recomputeOpenEntriesForProduct, type BottleShape } from "@/hooks/api";
 import { Search, Plus, Scale, SlidersHorizontal, Upload, CheckCircle2, AlertCircle, ArrowLeftRight, Library as LibraryIcon, Tags, PackagePlus, Pencil, Trash2, Banknote } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +49,9 @@ import {
   validateCsvImportRows,
 } from "@/lib/csv-import-validation";
 import { gpPercentForProduct } from "@/lib/inventory-reporting";
+import { presetsFor as containerPresetsFor, containerSizeFromName } from "@/lib/container-sizes";
+import { ContainerSizePicker } from "@/components/ContainerSizePicker";
+import { PostmixYieldField } from "@/components/PostmixYieldField";
 import { CataloguePickerSheet } from "@/components/CataloguePickerSheet";
 import {
   estimateDefaultPrices,
@@ -57,6 +60,7 @@ import {
   inferCountingMethod,
   inferSizeMl,
   isLitreOnBottles,
+  guessCategoryFromName,
 } from "@/lib/library-hygiene";
 import { matchKnownBottles } from "@/hooks/useCatalogue";
 
@@ -84,7 +88,7 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
   open: boolean;
   onClose: () => void;
   venueId: string;
-  products?: { name: string }[];
+  products?: { id?: string; name: string; category?: string | null; counting_method?: string | null; size_ml?: number | null }[];
   initialName?: string;
   initialMatch?: CatalogueEntry | null;
 }) {
@@ -105,6 +109,8 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
   const [parLevel, setParLevel] = useState("");
   const [unit, setUnit] = useState<"weigh" | "count">("weigh");
   const [sizeMl, setSizeMl] = useState("700");
+  // Once someone types a size we stop guessing it from the name.
+  const [sizeTouched, setSizeTouched] = useState(false);
   const [density, setDensity] = useState("0.913");
   const [measureMl, setMeasureMl] = useState("");
   const [fullWeightG, setFullWeightG] = useState("");
@@ -136,6 +142,7 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
   React.useEffect(() => {
     if (!open) return;
     setName(initialName ?? "");
+    setContainerTouched(false);
     setDismissedMatch(false);
     setAppliedMatch(null);
     if (initialMatch) applyMatch(initialMatch);
@@ -146,7 +153,50 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
   const catalogueMatch = useMemo(() => bestCatalogueMatch(name), [name]);
   const showMatchSuggestion = !!catalogueMatch && !dismissedMatch && catalogueMatch.entry.name.toLowerCase() !== name.trim().toLowerCase();
   const showNewProductHint = name.trim().length >= 2 && !catalogueMatch && !dismissedMatch;
-  const duplicateInLibrary = useMemo(() => findBestNameMatch(name, products ?? []), [name, products]);
+  // Only warn about a duplicate when it really looks like the same product: the same
+  // words once sizes and category words are ignored, or the name contained whole in
+  // another. "Gin Aber Falls Orange" vs "Gin Aber Falls Rhubarb" is NOT a duplicate.
+  const duplicateInLibrary = useMemo(() => {
+    if (name.trim().length < 3 || !products) return null;
+    const likely = findLikelyDuplicate(
+      { name, category: category as any, size_ml: parseFloat(sizeMl) || null },
+      products.map(p => ({ id: p.id ?? p.name, name: p.name, category: (p.category ?? null) as any, counting_method: (p.counting_method ?? null) as any, size_ml: p.size_ml ?? null })),
+    );
+    if (likely) return { item: { name: likely.product.name }, score: 100 };
+    const loose = findBestNameMatch(name, products);
+    return loose && loose.score >= 85 ? loose : null;
+  }, [name, products, category, sizeMl]);
+
+  // Category from the name ("Soft Tango ... Can", "PPL Corona", "... Keg") until the user picks one.
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  React.useEffect(() => {
+    if (categoryTouched) return;
+    const guess = guessCategoryFromName(name);
+    if (guess && guess !== category) setCategory(guess);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
+
+  // Keg/cask/box size from the name ("Riversider 30L Keg" -> 30L) until the user picks one.
+  const [containerTouched, setContainerTouched] = useState(false);
+  const pickContainerL = (v: string) => { setContainerTouched(true); setContainerL(v); };
+  React.useEffect(() => {
+    if (containerTouched) return;
+    if (!isDraughtCategory(category) && category !== "postmix") return;
+    const fromName = containerSizeFromName(name);
+    if (!fromName) return;
+    setContainerL(String(fromName.litres));
+    if (fromName.type && category !== "postmix") setContainerType(fromName.type);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
+
+  // Bottle/can size from the name ("Soft Tango Apple 330ml" -> 330) until the user types one.
+  React.useEffect(() => {
+    if (sizeTouched) return;
+    const guess = inferSizeMl(name, category, null);
+    if (guess != null) setSizeMl(String(guess));
+    else if (unit === "count") setSizeMl("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, category]);
   // Strengthen the weight-entry nudge when there's no catalogue match to fall back on and
   // no weight has been entered yet — this is the case most likely to leave a product stuck
   // on rough tenths estimates forever if skipped.
@@ -157,9 +207,27 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
     setDensity(String(DEFAULT_DENSITIES[type] ?? 0.948));
   }, [type]);
 
-  // Keep counting method valid whenever category changes
+  // Keep counting method, unit and type sensible whenever category changes: bottles of
+  // spirits and wine are weighed, everything else is counted; postmix comes in boxes.
   React.useEffect(() => {
     setCountingMethod(CATEGORY_METHODS[category].default);
+    const weighed = category === "spirits" || category === "wines";
+    setUnit(weighed ? "weigh" : "count");
+    if (category === "wines") setType("wine");
+    else if (!weighed) setType("packaged");
+    if (!containerTouched) {
+      if (category === "postmix") { setContainerType("bag_in_box"); setContainerL("12"); }
+      else if (isDraughtCategory(category)) {
+        const fromName = containerSizeFromName(name);
+        setContainerType(fromName?.type ?? (category === "draught_ale" ? "cask" : "keg"));
+        setContainerL(fromName ? String(fromName.litres) : category === "draught_ale" ? "40.9" : "50");
+      }
+    }
+    if (!sizeTouched) {
+      const guess = inferSizeMl(name, category, null);
+      setSizeMl(guess != null ? String(guess) : weighed ? (category === "wines" ? "750" : "700") : "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   // Auto-derive empty weight
@@ -214,12 +282,15 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
       }
     }
 
+    // Draught and postmix are sized by their keg/cask/box, never by a bottle size —
+    // saving a leftover "700" here made every can and keg read as 70cl.
+    const sizedByContainer = isDraughtCategory(category) || category === "postmix";
     const product: ProductInsert = {
       venue_id: venueId,
       name: name.trim(),
       type,
       unit,
-      size_ml: sm,
+      size_ml: sizedByContainer ? null : sm,
       density: d,
       full_weight_g: fw,
       empty_weight_g: ew,
@@ -234,7 +305,7 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
       container_type: isDraughtCategory(category) ? containerType : null,
       container_l: isDraughtCategory(category) || category === "postmix" ? (parseFloat(containerL) || null) : null,
       dip_full_mm: countingMethod === "dipstick" ? (parseFloat(dipFullMm) || null) : null,
-      pack_size: countingMethod === "dozen" ? (parseFloat(packSize) || null) : null,
+      pack_size: countingMethod === "dozen" ? (parseFloat(packSize) || null) : category === "postmix" && packSize !== "12" ? (parseFloat(packSize) || null) : null,
       par_level: parseFloat(parLevel) || null,
       vendor: vendor.trim() || null,
       sku: sku.trim() || null,
@@ -250,7 +321,7 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
       setPourPrice(""); setAbv(""); setBarcode(""); setLocationId("");
       setVendor(""); setSku(""); setProductNotes("");
       setDipFullMm(""); setParLevel("");
-      setAppliedMatch(null); setDismissedMatch(false); setKnownEmptyMode(false);
+      setAppliedMatch(null); setDismissedMatch(false); setKnownEmptyMode(false); setSizeTouched(false); setCategoryTouched(false); setContainerTouched(false);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -348,7 +419,7 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Category</Label>
-              <Select value={category} onValueChange={v => setCategory(v as ProductCategory)}>
+              <Select value={category} onValueChange={v => { setCategory(v as ProductCategory); setCategoryTouched(true); }}>
                 <SelectTrigger className="mt-1" data-testid="select-category"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(Object.keys(CATEGORY_LABELS) as ProductCategory[]).map(c => (
@@ -370,8 +441,16 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
             </div>
           </div>
 
+          {category === "postmix" && (
+            <div>
+              <ContainerSizePicker id="p-box-l" kind="postmix" label="Box size" value={containerL} onChange={pickContainerL} testId="box" />
+              <div className="mt-3"><PostmixYieldField id="p-yield" value={packSize === "12" ? "" : packSize} onChange={setPackSize} boxL={containerL} /></div>
+              <p className="text-xs text-muted-foreground mt-1">You count postmix in litres; this is what one box holds, for costing.</p>
+            </div>
+          )}
+
           {isDraughtCategory(category) && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               <div>
                 <Label>Container</Label>
                 <Select value={containerType} onValueChange={v => setContainerType(v as "keg" | "cask" | "bag_in_box")}>
@@ -383,10 +462,7 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="p-container-l">Capacity (litres)</Label>
-                <Input id="p-container-l" type="number" value={containerL} onChange={e => setContainerL(e.target.value)} className="mt-1" placeholder="50" />
-              </div>
+              <ContainerSizePicker id="p-container-l" kind={containerType} label={containerType === "cask" ? "Cask size" : containerType === "bag_in_box" ? "Box size" : "Keg size"} value={containerL} onChange={pickContainerL} testId="keg" />
             </div>
           )}
 
@@ -423,12 +499,28 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
             </RadioGroup>
           </div>
 
+          {unit === "count" && !isDraughtCategory(category) && category !== "postmix" && (
+            <div>
+              <Label htmlFor="p-unit-size">{countingMethod === "litre" ? "Bottle size (ml, optional)" : "Can / bottle size (ml)"}</Label>
+              <Input
+                id="p-unit-size"
+                type="number"
+                value={sizeMl}
+                onChange={e => { setSizeMl(e.target.value); setSizeTouched(true); }}
+                className="mt-1"
+                placeholder={category === "packaged" || category === "minerals" ? "e.g. 330" : ""}
+                data-testid="input-unit-size"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Leave blank for things that aren't drinks, like crisps.</p>
+            </div>
+          )}
+
           {unit === "weigh" && countingMethod !== "dipstick" && countingMethod !== "keg_weight" && countingMethod !== "tenths_pints" && countingMethod !== "litre" && (
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="p-size">Size (ml)</Label>
-                  <Input id="p-size" type="number" value={sizeMl} onChange={e => setSizeMl(e.target.value)} className="mt-1" />
+                  <Input id="p-size" type="number" value={sizeMl} onChange={e => { setSizeMl(e.target.value); setSizeTouched(true); }} className="mt-1" />
                 </div>
                 <div>
                   <Label htmlFor="p-density">Density (g/ml)</Label>
@@ -493,13 +585,13 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className={unit === "count" ? "hidden" : ""}>
               <Label htmlFor="p-measure">Measure (ml)</Label>
               <Input id="p-measure" type="number" value={measureMl} onChange={e => setMeasureMl(e.target.value)} className="mt-1" placeholder="25" />
             </div>
             <div>
               <Label htmlFor="p-abv">ABV %</Label>
-              <Input id="p-abv" type="number" step="0.1" value={abv} onChange={e => setAbv(e.target.value)} className="mt-1" placeholder="40" />
+              <Input id="p-abv" type="number" step="0.1" value={abv} onChange={e => setAbv(e.target.value)} className="mt-1" placeholder={unit === "count" ? "e.g. 4.0" : "40"} />
             </div>
           </div>
 
@@ -543,11 +635,13 @@ function AddProductSheet({ open, onClose, venueId, products, initialName, initia
   );
 }
 
-function WeighNowSheet({ open, onClose, product, venueId }: {
+function WeighNowSheet({ open, onClose, product, venueId, setup = false }: {
   open: boolean;
   onClose: () => void;
   product: any;
   venueId: string;
+  /** Open straight on "weigh a full bottle" (setting the bottle up), not on a reading. */
+  setup?: boolean;
 }) {
   const [weightStr, setWeightStr] = useState("0");
   const [tenthsStr, setTenthsStr] = useState("0");
@@ -559,6 +653,7 @@ function WeighNowSheet({ open, onClose, product, venueId }: {
   const calibrateFullBottle = useCalibrateFullBottle();
 
   const hasWeights = product?.full_weight_g != null && product?.empty_weight_g != null;
+  React.useEffect(() => { if (open && setup) setCalibrating(true); }, [open, setup]);
   // Products with no tare weight default to tenths entry; the weigh pad is only shown
   // once weights exist, or while explicitly calibrating a full bottle.
   const useTenths = !hasWeights && !calibrating;
@@ -594,6 +689,7 @@ function WeighNowSheet({ open, onClose, product, venueId }: {
           venueId,
           userId: user!.id,
           weightG,
+          recordReading: false,
         });
         toast({ title: "Weight tracking set up", description: `${product.name}: full weight saved` });
       } else {
@@ -801,7 +897,8 @@ interface RawCsv {
 
 /** Phase 1: raw parse only — no field interpretation, so we can decide auto-detect vs. manual mapping. */
 function rawParseCsv(text: string): RawCsv {
-  const result = Papa.parse<Record<string, string>>(text, {
+  // A file saved as UTF-8 but read as Latin-1 somewhere upstream arrives as "JÃ¤germeister": repair it here.
+  const result = Papa.parse<Record<string, string>>(fixMojibake(text), {
     header: true,
     skipEmptyLines: true,
   });
@@ -835,11 +932,13 @@ function detectCsvFormat(headers: string[]): CsvFormat {
 function mapFullBarRow(row: Record<string, string>): CsvRow {
   const rawName = (row["product_name"] ?? row["name"] ?? "").trim();
   const rawCategory = (row["category"] ?? "").trim().toLowerCase();
-  const category = parseCsvCategory(rawCategory);
+  const statedCategory = parseCsvCategory(rawCategory);
+  const guessedCategory = statedCategory ? null : guessCategoryFromName(rawName);
+  const category = statedCategory ?? guessedCategory;
   const unitType = (row["unit_type"] ?? "").trim().toLowerCase();
   const partUnitType = (row["part_unit_type"] ?? "").trim().toLowerCase();
   const requestedMethod = category ? (CSV_UNIT_METHOD_MAP[partUnitType] ?? CSV_UNIT_METHOD_MAP[unitType] ?? null) : null;
-  const sizeFromFile = parseFloat(row["size_ml"] ?? row["size"] ?? "") || null;
+  const sizeFromFile = parseSizeMl(row["size_ml"] ?? row["size"] ?? "");
   const sizeMl = category ? (sizeFromFile ?? inferSizeMl(rawName, category, requestedMethod)) : sizeFromFile;
   // A stocktaker's "litre" on a packaged bottle means "each"; see inferCountingMethod.
   const countingMethod = category
@@ -849,13 +948,15 @@ function mapFullBarRow(row: Record<string, string>): CsvRow {
   const sellPriceRaw = parseFloat(row["sell_price"] ?? "") || null;
   const costPrice = costPriceRaw != null && costPriceRaw < 0 ? null : costPriceRaw;
   const sellPrice = sellPriceRaw != null && sellPriceRaw < 0 ? null : sellPriceRaw;
-  const categoryWarn = category
+  const categoryWarn = statedCategory
     ? ""
-    : rawCategory
-      ? `Unknown category “${rawCategory}” — select a valid category`
-      : "Category is required";
+    : guessedCategory
+      ? "Category guessed from the name, check it"
+      : rawCategory
+        ? `Unknown category “${rawCategory}”, pick one`
+        : "Pick a category";
   const negativePriceWarn = (costPriceRaw != null && costPriceRaw < 0) || (sellPriceRaw != null && sellPriceRaw < 0)
-    ? "Negative price cleared — re-enter cost/sell" : "";
+    ? "Negative price cleared, type the cost/sell again" : "";
   const parLevel = parseFloat(row["par_level"] ?? "") || null;
   const isVolumeMethod = countingMethod === "keg_weight" || countingMethod === "dipstick" || countingMethod === "tenths_pints";
   const containerL = isVolumeMethod ? (parseFloat(row["container_l"] ?? row["container_litres"] ?? row["keg_size_l"] ?? "") || null) : null;
@@ -886,7 +987,7 @@ function mapFullBarRow(row: Record<string, string>): CsvRow {
 function mapLegacyRow(row: Record<string, string>): CsvRow {
   const rawName = (row["drink"] ?? row["name"] ?? "").trim();
   const rawType = (row["type"] ?? "spirit").trim().toLowerCase();
-  const sizeMl = parseFloat(row["size_ml"] ?? row["size"] ?? "") || null;
+  const sizeMl = parseSizeMl(row["size_ml"] ?? row["size"] ?? "");
   const fullG = parseFloat(row["full_weight_g"] ?? row["full_weight"] ?? "") || null;
   const emptyRaw = row["empty_tare_g"] ?? row["empty_weight_g"] ?? row["empty/tare"] ?? row["empty_tare"] ?? "";
   const emptyG = (emptyRaw === "" || emptyRaw?.toUpperCase() === "RE-WEIGH")
@@ -986,6 +1087,17 @@ function guessColumnMapping(headers: string[]): Partial<Record<MappableField, st
 }
 
 /** Turn one manually-mapped row into the same internal CsvRow shape the preview/import already expect. */
+/** A size cell to millilitres: "700", "70cl", "0.7L", "1.5 litre", "330ml". A bare number is millilitres. */
+export function parseSizeMl(raw: string): number | null {
+  const m = String(raw ?? "").trim().toLowerCase().replace(",", ".").match(/^(\d+(?:\.\d+)?)\s*(ml|cl|l|ltr|litres?|liters?)?$/);
+  if (!m) return parseFloat(raw) || null;
+  const n = parseFloat(m[1]);
+  if (!n) return null;
+  const unit = m[2] ?? "ml";
+  const ml = unit === "ml" ? n : unit === "cl" ? n * 10 : n * 1000;
+  return Math.round(ml * 10) / 10;
+}
+
 function mapGenericRow(row: Record<string, string>, mapping: Partial<Record<MappableField, string>>): CsvRow {
   const get = (f: MappableField) => {
     const header = mapping[f];
@@ -996,8 +1108,11 @@ function mapGenericRow(row: Record<string, string>, mapping: Partial<Record<Mapp
   const rawType = (get("type") || "spirit").toLowerCase();
   const type: ProductType = CSV_TYPE_MAP[rawType] ?? (PRODUCT_TYPES.includes(rawType as ProductType) ? (rawType as ProductType) : "spirit");
   const rawCategory = get("category").toLowerCase();
-  const category = parseCsvCategory(rawCategory);
-  const sizeMl = parseFloat(get("size_ml")) || null;
+  const statedCategory = parseCsvCategory(rawCategory);
+  // No category column (or one we don't know)? Most names give it away: "Wine Pinot Grigio", "Soft Tango Can".
+  const guessedCategory = statedCategory ? null : guessCategoryFromName(name);
+  const category = statedCategory ?? guessedCategory;
+  const sizeMl = parseSizeMl(get("size_ml"));
   const fullG = parseFloat(get("full_weight_g")) || null;
   const emptyG = parseFloat(get("empty_weight_g")) || null;
   const density = parseFloat(get("density")) || (DEFAULT_DENSITIES[type] ?? 0.948);
@@ -1007,14 +1122,16 @@ function mapGenericRow(row: Record<string, string>, mapping: Partial<Record<Mapp
   const costPrice = costPriceRaw != null && costPriceRaw < 0 ? null : costPriceRaw;
   const sellPrice = sellPriceRaw != null && sellPriceRaw < 0 ? null : sellPriceRaw;
   const parLevel = parseFloat(get("par_level")) || null;
-  const categoryWarn = category
+  const categoryWarn = statedCategory
     ? ""
-    : rawCategory
-      ? `Unknown category “${rawCategory}” — select a valid category`
-      : "Category is required";
-  const weightWarn = fullG == null && emptyG == null ? "No weights mapped — add manually before use" : "";
+    : guessedCategory
+      ? "Category guessed from the name, check it"
+      : rawCategory
+        ? `Unknown category “${rawCategory}”, pick one`
+        : "Pick a category";
+  const weightWarn = fullG == null && emptyG == null && (category === "spirits" || category === "wines") ? "No bottle weights in the file, you can weigh one later" : "";
   const negativePriceWarn = (costPriceRaw != null && costPriceRaw < 0) || (sellPriceRaw != null && sellPriceRaw < 0)
-    ? "Negative price cleared — re-enter cost/sell" : "";
+    ? "Negative price cleared, type the cost/sell again" : "";
   const warn = [categoryWarn, weightWarn, negativePriceWarn].filter(Boolean).join(" · ");
   const resolvedSizeMl = sizeMl ?? (category ? inferSizeMl(name, category, null) : null);
 
@@ -1286,8 +1403,8 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
     if (maxNew !== undefined && Number.isFinite(maxNew) && toInsert.length > maxNew) {
       setImportBlockError(
         maxNew === 0
-          ? `Your library is at the 50-product free plan limit. Upgrade to Pro for unlimited products.`
-          : `This file has ${toInsert.length} new products but the free plan only has room for ${maxNew} more. Upgrade to Pro for unlimited products.`
+          ? `Your library is at the 50-product free plan limit. Upgrade to Premium for unlimited products.`
+          : `This file has ${toInsert.length} new products but the free plan only has room for ${maxNew} more. Upgrade to Premium for unlimited products.`
       );
       return;
     }
@@ -1411,12 +1528,12 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
               <div className="space-y-3 border border-border rounded-xl p-4" data-testid="section-column-mapping">
                 <div>
                   <p className="text-sm font-semibold">We couldn't recognize these columns</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Map each field below to a column from your file. Best guesses are pre-selected.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Match each field to a column from your file. Best guesses are picked already. Only the name is a must: with no category column, we guess it from the name and you can check it on the next screen.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {MAPPABLE_FIELDS.map(f => (
                     <div key={f.key}>
-                      <Label className="text-xs text-muted-foreground">{f.label}{f.key === "name" || f.key === "category" ? " *" : ""}</Label>
+                      <Label className="text-xs text-muted-foreground">{f.label}{f.key === "name" ? " *" : f.key === "category" ? " (optional)" : ""}</Label>
                       <Select
                         value={columnMapping[f.key] ?? "__none__"}
                         onValueChange={v => setColumnMapping(prev => ({ ...prev, [f.key]: v === "__none__" ? undefined : v }))}
@@ -1433,7 +1550,7 @@ function ImportCSVSheet({ open, onClose, venueId, defaultMeasure, maxNew, existi
                 <Button
                   className="w-full h-12 font-bold"
                   onClick={handleApplyMapping}
-                  disabled={!columnMapping.name || !columnMapping.category}
+                  disabled={!columnMapping.name}
                   data-testid="button-apply-mapping"
                 >
                   Continue to preview
@@ -1731,6 +1848,7 @@ function PostImportWeighChecklist({ open, onClose, products, venueId }: {
         venueId,
         userId: user!.id,
         weightG,
+        recordReading: false,
       });
       toast({ title: "Weight tracking set up", description: `${current.name}: full weight saved` });
       advance();
@@ -1932,14 +2050,14 @@ function V21ImportCostPricesSheet({
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="bottom" className="h-[90dvh] overflow-y-auto rounded-t-2xl">
         <SheetHeader className="mb-4">
-          <SheetTitle>Import cost prices from V21</SheetTitle>
+          <SheetTitle>Import cost prices</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-4 pb-32">
           {step === "paste" && (
             <>
               <p className="text-sm text-muted-foreground">
-                Copy rows from Marston's V21 Store Management ordering screen and paste below.
+                Copy the product rows from your brewery ordering screen and paste them below.
                 Tab-separated or 2+ space-separated. Columns expected: Category · Code · Supplier
                 Product Code · Product Name · Case Size · Cost Price · …
               </p>
@@ -1961,7 +2079,7 @@ function V21ImportCostPricesSheet({
           {step === "confirm" && (
             <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-4">
               <p className="font-semibold text-sm">
-                About to write {matched.length} cost price{matched.length !== 1 ? "s" : ""} to the database
+                About to update {matched.length} cost price{matched.length !== 1 ? "s" : ""}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 This cannot be undone from this screen. Verify the preview below before confirming.
@@ -2074,8 +2192,12 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
 }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [edits, setEdits] = useState<Record<string, { cost: string; sell: string; par: string; category: ProductCategory; countingMethod: CountingMethod; vendor: string }>>({});
+  const [edits, setEdits] = useState<Record<string, { cost: string; sell: string; par: string; category: ProductCategory; countingMethod: CountingMethod; vendor: string; location: string }>>({});
   const [saving, setSaving] = useState(false);
+  const { data: bulkLocations = [] } = useLocations(venueId);
+  const [bulkQuery, setBulkQuery] = useState("");
+  const [bulkShown, setBulkShown] = useState(40);
+  const [bulkLoc, setBulkLoc] = useState("");
   const products = useMemo(
     () =>
       mode !== "prices"
@@ -2089,7 +2211,8 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
 
   React.useEffect(() => {
     if (open) {
-      const initial: Record<string, { cost: string; sell: string; par: string; category: ProductCategory; countingMethod: CountingMethod; vendor: string }> = {};
+      setBulkQuery(""); setBulkShown(40); setBulkLoc("");
+      const initial: Record<string, { cost: string; sell: string; par: string; category: ProductCategory; countingMethod: CountingMethod; vendor: string; location: string }> = {};
       for (const p of products) {
         const category: ProductCategory = (p.category ?? "spirits") as ProductCategory;
         const countingMethod: CountingMethod = (p.counting_method ?? CATEGORY_METHODS[category].default) as CountingMethod;
@@ -2100,6 +2223,7 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
           category,
           countingMethod,
           vendor: p.vendor ?? "",
+          location: p.location_id ?? "none",
         };
       }
       setEdits(initial);
@@ -2118,6 +2242,18 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
       },
     }));
   };
+
+  const bulkMatches = useMemo(() => {
+    const q = normName(bulkQuery);
+    return q ? products.filter((p: any) => normName(p.name).includes(q) || normName(CATEGORY_LABELS[(p.category ?? "spirits") as ProductCategory] ?? "").includes(q)) : products;
+  }, [products, bulkQuery]);
+  const changedCount = useMemo(() => products.filter((p: any) => {
+    const v = edits[p.id]; if (!v) return false;
+    const num = (x: string) => (x === "" ? null : parseFloat(x));
+    return num(v.cost) !== (p.cost_price ?? null) || num(v.sell) !== (p.pour_price ?? null) || num(v.par) !== (p.par_level ?? null)
+      || v.category !== (p.category ?? "spirits") || v.countingMethod !== (p.counting_method ?? CATEGORY_METHODS[v.category].default)
+      || (v.vendor.trim() || null) !== (p.vendor ?? null) || (v.location === "none" ? null : v.location) !== (p.location_id ?? null);
+  }).length, [products, edits]);
 
   const gpFor = (p: any) => {
     const e = edits[p.id];
@@ -2158,17 +2294,19 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
             par !== (product.par_level ?? null) ||
             v.category !== (product.category ?? "spirits") ||
             v.countingMethod !== (product.counting_method ?? CATEGORY_METHODS[v.category].default) ||
-            vendor !== (product.vendor ?? null);
+            vendor !== (product.vendor ?? null) ||
+            (v.location === "none" ? null : v.location) !== (product.location_id ?? null);
           return changed
             ? {
                 id, cost_price: cost, pour_price: sell, par_level: par, category: v.category, counting_method: v.countingMethod, vendor,
+                location_id: v.location === "none" ? null : v.location,
                 // A price typed by the landlord is no longer an estimate.
                 cost_price_estimated: costChanged ? false : !!(product as any).cost_price_estimated,
                 pour_price_estimated: sellChanged ? false : !!(product as any).pour_price_estimated,
               }
             : null;
         })
-        .filter((u): u is { id: string; cost_price: number | null; pour_price: number | null; par_level: number | null; category: ProductCategory; counting_method: CountingMethod; vendor: string | null; cost_price_estimated: boolean; pour_price_estimated: boolean } => !!u);
+        .filter((u): u is { id: string; cost_price: number | null; pour_price: number | null; par_level: number | null; category: ProductCategory; counting_method: CountingMethod; vendor: string | null; location_id: string | null; cost_price_estimated: boolean; pour_price_estimated: boolean } => !!u);
 
       for (const u of updates) {
         const { error } = await supabase
@@ -2181,6 +2319,7 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
             counting_method: u.counting_method,
             unit: u.counting_method === "weigh" || u.counting_method === "tenths" || u.counting_method === "photo_tap" ? "weigh" : "count",
             vendor: u.vendor,
+            location_id: u.location_id,
             cost_price_estimated: u.cost_price_estimated,
             pour_price_estimated: u.pour_price_estimated,
           })
@@ -2209,8 +2348,37 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
           )}
         </SheetHeader>
 
+        <div className="space-y-2 mb-3" data-testid="bulk-tools">
+          <Input
+            value={bulkQuery}
+            onChange={e => { setBulkQuery(e.target.value); setBulkShown(40); }}
+            placeholder={`Search ${products.length} products, or a category like "wine"`}
+            className="h-11"
+            data-testid="input-bulk-search"
+          />
+          {bulkLocations.length > 0 && (
+            <div className="flex gap-2 items-center">
+              <Select value={bulkLoc} onValueChange={setBulkLoc}>
+                <SelectTrigger className="h-10 text-sm flex-1" data-testid="select-bulk-location"><SelectValue placeholder="Move these to a location…" /></SelectTrigger>
+                <SelectContent>
+                  {bulkLocations.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline" className="h-10 shrink-0" disabled={!bulkLoc || !bulkMatches.length}
+                onClick={() => setEdits(prev => { const n = { ...prev }; for (const p of bulkMatches) if (n[p.id]) n[p.id] = { ...n[p.id], location: bulkLoc }; return n; })}
+                data-testid="button-bulk-set-location"
+              >Set {bulkMatches.length}</Button>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground" data-testid="text-bulk-count">
+            {bulkQuery.trim() ? `${bulkMatches.length} of ${products.length} match` : `${products.length} products`}{changedCount ? ` · ${changedCount} changed, not saved yet` : ""}. Nothing's saved until you tap Save.
+          </p>
+        </div>
+
         <div className="space-y-3 pb-24">
-          {products.map(p => {
+          {!bulkMatches.length && <p className="text-sm text-muted-foreground text-center py-6" data-testid="bulk-no-results">Nothing matches “{bulkQuery}”.</p>}
+          {bulkMatches.slice(0, bulkShown).map(p => {
             const gp = gpFor(p);
             const e = edits[p.id];
             if (!e) return null;
@@ -2290,6 +2458,19 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
                   />
                 </div>
 
+                {bulkLocations.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Location</Label>
+                    <Select value={e.location} onValueChange={v => setEdits(prev => ({ ...prev, [p.id]: { ...prev[p.id], location: v } }))}>
+                      <SelectTrigger className="mt-1 h-9 text-sm" data-testid={`select-location-${p.id}`}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Unassigned</SelectItem>
+                        {bulkLocations.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div>
                   <Label className="text-xs text-muted-foreground">Par level</Label>
                   <Input
@@ -2306,11 +2487,16 @@ function BulkPriceEditorSheet({ open, onClose, venueId, products: allProducts, m
               </div>
             );
           })}
+          {bulkMatches.length > bulkShown && (
+            <Button variant="outline" className="w-full" onClick={() => setBulkShown(n => n + 40)} data-testid="button-bulk-more">
+              Show {Math.min(40, bulkMatches.length - bulkShown)} more ({bulkMatches.length - bulkShown} left)
+            </Button>
+          )}
         </div>
 
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
-          <Button className="w-full h-14 text-lg font-bold" onClick={handleSaveAll} disabled={saving} data-testid="button-save-prices">
-            {saving ? "Saving..." : "Save All Changes"}
+          <Button className="w-full h-14 text-lg font-bold" onClick={handleSaveAll} disabled={saving || !changedCount} data-testid="button-save-prices">
+            {saving ? "Saving..." : changedCount ? `Save ${changedCount} change${changedCount === 1 ? "" : "s"}` : "No changes yet"}
           </Button>
         </div>
       </SheetContent>
@@ -2332,6 +2518,20 @@ function DeliveryEntrySheet({ open, onClose, venueId, products }: {
   const [unitCost, setUnitCost] = useState("");
   const [invoiceRef, setInvoiceRef] = useState("");
   const [saving, setSaving] = useState(false);
+  const [pick, setPick] = useState("");
+  const [updateCost, setUpdateCost] = useState(true);
+  const chosen = products.find(p => p.id === productId);
+  const matches = useMemo(() => {
+    const q = normName(pick);
+    if (q.length < 2) return [];
+    return products.filter(p => normName(p.name).includes(q)).slice(0, 8);
+  }, [pick, products]);
+  const unitWord = !chosen ? "units"
+    : ["keg_weight", "dipstick", "tenths_pints"].includes(chosen.counting_method) ? (chosen.container_type === "cask" ? "casks" : "kegs")
+    : chosen.category === "postmix" ? "boxes"
+    : chosen.counting_method === "dozen" ? "cases"
+    : chosen.category === "spirits" || chosen.category === "wines" ? "bottles"
+    : "cans or bottles";
 
   const handleSave = async () => {
     const qty = parseFloat(quantity);
@@ -2348,6 +2548,11 @@ function DeliveryEntrySheet({ open, onClose, venueId, products }: {
         user_id: user?.id ?? null,
       });
       if (error) throw error;
+      const cost = parseFloat(unitCost);
+      if (updateCost && isFinite(cost) && cost > 0) {
+        await supabase.from("products").update({ cost_price: cost, cost_price_estimated: false } as any).eq("id", productId);
+        queryClient.invalidateQueries({ queryKey: ["products", venueId] });
+      }
 
       const product = products.find(p => p.id === productId);
       if (product && user?.id) {
@@ -2365,8 +2570,8 @@ function DeliveryEntrySheet({ open, onClose, venueId, products }: {
       }
 
       queryClient.invalidateQueries({ queryKey: ["latest-readings", venueId] });
-      toast({ title: "Delivery logged", description: `${qty} units received` });
-      setProductId(""); setQuantity(""); setUnitCost(""); setInvoiceRef("");
+      toast({ title: "Delivery logged", description: `${qty} ${unitWord} of ${chosen?.name ?? "stock"} in${updateCost && isFinite(cost) && cost > 0 ? `, cost price now ${formatGBP(cost)}` : ""}.` });
+      setProductId(""); setQuantity(""); setUnitCost(""); setInvoiceRef(""); setPick("");
       onClose();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -2383,22 +2588,42 @@ function DeliveryEntrySheet({ open, onClose, venueId, products }: {
         </SheetHeader>
 
         <div className="space-y-4">
+          <a href="/delivery" className="block text-xs font-semibold text-primary" data-testid="link-full-delivery">Got the whole delivery note? Paste or scan it instead →</a>
           <div>
-            <Label>Product</Label>
-            <Select value={productId} onValueChange={setProductId}>
-              <SelectTrigger className="mt-1" data-testid="select-delivery-product"><SelectValue placeholder="Choose product" /></SelectTrigger>
-              <SelectContent>
-                {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="d-pick">Product</Label>
+            {chosen ? (
+              <div className="mt-1 flex items-center justify-between rounded-lg border border-primary bg-primary/5 px-3 py-2 text-sm" data-testid="delivery-chosen">
+                <span className="font-semibold truncate">{chosen.name}</span>
+                <button type="button" className="text-xs text-primary font-semibold shrink-0" onClick={() => { setProductId(""); setPick(""); }}>Change</button>
+              </div>
+            ) : (
+              <>
+                <Input id="d-pick" value={pick} onChange={e => setPick(e.target.value)} className="mt-1" placeholder="Type a name, e.g. carling" autoComplete="off" data-testid="input-delivery-product" />
+                {matches.length > 0 && (
+                  <div className="mt-1 rounded-lg border border-border divide-y divide-border max-h-56 overflow-auto">
+                    {matches.map(p => (
+                      <button key={p.id} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted" onClick={() => { setProductId(p.id); setUnitCost(p.cost_price != null && !p.cost_price_estimated ? String(p.cost_price) : ""); }} data-testid={`delivery-option-${p.id}`}>
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
           <div>
-            <Label htmlFor="d-qty">Quantity received</Label>
+            <Label htmlFor="d-qty">How many {unitWord}</Label>
             <Input id="d-qty" type="number" value={quantity} onChange={e => setQuantity(e.target.value)} className="mt-1" placeholder="e.g. 24" />
           </div>
           <div>
-            <Label htmlFor="d-cost">Unit cost £ (optional)</Label>
-            <Input id="d-cost" type="number" value={unitCost} onChange={e => setUnitCost(e.target.value)} className="mt-1" />
+            <Label htmlFor="d-cost">Cost each £, ex-VAT (optional)</Label>
+            <Input id="d-cost" type="number" value={unitCost} onChange={e => setUnitCost(e.target.value)} className="mt-1" data-testid="input-delivery-cost" />
+            {unitCost.trim() !== "" && (
+              <label className="flex items-center gap-2 mt-2 text-xs">
+                <input type="checkbox" checked={updateCost} onChange={e => setUpdateCost(e.target.checked)} data-testid="check-delivery-update-cost" />
+                Use this as the product's cost price
+              </label>
+            )}
           </div>
           <div>
             <Label htmlFor="d-invoice">Invoice ref (optional)</Label>
@@ -2517,6 +2742,8 @@ function ProductFieldRepairSheet({
         })
       );
       queryClient.invalidateQueries({ queryKey: ["products", venueId] });
+      // Clear the "no keg size" banner straight away (it has its own query).
+      queryClient.invalidateQueries({ queryKey: ["null-capacity-kegs", venueId] });
       toast({ title: `${toUpdate.length} product${toUpdate.length === 1 ? "" : "s"} updated` });
       onClose();
     } catch (err: any) {
@@ -2905,58 +3132,11 @@ function BottleShapeSheet({ open, onClose, product, venueId }: {
 
 // ─── INDIVIDUAL PRODUCT EDIT SHEET ───────────────────────────────────────────
 
-const CONTAINER_PRESETS: Record<string, Array<{ label: string; value: number }>> = {
-  keg: [
-    { label: "20L", value: 20 },
-    { label: "30L", value: 30 },
-    { label: "50L (11 gal)", value: 50 },
-    { label: "100L (22 gal)", value: 100 },
-  ],
-  cask: [
-    { label: "Pin 4.5 gal (20.5L)", value: 20.5 },
-    { label: "Firkin 9 gal (40.9L)", value: 40.9 },
-    { label: "Kilderkin 18 gal (81.8L)", value: 81.8 },
-    { label: "Barrel 36 gal (163.7L)", value: 163.7 },
-    { label: "Hogshead 54 gal (245.5L)", value: 245.5 },
-  ],
-  bag_in_box: [
-    { label: "10L", value: 10 },
-    { label: "18L", value: 18 },
-    { label: "20L", value: 20 },
-  ],
-};
-
 /** Keg/cask/bag-in-box size: one-tap presets plus a free "Other size" box. */
 function ContainerSizeField({ id, containerType, value, onChange }: {
-  id: string;
-  containerType: string;
-  value: string;
-  onChange: (v: string) => void;
+  id: string; containerType: string; value: string; onChange: (v: string) => void;
 }) {
-  const presets = CONTAINER_PRESETS[containerType] ?? CONTAINER_PRESETS.keg;
-  const current = parseFloat(value);
-  return (
-    <div>
-      <Label htmlFor={id}>Size</Label>
-      <div className="mt-1 flex flex-wrap gap-1.5">
-        {presets.map(preset => (
-          <button
-            key={preset.value}
-            type="button"
-            onClick={() => onChange(String(preset.value))}
-            className={`text-xs px-2.5 py-1.5 rounded-md border ${Math.abs(current - preset.value) < 0.05 ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}
-            data-testid={`preset-container-${preset.value}`}
-          >
-            {preset.label}
-          </button>
-        ))}
-      </div>
-      <div className="mt-2 flex items-center gap-2">
-        <Input id={id} type="number" step="0.1" value={value} onChange={e => onChange(e.target.value)} className="h-9" placeholder="Other size" />
-        <span className="text-xs text-muted-foreground whitespace-nowrap">litres</span>
-      </div>
-    </div>
-  );
+  return <ContainerSizePicker id={id} kind={containerType} value={value} onChange={onChange} testId="container" />;
 }
 
 function EditProductSheet({ open, onClose, product, venueId }: {
@@ -2968,6 +3148,14 @@ function EditProductSheet({ open, onClose, product, venueId }: {
   const { toast } = useToast();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+  const { data: editLocations = [] } = useLocations(venueId);
+  const [locationId, setLocationId] = useState("none");
+  const [category, setCategory] = useState<string>("");
+  const [method, setMethod] = useState<string>("");
+  // Categories you can move between without re-setting how the line is counted.
+  const FAMILIES: string[][] = [["spirits", "wines"], ["draught_lager", "draught_ale", "draught_cider", "draught_stout"], ["minerals", "packaged"]];
+  const family = FAMILIES.find(f => f.includes(product?.category)) ?? (product?.category ? [product.category] : []);
+  const bottleLine = product?.category === "spirits" || product?.category === "wines";
 
   const [name, setName] = useState("");
   const [vendor, setVendor] = useState("");
@@ -2979,7 +3167,13 @@ function EditProductSheet({ open, onClose, product, venueId }: {
   const [barcode, setBarcode] = useState("");
   const [containerL, setContainerL] = useState("");
   const [containerType, setContainerType] = useState("keg");
+  const [unitSize, setUnitSize] = useState("");
+  const [packSizeStr, setPackSizeStr] = useState("");
+  const [boxL, setBoxL] = useState("");
+  const [yieldL, setYieldL] = useState("");
   const isDraughtLine = !!product && (isDraughtCategory(product.category) || ["keg_weight", "dipstick", "tenths_pints"].includes(product.counting_method));
+  const isBoxLine = !!product && !isDraughtLine && (product.category === "postmix" || (product.counting_method === "litre" && product.container_l != null));
+  const isDozenLine = !!product && product.counting_method === "dozen";
 
   React.useEffect(() => {
     if (open && product) {
@@ -2992,6 +3186,9 @@ function EditProductSheet({ open, onClose, product, venueId }: {
             : "keg"),
       );
       setName(product.name ?? "");
+      setLocationId(product.location_id ?? "none");
+      setCategory(product.category ?? "");
+      setMethod(product.counting_method ?? "");
       setVendor(product.vendor ?? "");
       setSku(product.sku ?? "");
       setNotes(product.notes ?? "");
@@ -2999,6 +3196,10 @@ function EditProductSheet({ open, onClose, product, venueId }: {
       setPourPrice(product.pour_price != null ? String(product.pour_price) : "");
       setParLevel(product.par_level != null ? String(product.par_level) : "");
       setBarcode(product.barcode ?? "");
+      setUnitSize(product.size_ml != null ? String(product.size_ml) : "");
+      setPackSizeStr(product.pack_size != null ? String(product.pack_size) : "");
+      setBoxL(product.container_l != null ? String(product.container_l) : "");
+      setYieldL(product.category === "postmix" && product.pack_size != null ? String(product.pack_size) : "");
     }
   }, [open, product]);
 
@@ -3016,6 +3217,9 @@ function EditProductSheet({ open, onClose, product, venueId }: {
       const pourTouched = pour !== (product.pour_price ?? null) || !product.pour_price_estimated;
       let costEstimated = cost != null && !costTouched;
       let pourEstimated = pour != null && !pourTouched;
+      // An estimated keg price was for the old size; re-estimate it for the new one.
+      const sizeChangedOnEstimate = isDraughtLine && costEstimated && containerLitres != null && containerLitres !== Number(product.container_l ?? 0);
+      if (sizeChangedOnEstimate) cost = null;
       if (isDraughtLine && cost == null && containerLitres != null) {
         const est = estimateDefaultPrices({
           name: name.trim(),
@@ -3030,6 +3234,9 @@ function EditProductSheet({ open, onClose, product, venueId }: {
         id: product.id,
         venue_id: venueId,
         name: name.trim(),
+        location_id: locationId === "none" ? null : locationId,
+        ...(category && category !== product.category ? { category } : {}),
+        ...(bottleLine && method && method !== product.counting_method ? { counting_method: method } : {}),
         vendor: vendor.trim() || null,
         sku: sku.trim() || null,
         notes: notes.trim() || null,
@@ -3040,8 +3247,21 @@ function EditProductSheet({ open, onClose, product, venueId }: {
         par_level: parLevel !== "" ? parseFloat(parLevel) : null,
         barcode: barcode.trim() || null,
         ...(isDraughtLine ? { container_l: containerLitres, container_type: containerType as any } : {}),
+        ...(!isDraughtLine && !isBoxLine ? { size_ml: unitSize !== "" ? parseFloat(unitSize) : null } : {}),
+        ...(isBoxLine ? { container_l: boxL !== "" ? parseFloat(boxL) : null, container_type: "bag_in_box" as any } : {}),
+        ...(product.category === "postmix" ? { pack_size: yieldL !== "" ? parseFloat(yieldL) : null } : {}),
+        ...(isDozenLine ? { pack_size: packSizeStr !== "" ? parseFloat(packSizeStr) : null } : {}),
       } as any);
-      toast({ title: "Product updated" });
+      // A corrected can/bottle or pack size also fixes this line in any count still open.
+      const newSize = !isDraughtLine && !isBoxLine ? (unitSize !== "" ? parseFloat(unitSize) : null) : product.size_ml;
+      const newPack = isDozenLine ? (packSizeStr !== "" ? parseFloat(packSizeStr) : null) : product.pack_size;
+      let fixed = 0;
+      const newContainer = isDraughtLine ? containerLitres : product.container_l ?? null;
+      const containerChanged = isDraughtLine && newContainer !== (product.container_l != null ? Number(product.container_l) : null);
+      if (newSize !== (product.size_ml ?? null) || newPack !== (product.pack_size ?? null) || containerChanged) {
+        fixed = await recomputeOpenEntriesForProduct({ id: product.id, venue_id: venueId, size_ml: newSize, pack_size: newPack, counting_method: product.counting_method, container_l: newContainer, old_container_l: product.container_l != null ? Number(product.container_l) : null });
+      }
+      toast({ title: "Product updated", description: fixed > 0 ? `Updated ${fixed} ${fixed === 1 ? "count" : "counts"} in your open stocktake to the new size.` : undefined });
       onClose();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -3069,6 +3289,46 @@ function EditProductSheet({ open, onClose, product, venueId }: {
             <Label htmlFor="ep-name">Name</Label>
             <Input id="ep-name" value={name} onChange={e => setName(e.target.value)} className="mt-1" />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Where it's kept</Label>
+              <Select value={locationId} onValueChange={setLocationId}>
+                <SelectTrigger className="mt-1" data-testid="select-edit-location"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Not set</SelectItem>
+                  {editLocations.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {family.length > 1 && (
+              <div>
+                <Label>Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="mt-1" data-testid="select-edit-category"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {family.map(c => <SelectItem key={c} value={c}>{CATEGORY_LABELS[c as ProductCategory] ?? c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          {bottleLine && (
+            <div>
+              <Label>How it's counted</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {[["weigh", "Weigh (to the gram)"], ["tenths", "Tenths (by eye)"]].map(([m, l]) => (
+                  <button key={m} type="button" onClick={() => setMethod(m)} data-testid={`button-edit-method-${m}`}
+                    className={`text-xs py-2 rounded-lg border ${method === m ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border text-muted-foreground"}`}>{l}</button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {product?.full_weight_g != null && product?.empty_weight_g != null
+                  ? `Bottle weights on file: full ${Math.round(product.full_weight_g)}g, empty ${Math.round(product.empty_weight_g)}g.`
+                  : "No bottle weights yet. Weigh one full bottle from the list to count this to the gram."}
+                {" "}You can still switch between weigh and tenths during a count.
+              </p>
+            </div>
+          )}
           <div>
             <Label htmlFor="ep-vendor">Supplier / vendor</Label>
             <Input id="ep-vendor" value={vendor} onChange={e => setVendor(e.target.value)} className="mt-1" placeholder="e.g. Matthew Clark" />
@@ -3081,6 +3341,26 @@ function EditProductSheet({ open, onClose, product, venueId }: {
             <Label htmlFor="ep-notes">Notes</Label>
             <Input id="ep-notes" value={notes} onChange={e => setNotes(e.target.value)} className="mt-1" placeholder="e.g. Check date on delivery" />
           </div>
+          {!isDraughtLine && !isBoxLine && (
+            <div className={isDozenLine ? "grid grid-cols-2 gap-3" : ""}>
+              <div>
+                <Label htmlFor="ep-size">{product?.unit === "weigh" ? "Bottle size (ml)" : "Can / bottle size (ml)"}</Label>
+                <Input id="ep-size" type="number" value={unitSize} onChange={e => setUnitSize(e.target.value)} className="mt-1" placeholder="e.g. 330" data-testid="input-edit-size" />
+              </div>
+              {isDozenLine && (
+                <div>
+                  <Label htmlFor="ep-pack">Units per case</Label>
+                  <Input id="ep-pack" type="number" value={packSizeStr} onChange={e => setPackSizeStr(e.target.value)} className="mt-1" placeholder="12" data-testid="input-edit-pack" />
+                </div>
+              )}
+            </div>
+          )}
+          {isBoxLine && (
+            <div>
+              <ContainerSizePicker id="ep-box" kind="postmix" label="Box size" value={boxL} onChange={setBoxL} testId="edit-box" />
+              {product?.category === "postmix" && <div className="mt-3"><PostmixYieldField id="ep-yield" value={yieldL} onChange={setYieldL} boxL={boxL} /></div>}
+            </div>
+          )}
           {isDraughtLine && (
             <div className="space-y-3">
               <div>
@@ -3177,6 +3457,20 @@ function EditProductSheet({ open, onClose, product, venueId }: {
   );
 }
 
+/** Search that ignores apostrophes, accents and full stops: "hendricks" finds "Gin Hendrick's". */
+const normName = (s: string) => (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/['\u2019.\-/&]/g, "").replace(/\s+/g, " ").trim();
+/** Names mangled by a file read with the wrong character set ("JÃ¤germeister", "RosÃ©"). */
+export function fixMojibake(s: string): string {
+  if (!/[ÃÂâ][\u0080-\u00ff]/.test(s)) return s;
+  try {
+    const bytes = Uint8Array.from([...s].map(c => c.charCodeAt(0) & 0xff));
+    const out = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return out;
+  } catch { return s; }
+}
+const isBottle = (p: { category?: string | null }) => p.category === "spirits" || p.category === "wines";
+const bottleUnweighed = (p: { category?: string | null; full_weight_g: number | null; empty_weight_g: number | null }) => isBottle(p) && (p.full_weight_g == null || p.empty_weight_g == null);
+
 export default function Library() {
   const { venue } = useAuth();
   const [, setLocation] = useLocation();
@@ -3193,6 +3487,9 @@ export default function Library() {
   const [v21ImportOpen, setV21ImportOpen] = useState(false);
   const [bulkCapacityOpen, setBulkCapacityOpen] = useState(false); // kept for any legacy refs — driven by repairKegOpen now
   const [weighProduct, setWeighProduct] = useState<any>(null);
+  const [weighSetup, setWeighSetup] = useState(false);
+  const openWeigh = (p: any, setup = false) => { setWeighSetup(setup); setWeighProduct(p); };
+  const [catalogueQuery, setCatalogueQuery] = useState("");
   const [addPrefill, setAddPrefill] = useState<{ name: string; match: CatalogueEntry | null }>({ name: "", match: null });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -3259,7 +3556,7 @@ export default function Library() {
 
   const openAddProduct = (prefillName?: string, prefillMatch?: CatalogueEntry | null) => {
     if (venue?.tier === "free" && (products?.length ?? 0) >= 50) {
-      toast({ title: "Free plan — 50 product limit", description: "Upgrade to Pro for unlimited products.", variant: "destructive" });
+      toast({ title: "Free plan — 50 product limit", description: "Upgrade to Premium for unlimited products.", variant: "destructive" });
       return;
     }
     setAddPrefill({ name: prefillName ?? "", match: prefillMatch ?? null });
@@ -3268,8 +3565,8 @@ export default function Library() {
 
   const searchFiltered = useMemo(() => {
     if (!products) return [];
-    const q = search.toLowerCase();
-    return products.filter(p => p.name.toLowerCase().includes(q) || p.type.toLowerCase().includes(q));
+    const q = normName(search);
+    return products.filter(p => normName(p.name).includes(q) || normName(p.type ?? "").includes(q) || normName(p.sku ?? "") === q);
   }, [products, search]);
 
   // Live catalogue matching in the search box: surface known-weighed bottles the venue
@@ -3303,15 +3600,16 @@ export default function Library() {
   // Keep the old name as an alias so any other call-sites keep working.
   const isWeighed = isCalibrated;
 
+  const needsWeigh = (p: any) => bottleUnweighed(p) || (p.counting_method === "weigh" && (p.full_weight_g == null || p.empty_weight_g == null));
   const needsWeighingCount = useMemo(
-    () => searchFiltered.filter(p => !isCalibrated(p)).length,
+    () => searchFiltered.filter(needsWeigh).length,
     [searchFiltered],
   );
 
   const [unweighedOnly, setUnweighedOnly] = useState(false);
   const filtered = useMemo(() => {
     if (!unweighedOnly) return searchFiltered;
-    return searchFiltered.filter(p => !isCalibrated(p));
+    return searchFiltered.filter(needsWeigh);
   }, [searchFiltered, unweighedOnly]);
 
   // Bypass Dexie entirely — query Supabase directly so that direct SQL changes
@@ -3359,6 +3657,14 @@ export default function Library() {
   });
 
   const [groupBy, setGroupBy] = useState<"none" | "location" | "category" | "vendor">("location");
+  // Nothing has a location yet? Group by category so the list isn't one long "Unassigned".
+  const groupDefaulted = React.useRef(false);
+  React.useEffect(() => {
+    if (groupDefaulted.current || !products?.length) return;
+    groupDefaulted.current = true;
+    const unassigned = products.filter((p: any) => !p.location_id).length;
+    if (unassigned / products.length > 0.5) setGroupBy("category");
+  }, [products]);
   const GROUP_BY_OPTIONS: { key: typeof groupBy; label: string }[] = [
     { key: "none", label: "All Items" },
     { key: "location", label: "Location" },
@@ -3370,7 +3676,7 @@ export default function Library() {
     const groups: Record<string, typeof filtered> = {};
     for (const p of filtered) {
       let key: string;
-      if (groupBy === "location") key = (p as any).locations?.name ?? "Unassigned";
+      if (groupBy === "location") key = libraryLocations.find((l: any) => l.id === (p as any).location_id)?.name ?? (p as any).locations?.name ?? "Unassigned";
       else if (groupBy === "category") key = CATEGORY_LABELS[(p.category ?? "spirits") as ProductCategory] ?? "Other";
       else if (groupBy === "vendor") key = (p as any).vendor?.trim() || "No vendor";
       else key = "All Items";
@@ -3378,7 +3684,7 @@ export default function Library() {
       groups[key].push(p);
     }
     return groups;
-  }, [filtered, groupBy]);
+  }, [filtered, groupBy, libraryLocations]);
 
   // ── Data quality flags ─────────────────────────────────────────────────────
   // Same brand + category + size bucket counted in two different method
@@ -3438,6 +3744,23 @@ export default function Library() {
     }
   };
 
+  const garbledNames = useMemo(() => (products ?? []).filter(p => fixMojibake(p.name) !== p.name), [products]);
+  const [fixingNames, setFixingNames] = useState(false);
+  const handleFixNames = async () => {
+    if (!venue?.id || garbledNames.length === 0) return;
+    setFixingNames(true);
+    try {
+      for (const p of garbledNames) {
+        const { error } = await supabase.from("products").update({ name: fixMojibake(p.name) }).eq("id", p.id);
+        if (error) throw error;
+      }
+      queryClient.invalidateQueries({ queryKey: ["products", venue.id] });
+      toast({ title: `${garbledNames.length} name${garbledNames.length === 1 ? "" : "s"} fixed` });
+    } catch (err: any) {
+      toast({ title: "Couldn't fix names", description: err.message, variant: "destructive" });
+    } finally { setFixingNames(false); }
+  };
+
   // Spirits and wines with no bottle weights: try the shared catalogue first.
   const unweighedBottles = useMemo(
     () => (products ?? []).filter(p => (p.category === "spirits" || p.category === "wines") && (p.full_weight_g == null || p.empty_weight_g == null)),
@@ -3454,7 +3777,7 @@ export default function Library() {
         title: result.matched > 0 ? `${result.matched} bottle${result.matched === 1 ? "" : "s"} given known weights` : "No new matches",
         description:
           result.unmatched > 0
-            ? `${result.unmatched} still need weighing \u2014 a minute each with the kitchen scale.`
+            ? `${result.matched > 0 ? `Including ${result.matchedNames.slice(0, 3).join(", ")}${result.matched > 3 ? " and more" : ""}. ` : ""}${result.unmatched} still need weighing: tap \u201cWeigh a full one\u201d on each.`
             : "Every spirit and wine now has bottle weights.",
       });
     } catch (err: any) {
@@ -3503,71 +3826,27 @@ export default function Library() {
       <div className="p-4 border-b border-border bg-card sticky top-0 z-10 space-y-3">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-primary">Library</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{products?.length ?? 0} products</span>
-            {isPro && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-muted-foreground"
-                onClick={() => setLocation("/ledger")}
-                data-testid="button-movements-link"
-                title="Stock movements"
-              >
-                <ArrowLeftRight className="w-4 h-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-muted-foreground"
-              onClick={() => setDeliveryOpen(true)}
-              data-testid="button-log-delivery"
-              title="Log delivery"
-            >
-              <PackagePlus className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-muted-foreground"
-              onClick={() => setBulkPriceOpen(true)}
-              data-testid="button-bulk-price-editor"
-              title="Bulk editor"
-            >
-              <Tags className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-muted-foreground"
-              onClick={() => setCatalogueOpen(true)}
-              data-testid="button-open-catalogue"
-              title="Browse global catalogue"
-            >
-              <LibraryIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-muted-foreground"
-              onClick={() => setV21ImportOpen(true)}
-              data-testid="button-v21-import-costs"
-              title="Import cost prices from V21"
-            >
-              <Banknote className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-muted-foreground"
-              onClick={() => setImportOpen(true)}
-              data-testid="button-import-csv"
-              title="Import from CSV"
-            >
-              <Upload className="w-4 h-4" />
-            </Button>
-          </div>
+          <span className="text-sm text-muted-foreground" data-testid="text-product-count">{products?.length ?? 0} products</span>
+        </div>
+        <a href="/bottle-library/" data-testid="link-bottle-library"
+          className="block text-xs rounded-md border border-border px-3 py-1.5 text-muted-foreground hover:bg-muted">
+          <span className="font-semibold text-primary">The 1,000 Bottle Challenge.</span> Weigh 10 full bottles and help us build the shared bottle library &rarr;
+        </a>
+        <div className="flex gap-1 overflow-x-auto -mx-1 px-1" data-testid="library-tools">
+          {([
+            ...(isPro ? [{ id: "button-movements-link", icon: ArrowLeftRight, label: "Movements", on: () => setLocation("/ledger") }] : []),
+            { id: "button-log-delivery", icon: PackagePlus, label: "Log delivery", on: () => setDeliveryOpen(true) },
+            { id: "button-bulk-price-editor", icon: Tags, label: "Edit all", on: () => setBulkPriceOpen(true) },
+            { id: "button-open-catalogue", icon: LibraryIcon, label: "Catalogue", on: () => { setCatalogueQuery(""); setCatalogueOpen(true); } },
+            { id: "button-v21-import-costs", icon: Banknote, label: "Cost prices", on: () => setV21ImportOpen(true) },
+            { id: "button-import-csv", icon: Upload, label: "Import CSV", on: () => setImportOpen(true) },
+          ] as const).map(t => (
+            <button key={t.id} type="button" onClick={t.on} data-testid={t.id}
+              className="shrink-0 flex flex-col items-center gap-0.5 min-w-[64px] px-1.5 py-1 rounded-lg text-muted-foreground hover:bg-muted">
+              <t.icon className="w-4 h-4" />
+              <span className="text-[10px] font-medium whitespace-nowrap">{t.label}</span>
+            </button>
+          ))}
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -3600,6 +3879,17 @@ export default function Library() {
           </button>
         )}
 
+        {search.trim().length >= 2 && searchFiltered.length === 0 && (
+          <button
+            type="button"
+            onClick={() => { setCatalogueQuery(search.trim()); setCatalogueOpen(true); }}
+            className="w-full text-left border border-[#3FAE74]/40 bg-[#3FAE74]/10 rounded-xl p-3 flex items-center gap-2"
+            data-testid="suggestion-search-catalogue"
+          >
+            <LibraryIcon className="w-4 h-4 shrink-0 text-[#3FAE74]" />
+            <span className="text-sm">Not in your library. Look for “{search.trim()}” in the UK catalogue</span>
+          </button>
+        )}
         {searchHasNoMatchAtAll && (
           <button
             type="button"
@@ -3645,6 +3935,8 @@ export default function Library() {
       </div>
 
       <div className="flex-1 overflow-auto p-4 pb-24 space-y-6">
+        {/* Library health banners step aside while searching, so results show straight away. */}
+        {!search.trim() && (<>
         {nullCapacityKegs.length > 0 && (
           <button
             type="button"
@@ -3664,6 +3956,27 @@ export default function Library() {
           </button>
         )}
 
+        {garbledNames.length > 0 && (
+          <button
+            type="button"
+            onClick={handleFixNames}
+            disabled={fixingNames}
+            className="w-full flex items-start gap-3 rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-left"
+            data-testid="banner-fix-names"
+          >
+            <AlertCircle className="w-4 h-4 text-[#E0A343] shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-[#E0A343]">
+                {garbledNames.length} name{garbledNames.length === 1 ? " has" : "s have"} scrambled letters
+              </span>
+              <span className="text-xs text-[#E0A343]/80 block">
+                Like “{garbledNames[0].name}”, which should be “{fixMojibake(garbledNames[0].name)}”. It happens when a spreadsheet is saved in an old format. Tap to fix them all.
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">{fixingNames ? "Fixing…" : "Fix"}</span>
+          </button>
+        )}
+
         {unweighedBottles.length > 0 && (
           <button
             type="button"
@@ -3678,7 +3991,7 @@ export default function Library() {
                 {unweighedBottles.length} spirit{unweighedBottles.length === 1 ? " or wine has" : "s and wines have"} no bottle weights
               </span>
               <span className="text-xs text-muted-foreground block">
-                Tap to copy weights for the bottles StockTap already knows. Whatever's left, weigh once with the kitchen scale.
+                Tap to copy weights for the bottles StockTap already knows. For the rest, tap “Weigh a full one” on the bottle and pop an unopened one on the kitchen scale.
               </span>
             </div>
             <span className="text-xs font-semibold text-primary shrink-0 self-center">{matchingBottles ? "Matching…" : "Match"}</span>
@@ -3787,9 +4100,14 @@ export default function Library() {
           </button>
         )}
 
+        </>)}
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />)}
+          </div>
+        ) : Object.keys(grouped).length === 0 && (products?.length ?? 0) > 0 ? (
+          <div className="text-center py-10 text-sm text-muted-foreground" data-testid="library-no-results">
+            {unweighedOnly ? "Nothing left to weigh." : `Nothing in your library matches “${search.trim()}”.`}
           </div>
         ) : Object.keys(grouped).length === 0 ? (
           <div className="text-center py-16 space-y-4">
@@ -3797,7 +4115,7 @@ export default function Library() {
             <p className="text-muted-foreground font-medium">Your library is empty</p>
             <p className="text-sm text-muted-foreground">Add your first bottle or import from CSV</p>
             <div className="flex gap-3 justify-center flex-wrap">
-              <Button onClick={() => setCatalogueOpen(true)} data-testid="button-browse-catalogue-empty">
+              <Button onClick={() => { setCatalogueQuery(""); setCatalogueOpen(true); }} data-testid="button-browse-catalogue-empty">
                 <LibraryIcon className="w-4 h-4 mr-2" /> Browse Catalogue
               </Button>
               <Button variant="outline" onClick={() => openAddProduct()} data-testid="button-add-first-product">Add Custom Product</Button>
@@ -3847,9 +4165,11 @@ export default function Library() {
                             ? p.container_l
                               ? <span className="text-xs text-muted-foreground">{p.container_l}L</span>
                               : <span className="text-xs text-amber-600">No capacity set</span>
-                            : p.size_ml
-                              ? <span className="text-xs text-muted-foreground">{p.size_ml}ml</span>
-                              : null
+                            : p.counting_method === "litre" && p.container_l
+                              ? <span className="text-xs text-muted-foreground">{p.container_l}L box</span>
+                              : p.size_ml
+                                ? <span className="text-xs text-muted-foreground">{p.size_ml >= 1000 ? `${p.size_ml / 1000}L` : `${p.size_ml}ml`}</span>
+                                : null
                           }
                           {p.pour_price && <span className="text-xs text-muted-foreground">{formatGBP(p.pour_price)}</span>}
                           {estimatedPriceIds.has(p.id) && (
@@ -3894,7 +4214,12 @@ export default function Library() {
                                 {!p.container_l ? "Set capacity" : "Set depth"}
                               </button>
                             )
-                          ) : p.counting_method === "tenths_pints" || p.counting_method === "tenths" || p.counting_method === "each" || p.counting_method === "dozen" || p.counting_method === "litre" ? null
+                          ) : isBottle(p) && !bottleUnweighed(p) ? (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" data-testid={`badge-weighed-${p.id}`}>
+                              Weighed{p.counting_method === "tenths" ? " · counted in tenths" : ""}
+                            </span>
+                          ) : bottleUnweighed(p) ? null
+                          : p.counting_method === "tenths_pints" || p.counting_method === "tenths" || p.counting_method === "each" || p.counting_method === "dozen" || p.counting_method === "litre" ? null
                           : weighed ? (
                             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                               Weighed
@@ -3902,7 +4227,7 @@ export default function Library() {
                           ) : (
                             <button
                               type="button"
-                              onClick={() => setWeighProduct(p)}
+                              onClick={() => openWeigh(p, true)}
                               className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                               data-testid={`badge-needs-weighing-${p.id}`}
                             >
@@ -3965,19 +4290,29 @@ export default function Library() {
                         </div>
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        {/* Only show the bottle-weigh button for products that use gram weighing */}
-                        {p.counting_method !== "keg_weight" && p.counting_method !== "dipstick" && p.counting_method !== "tenths_pints" && p.counting_method !== "tenths" && p.counting_method !== "each" && p.counting_method !== "dozen" && p.counting_method !== "litre" && (
+                        {bottleUnweighed(p) ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-9 px-2.5 font-medium border-amber-400 text-amber-700 bg-amber-50 text-xs"
+                            onClick={() => openWeigh(p, true)}
+                            data-testid={`button-weigh-setup-${p.id}`}
+                          >
+                            <Scale className="w-3.5 h-3.5 mr-1" />
+                            Weigh a full one
+                          </Button>
+                        ) : isBottle(p) || p.counting_method === "weigh" || p.counting_method === "photo_tap" ? (
                           <Button
                             size="sm"
                             variant="outline"
                             className="h-9 px-3 font-medium border-primary/30 text-primary"
-                            onClick={() => setWeighProduct(p)}
+                            onClick={() => openWeigh(p, false)}
                             data-testid={`button-weigh-${p.id}`}
                           >
                             <Scale className="w-3.5 h-3.5 mr-1" />
                             Weigh
                           </Button>
-                        )}
+                        ) : null}
                         <Button
                           size="sm"
                           variant="ghost"
@@ -4021,6 +4356,7 @@ export default function Library() {
         <CataloguePickerSheet
           open={catalogueOpen}
           onClose={() => setCatalogueOpen(false)}
+          initialQuery={catalogueQuery}
           venueId={venue.id}
           tier={venue.tier}
           products={products ?? []}
@@ -4034,6 +4370,7 @@ export default function Library() {
           onClose={() => setWeighProduct(null)}
           product={weighProduct}
           venueId={venue.id}
+          setup={weighSetup}
         />
       )}
 
@@ -4097,7 +4434,7 @@ export default function Library() {
           quickSizes={KEG_QUICK_SIZES}
           presetsFor={p => {
             const type = p.container_type ?? (p.counting_method === "dipstick" ? "cask" : p.counting_method === "keg_weight" ? "keg" : p.category === "draught_ale" ? "cask" : "keg");
-            return CONTAINER_PRESETS[type] ?? CONTAINER_PRESETS.keg;
+            return containerPresetsFor(type);
           }}
           products={nullCapacityKegs}
           venueId={venue.id}
@@ -4109,10 +4446,10 @@ export default function Library() {
           open={repairDipOpen}
           onClose={() => setRepairDipOpen(false)}
           title="Set dipstick full depths"
-          description={`${missingDipstickDepth.length} dipstick product${missingDipstickDepth.length === 1 ? "" : "s"} have no full-tank depth set. Readings will show 0% until calibrated.`}
+          description={`${missingDipstickDepth.length} dipstick line${missingDipstickDepth.length === 1 ? " has" : "s have"} no full depth yet, so ${missingDipstickDepth.length === 1 ? "its dips show" : "their dips show"} 0% until you set it. Next time a cask or tank is full, put the dipstick straight down to the bottom, pull it out and read where it's wet, in millimetres (10 mm = 1 cm). Type that here. Every dip after that is worked out against it.`}
           field="dip_full_mm"
           unit="mm"
-          placeholder="mm"
+          placeholder="full depth in mm, e.g. 600"
           products={missingDipstickDepth}
           venueId={venue.id}
         />

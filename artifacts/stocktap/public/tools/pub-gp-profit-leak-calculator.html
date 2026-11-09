@@ -212,6 +212,7 @@
 
       <span class="eyebrow">Free tool &middot; no sign-up to use</span>
       <h1>Pub GP &amp; profit-leak calculator</h1>
+      <p style="margin:.2rem 0 .9rem;font-size:.9rem;"><a href="https://www.morningadvertiser.co.uk/Article/2026/09/30/licensee-launches-free-gross-profit-calculator-for-pubs/" target="_blank" rel="noopener" style="color:inherit;opacity:.8;text-decoration:underline;text-underline-offset:3px;">As featured in The Morning Advertiser, 30 September 2026 &rarr;</a></p>
       <p class="lede">Two quick sums most licensees get told by a stocktaker four times a year. Do them yourself in ten seconds. First, <strong>your real GP% on any line</strong>. Then <strong>what the gap to your target is quietly costing you a year</strong>. No jargon, no VAT confusion, built by someone who runs a wet-led pub.</p>
 
       <!-- STEP 1 -->
@@ -267,6 +268,10 @@
           <div class="result-label" id="leakLabel">Closing that gap is worth</div>
           <div class="leak-figure" id="leakYear">—</div>
           <div class="leak-sub" id="leakSub"></div>
+          <div class="leak-nudge" id="leakNudge" hidden style="margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--line);font-size:.95rem;line-height:1.55;">
+            Want to know <strong>which lines</strong> are causing it? StockTap works it out from your actual counts, and a two-minute spot check catches a leak the next day, not at month end.
+            <a href="/auth?mode=signup" style="display:inline-block;margin-top:.5rem;font-weight:700;color:var(--accent,#E0A343);">Try it free for 14 days, no card &rarr;</a>
+          </div>
         </div>
         <p class="muted-small">Rough guide, not gospel: it assumes your current and target GP are blended across your wet sales. A weekly stocktake is what turns a guess like this into a real number you can act on.</p>
       </section>
@@ -289,8 +294,9 @@
       <!-- CTA -->
       <section class="cta">
         <h3>This is the bit StockTap does on its own</h3>
-        <p>The calculator is the manual version. StockTap weighs your spirits to the millilitre, handles draught and the legal head on a pint properly, and hands you the GP and the variance the same night, on your phone. Founding price is £19 a month, cancel any time.</p>
-        <a href="/auth" class="btn btn-primary">Start a free trial</a>
+        <video controls playsinline preload="none" poster="/media/promos/spot-check.jpg" src="/media/promos/spot-check.mp4" style="width:100%;max-width:300px;aspect-ratio:9/16;border-radius:14px;display:block;margin:0 0 1.1rem;background:#000;" aria-label="StockTap spot check in 50 seconds"></video>
+        <p>The calculator is the manual version. StockTap weighs your spirits to the gram, handles draught and the legal head on a pint properly, and hands you the GP and the variance the same night, on your phone. It's £39 a month after a 14-day free trial, cancel any time.</p>
+        <a href="/auth?mode=signup" class="btn btn-primary">Start a free trial</a>
       </section>
 
       <!-- PROSE / FAQ -->
@@ -358,6 +364,7 @@
       var weeklyCash = net * gap;
       var year = weeklyCash * 52;
       var label = $("leakLabel"), fig = $("leakYear"), sub = $("leakSub");
+      var nudge = $("leakNudge"); if (nudge) nudge.hidden = true;
       if (weekly <= 0 || cur <= 0 || tgt <= 0) { fig.textContent = "—"; sub.textContent = ""; return; }
       if (tgt <= cur) {
         label.textContent = "You're already at or above target";
@@ -367,6 +374,7 @@
       }
       label.textContent = "Closing that gap is worth";
       fig.textContent = gbp0(year) + " a year";
+      if (nudge) nudge.hidden = false;
       sub.textContent = "That's about " + gbp0(weeklyCash) + " a week — the difference between running at " + cur + "% and " + tgt + "% on " + gbp0(weekly) + " of weekly wet sales.";
     }
 

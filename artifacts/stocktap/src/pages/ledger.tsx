@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMovements, useAddMovement, useProducts, useLocations } from "@/hooks/api";
 import { useRecordManualDelivery } from "@/hooks/useDeliveries";
+import { describeMovedMl } from "@/lib/stock-display";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -440,13 +441,13 @@ export default function Ledger() {
             <Lock className="w-7 h-7 text-muted-foreground" />
           </div>
           <div>
-            <div className="font-bold text-lg mb-1">Pro feature</div>
+            <div className="font-bold text-lg mb-1">Premium feature</div>
             <div className="text-sm text-muted-foreground max-w-xs">
               Track deliveries, transfers between locations, and wastage with the stock movement ledger.
             </div>
           </div>
           <Button onClick={() => setLocation("/settings?tab=subscription")}>
-            Upgrade to Pro
+            Upgrade to Premium
           </Button>
         </div>
       </div>
@@ -488,9 +489,6 @@ export default function Ledger() {
                 {items.map(m => {
                   const product = productMap.get(m.product_id);
                   const Icon = MOVEMENT_ICONS[m.movement_type as MovementType] ?? ArrowLeftRight;
-                  const bottles = product?.size_ml
-                    ? (m.quantity_ml / product.size_ml).toFixed(1)
-                    : null;
                   return (
                     <div
                       key={m.id}
@@ -511,11 +509,8 @@ export default function Ledger() {
                           )}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="font-bold tabular-nums text-sm">{Math.round(m.quantity_ml)}ml</div>
-                        {bottles && (
-                          <div className="text-xs text-muted-foreground tabular-nums">{bottles} btl</div>
-                        )}
+                      <div className="text-right shrink-0 max-w-[45%]">
+                        <div className="font-bold tabular-nums text-sm" data-testid={`movement-qty-${m.id}`}>{product ? describeMovedMl(product as any, m.quantity_ml) : `${Math.round(m.quantity_ml)}ml`}</div>
                       </div>
                     </div>
                   );

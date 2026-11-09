@@ -700,7 +700,7 @@ export default function SpotCheck() {
                   }
                 >
                   <span className="font-medium text-sm">
-                    {m.profiles?.full_name ?? m.user_id.slice(0, 8)}
+                    {m.user_id === user?.id ? "You" : m.profiles?.full_name || "Team member"}
                   </span>
                   <Badge variant="secondary" className="ml-2 text-xs capitalize">
                     {m.role}
@@ -1066,13 +1066,13 @@ export default function SpotCheck() {
                       : "text-[#3FAE74]"
                   }`}
                 >
-                  {totalVarianceGBP > 0 ? "+" : ""}{formatGBP(totalVarianceGBP)}
+                  {formatGBP(Math.abs(totalVarianceGBP))}
                 </div>
                 {totalVarianceGBP > LOSS_THRESHOLD_GBP && (
-                  <div className="text-xs text-[#E5544B] mt-1">Money missing — investigate</div>
+                  <div className="text-xs text-[#E5544B] mt-1">Missing — poured but not rung through the till</div>
                 )}
                 {totalVarianceGBP < -LOSS_THRESHOLD_GBP && (
-                  <div className="text-xs text-[#E0A343] mt-1">More rung than poured — check the till or measure size</div>
+                  <div className="text-xs text-[#E0A343] mt-1">Rung through but not poured — check the till or measure size</div>
                 )}
                 {awaiting.length > 0 && (
                   <div className="text-xs text-muted-foreground mt-1">

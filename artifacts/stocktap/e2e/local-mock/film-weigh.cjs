@@ -1,0 +1,58 @@
+const { chromium } = require('/home/claude/.npm-global/lib/node_modules/playwright/index.js');
+const fs = require('fs'); const SHOT = '/tmp/film/w'; fs.mkdirSync(SHOT, { recursive: true });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const U = '11111111-1111-4111-8111-111111111111';
+const exp = Math.floor(Date.now() / 1000) + 3600 * 24;
+const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: U, role: 'authenticated', aud: 'authenticated', exp, email: 'owner@example.test' })}.sig`;
+const session = { access_token: jwt, refresh_token: 'r', token_type: 'bearer', expires_in: 86400, expires_at: exp, user: { id: U, email: 'owner@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } };
+const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
+(async () => {
+  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-proxy-server'] });
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
+  await ctx.addInitScript(s => { try { localStorage.setItem('sb-localhost-auth-token', s); } catch {} }, JSON.stringify(session));
+  const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  const man = []; let n = 0;
+  const shot = async (cap, d = 2.2, tapPt = null) => { const f = `${SHOT}/${String(n++).padStart(2, '0')}.png`; await p.screenshot({ path: f }); man.push({ f, cap, d, ...(tapPt ? { tap: tapPt } : {}) }); };
+  const pt = async sel => { const l = p.locator(sel).first(); await l.scrollIntoViewIfNeeded(); const r = await l.boundingBox(); return [Math.round((r.x + r.width / 2) * 2), Math.round((r.y + r.height / 2) * 2)]; };
+  const tapShot = async (sel, cap, d = 2.0) => { const q = await pt(sel); await shot(cap, d, q); await p.locator(sel).first().evaluate(e => e.click()); await sleep(700); };
+  const noToast = async () => { for (const b of await p.locator('[toast-close]').all()) { try { await b.evaluate(e => e.click()); } catch {} } await sleep(400); };
+  const sheetBottom = async () => { await p.evaluate(() => { const s = document.querySelector('[data-testid="add-entry-sheet"]'); if (!s) return; [s, ...s.querySelectorAll('*')].forEach(e => { if (e.scrollHeight > e.clientHeight + 4 && getComputedStyle(e).overflowY !== 'visible') e.scrollTop = e.scrollHeight; }); }); await sleep(300); };
+  const padKeys = async (str, scope) => { const s = p.locator(scope); for (const ch of str) { await s.getByRole('button', { name: ch, exact: true }).first().click(); await sleep(120); } };
+  try {
+    await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(3500);
+    await p.locator('[data-testid="button-new-stocktake"]').click(); await sleep(800);
+    for (const i of [1, 2, 4]) await p.locator(`[data-testid="select-product-${P(i)}"]`).click();
+    await p.locator('[data-testid="button-start-stocktake"]').click(); await sleep(1500);
+    await tapShot(`[data-testid="counting-product-${P(1)}"]`, 'Stocktake: tap the bottle', 2.0);
+    await p.locator('[data-testid="button-add-entry"]').click(); await sleep(500);
+    if (await p.locator('[data-testid="button-location-unspecified"]').count()) await p.locator('[data-testid="button-location-unspecified"]').click(); await sleep(800);
+    await shot('First time only: weigh one full bottle', 2.4);
+    await padKeys('1094', '[data-testid="full-bottle-setup"]'); await sleep(300);
+    await tapShot('[data-testid="button-save-full-weight"]', 'A full Gordon’s weighs 1,094g', 2.2); await sleep(2200);
+    await shot('Now put the open bottle on the scale', 2.2);
+    await padKeys('800', '[data-testid="add-entry-sheet"]'); await sleep(500);
+    await shot('800g = millilitres left, measures and £ value', 3.2);
+    await tapShot('[data-testid="button-save-entry"]', 'Saved to the gram', 1.8); await sleep(1200);
+    await shot('Every open bottle, to the gram', 1.8);
+    // spot check next day
+    await p.goto('http://localhost:5173/spot-check', { waitUntil: 'domcontentloaded' }); await sleep(3500);
+    await shot('Next day: a two-minute spot check', 2.2);
+    await p.locator(`[data-testid="button-select-product-${P(1)}"]`).click(); await sleep(400);
+    await tapShot('[data-testid="button-start-spot-check"]', 'Pick the lines that move', 1.8); await sleep(1000);
+    await shot('Weigh the open bottle again', 2.0);
+    await padKeys('680', 'main'); await sleep(500);
+    await shot('Weigh it again: 680g', 2.2);
+    await tapShot('[data-testid="button-save-location-entry"]', 'Save it', 1.4); await sleep(800);
+    await tapShot('[data-testid="button-enter-till"]', 'Now the till', 1.6); await sleep(1200);
+    await shot('How many measures did the till ring?', 2.0);
+    await padKeys('12', 'main'); await sleep(600);
+    await shot('Weight says 17.4 measures went. Till says 12.', 3.0);
+    await tapShot('[data-testid="button-confirm-spot-check"]', 'Poured, not rung. In measures and pounds.', 2.4); await sleep(1500);
+    await shot('Caught the next day, not at month end', 3.0);
+    const ids = await p.evaluate(() => [...document.querySelectorAll('[data-testid]')].map(e => e.dataset.testid)); require('fs').writeFileSync('/tmp/film/spot-ids.txt', ids.join('\n'));
+    require('fs').writeFileSync('/tmp/film/spot.txt', await p.locator('body').innerText());
+  } catch (e) { console.log('ERROR', e.message); await p.screenshot({ path: `${SHOT}/zz.png` }); }
+  require('fs').writeFileSync('/tmp/film/weigh.json', JSON.stringify(man, null, 1));
+  console.log('frames', man.length, 'errors', errs.join('|') || 'none'); await b.close();
+})();

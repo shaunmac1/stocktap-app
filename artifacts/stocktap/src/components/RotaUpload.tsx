@@ -110,7 +110,7 @@ export function RotaUpload({
           <Camera className="w-4 h-4 mr-1.5" /> Upload a photo of the paper rota
         </Button>
         {notSetUp && (
-          <p className="text-[11px] text-amber-700 px-1">Photo reading isn't switched on yet — it needs an AI vision key adding. You can still type the rota in below.</p>
+          <p className="text-[11px] text-amber-700 px-1">Photo reading isn't available yet. Type the rota in below.</p>
         )}
       </div>
     );
@@ -128,7 +128,7 @@ export function RotaUpload({
   return (
     <Card><CardContent className="p-4 space-y-3">
       <div className="font-semibold text-sm">Check the read-in rota, then save</div>
-      <p className="text-[11px] text-muted-foreground">I've matched names to your team where I could. Fix anyone marked “pick a name”, and untick anything wrong.</p>
+      <p className="text-[11px] text-muted-foreground">Names are matched to your team where possible. Fix anyone marked “pick a name”, and untick anything wrong.</p>
       {rows.map((r) => (
         <div key={r.key} className={`rounded-lg border p-2.5 space-y-2 ${r.include ? "border-border" : "border-dashed border-border opacity-50"}`}>
           <div className="flex items-center gap-2">

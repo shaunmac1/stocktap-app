@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free pub stocktake template (UK): download it and how to use it | StockTap</title>
+  <meta name="description" content="A free UK pub stocktake template you can download now, no email gate. Ex-VAT GP formulas, keg and cask pint yields, spirits in 25ml measures, and how to use it." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/free-pub-stocktake-template" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Free pub stocktake template (UK): download it and how to use it | StockTap" />
+  <meta property="og:description" content="A free UK pub stocktake template you can download now, no email gate. Ex-VAT GP formulas, keg and cask pint yields, spirits in 25ml measures, and how to use it." />
+  <meta property="og:url" content="https://stocktap.net/guides/free-pub-stocktake-template" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Free pub stocktake template (UK): download it and how to use it | StockTap" />
+  <meta name="twitter:description" content="A free UK pub stocktake template you can download now, no email gate. Ex-VAT GP formulas, keg and cask pint yields, spirits in 25ml measures, and how to use it." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "A free pub stocktake template that actually works, and how to use it",
+      "description": "A free UK pub stocktake template you can download now, no email gate. Ex-VAT GP formulas, keg and cask pint yields, spirits in 25ml measures, and how to use it.",
+      "datePublished": "2026-09-13",
+      "dateModified": "2026-09-13",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/free-pub-stocktake-template"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is this pub stocktake template really free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The Excel and CSV files download directly from the page with no email address, signup or watermark. Use it, copy it, hand it to your relief manager."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I count kegs or pints on a pub stocktake?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Count in selling units: pints for draught, 25ml measures for spirits, bottles for packaged stock. A 50L keg holds 88 pints on paper and sells 84 to 86 in practice once froth and line cleaning take their share."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What formulas does a pub stocktake spreadsheet need?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Four. Consumed equals opening plus delivered minus closing. Cost of sales equals consumed times cost price ex VAT. Expected revenue equals consumed times the sell price divided by 1.2 to strip out VAT. GP% equals revenue minus cost, divided by revenue."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long does a stocktake take with a spreadsheet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The first count takes 60 to 90 minutes on a typical wet-led bar while you build the product list, then around 40 minutes weekly. If it takes longer, count your top thirty lines by value instead of everything."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "A free pub stocktake template that actually works, and how to use it",
+          "item": "https://stocktap.net/guides/free-pub-stocktake-template"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>A free pub stocktake template that actually works, and how to use it</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-13">13 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Here's the template: <a href="/downloads/pub-stocktake-template.xlsx">download the Excel version</a> or <a href="/downloads/pub-stocktake-template.csv">the CSV for Google Sheets</a>. No email address, no "book a demo" button, no watermark. It's the sheet I'd hand a mate taking on his first pub. The rest of this page is how to use it without it lying to you.</strong></p>
+
+<p>I looked at what ranks for "pub stocktake template" before writing this. Most of the pages have no template on them. They describe a spreadsheet you could build yourself, column by column, then pitch their software at the bottom. The ones that do have a file are American, so everything is in ounces and liquor bottles by the case, or they're restaurant inventory sheets with nowhere to put a cask. This one is built for a UK bar: pints, 25ml measures, ex-VAT prices, and GP% the way your accountant and your area manager mean it.</p>
+
+<h2>What's in it</h2>
+
+<p>Three sheets. A count sheet, a summary, and a page of instructions you can delete once you've done it twice.</p>
+
+<p>The count sheet has eight columns you fill in and four that calculate themselves. Yours: category, product, unit size, cost price ex VAT, sell price inc VAT, opening count, delivered, closing count. The sheet's: consumed, cost of sales, expected revenue ex VAT, and GP% per line. The summary adds it all up, takes your till figure, and shows the variance in pounds.</p>
+
+<p>One decision makes the whole thing work: you count in selling units. Pints for draught, 25ml measures for spirits, bottles for the fridge. Not kegs, not "about half a bottle of vodka". The moment you mix units, the arithmetic is fiction. The template has a converter block for exactly this, which brings us to the numbers most templates get wrong.</p>
+
+<h2>The container arithmetic</h2>
+
+<table>
+<caption>What each container actually holds, in sellable UK units. Practical yields are author's arithmetic; see the <a href="/guides/draught-beer-wastage-whats-normal">draught wastage guide</a> for the workings.</caption>
+<thead><tr><th>Container</th><th>Holds on paper</th><th>What you'll actually sell</th></tr></thead>
+<tbody>
+<tr><td>50L keg</td><td>88 pints</td><td>84 to 86</td></tr>
+<tr><td>30L keg</td><td>52.8 pints</td><td>50 to 51</td></tr>
+<tr><td>Firkin (9 gallon cask, 40.9L)</td><td>72 pints</td><td>mid-60s after sediment and stillage</td></tr>
+<tr><td>70cl spirit bottle</td><td>28 x 25ml</td><td>28</td></tr>
+<tr><td>1.5L spirit bottle</td><td>60 x 25ml</td><td>60</td></tr>
+<tr><td>75cl wine bottle</td><td>4 x 175ml plus a splash</td><td>4</td></tr>
+</tbody>
+</table>
+
+<p>The gap between the two right-hand columns is not theft. It's froth, line cleaning, pull-through and sediment. British Beer and Pub Association guidance says a pint served with a head only has to be 95% liquid, so a slice of every keg legally never reaches a glass. If your template expects 88 sellable pints from every 50L keg, it will report a thief who doesn't exist, every single week. Mine expects 88 in and lets you judge the gap against the yields above. If your cellar consistently does worse than 84 from a 50, that's a real problem worth chasing, and the <a href="/guides/keg-calibration-guide-pub-cellar">keg calibration guide</a> is where I'd start.</p>
+
+<h2>How to run a count with it</h2>
+
+<p>Same day, same time, every week. Before open or after close, never mid-session. Walk the building in one direction: cellar, then back bar, then fridges, so you never count a shelf twice. Two people is twice as fast, one calling, one typing.</p>
+
+<p>Draught: dip or weigh the part containers, count the full ones, convert to pints using the table. Spirits: full bottles times 28, part bottles in tenths if you're in a hurry, on the scales if you want the truth. An eyeballed tenth on a 70cl bottle is worth about £10 of revenue, and eyes are kind to themselves. The <a href="/guides/stocktake-spirits-part-bottles">part bottles guide</a> covers the weighing method. Fridges: count bottles, job done.</p>
+
+<p>First count takes 60 to 90 minutes on a typical wet-led bar because you're building the product list as you go. After that, 40 minutes is normal. If it's taking two hours every week you're counting too many lines: start with your top thirty by value, because that's where the money leaks, and add lines as you go.</p>
+
+<h2>The formulas, written out so you can check my working</h2>
+
+<p>Never trust a spreadsheet you can't audit, including mine. Four formulas do everything:</p>
+
+<ul>
+<li><strong>Consumed</strong> = opening + delivered &minus; closing. What left the shelf, in units.</li>
+<li><strong>Cost of sales</strong> = consumed &times; cost price ex VAT.</li>
+<li><strong>Expected revenue ex VAT</strong> = consumed &times; (sell price &divide; 1.2). The &divide;1.2 strips the 20% VAT out of your shelf price, because that slice was never yours.</li>
+<li><strong>GP%</strong> = (expected revenue &minus; cost of sales) &divide; expected revenue.</li>
+</ul>
+
+<p>The &divide;1.2 is where most home-made sheets go wrong. Compare an inc-VAT selling price against an ex-VAT cost price and your GP% comes out about 12 points too flattering, and every decision you make off it is wrong. I've written up the <a href="/guides/ex-vat-vs-inc-vat-stock-value">ex-VAT trap</a> separately because it catches so many people. Once your GP% is real, check it against the <a href="/guides/pub-gp-percentage-benchmark-2026">UK pub GP benchmarks</a> rather than a number someone said in a Facebook group.</p>
+
+<p>The summary sheet then does the one comparison that matters: expected revenue against what the till says you took, both ex VAT. That difference, in pounds, is your variance. What counts as normal is its own subject, covered in the <a href="/guides/acceptable-stocktake-variance">acceptable variance guide</a>, but as a rule of thumb: under 1% of wet sales you're tidy, over 2% something specific is wrong and it has a name.</p>
+
+<h2>Five ways a spreadsheet will lie to you</h2>
+
+<p><strong>Stale cost prices.</strong> Your supplier moved the keg price in February and your sheet still says last summer's number, so your GP% looks fine while your bank balance doesn't. Update the cost column from the delivery note, not from memory. I've written a <a href="/guides/supplier-price-rise-tracking-invoices">separate guide on catching supplier price rises</a> because it's the single most expensive lazy habit in the trade.</p>
+
+<p><strong>Mixed units.</strong> Kegs one week, pints the next, and the consumed column turns to noise. Pick the selling unit and never deviate.</p>
+
+<p><strong>Eyeballed part bottles.</strong> Forty optics, each guessed a tenth kindly, is a phantom loss that sends you accusing the rota instead of the guess.</p>
+
+<p><strong>Unlogged cleaning waste.</strong> Every line clean pulls two to three pints of saleable beer down the drain per line, and if it's not recorded the sheet books it as missing stock. The <a href="/guides/beer-line-cleaning-stock-variance">line cleaning guide</a> has the weekly arithmetic.</p>
+
+<p><strong>A broken formula.</strong> One deleted row, one cell dragged the wrong way, and every number below it is quietly wrong with no error message. This is the one that eventually gets everyone, and you find out months later, usually during an argument you're losing.</p>
+
+<h2>When the spreadsheet stops being enough</h2>
+
+<p>Straight answer: for a micropub or a small bar with forty lines, this template plus discipline is a perfectly good stock system, and I'd rather you used it well than paid for software you won't open. I've said the same in the <a href="/guides/micropub-small-bar-stocktaking-software">micropub guide</a>.</p>
+
+<p>It stops being enough at scale, or the first week you find a variance you can't explain. The sheet can tell you £180 is missing. It can't tell you whether that's froth, a miscoded till button, short deliveries or the Tuesday shift, because it doesn't see your till data or weigh your bottles. That's the point where the free tool's real cost shows up as hours and guesswork, and the <a href="/guides/switching-from-spreadsheet-to-stocktaking-software">switching guide</a> covers how to move without losing your history. Until then, download the sheet, count on the same day every week, and argue with numbers instead of feelings.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li><a href="https://beerandpub.com/" rel="nofollow noopener" target="_blank">British Beer and Pub Association</a> &mdash; head-of-beer guidance, the 95% minimum liquid measure.</li>
+<li>Firkin capacity of 72 pints per 9-gallon cask, standard UK cask sizing as published by working breweries.</li>
+<li>Container yields, formula workings and time estimates are the author&rsquo;s own arithmetic and experience from weekly counts on a wet-led site, 2025 to 2026.</li>
+</ul>
+</div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself, properly, without a stocktaker</a></li>
+          <li><a href="/guides/switching-from-spreadsheet-to-stocktaking-software">Switching from a spreadsheet to stocktaking software without losing your history</a></li>
+          <li><a href="/guides/ex-vat-vs-inc-vat-stock-value">Ex-VAT or inc-VAT: the stock value trap that skews your GP%</a></li>
+          <li><a href="/guides/stocktake-spirits-part-bottles">Part bottles are where spirit counts go wrong. Weigh them</a></li>
+          <li><a href="/guides/acceptable-stocktake-variance">What is an acceptable stocktake variance in a UK pub?</a></li>
+          <li><a href="/guides/micropub-small-bar-stocktaking-software">Stocktaking for micropubs and small bars: what you actually need</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

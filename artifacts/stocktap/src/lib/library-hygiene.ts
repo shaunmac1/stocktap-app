@@ -137,7 +137,7 @@ export function inferCountingMethod(
   const lower = name.toLowerCase();
   if (method === "litre" && (category === "packaged" || category === "minerals")) {
     const looksBulk = BULK_WORDS_RE.test(lower);
-    if ((category === "packaged" && !looksBulk) || (category === "minerals" && !looksBulk && sizeMl != null && sizeMl <= 1000)) {
+    if ((category === "packaged" && !looksBulk) || (category === "minerals" && !looksBulk && sizeMl != null && sizeMl < 1000)) {
       return "each";
     }
   }
@@ -231,7 +231,7 @@ export function isLitreOnBottles(product: HygieneProduct): boolean {
   const lower = product.name.toLowerCase();
   if (/\b(cordial|squash|syrup|puree|purée|postmix|bib|bag.in.box|carton)\b/.test(lower)) return false;
   if (product.category === "packaged") return true;
-  return sizeMl != null && sizeMl <= 1000;
+  return sizeMl != null && sizeMl < 1000;
 }
 
 /**
@@ -468,5 +468,103 @@ export function matchKnownBottle(
   }
 
   if (exact) return exact;
-  return candidates.size === 1 ? [...candidates.values()][0] : null;
+  if (candidates.size === 1) return [...candidates.values()][0];
+  if (candidates.size > 1) return null;
+  return matchKnownBottleLoose(product, catalogue);
+}
+
+// ── Second pass for stocktaker-style names ("Gin Warner Ed. Rhubarb", "Wine Rose Hardy's Main Rd") ──
+const LOOSE_ABBREV: [RegExp, string][] = [
+  [/\bp\/\s*fruit\b/g, "passion fruit"], [/\bp\/\s*nut\b/g, "peanut"], [/\bw\.\s*zinf\b/g, "white zinfandel"],
+  [/\bzinf\b/g, "zinfandel"], [/\b(\d+)\s*yrs?\b/g, "$1 years"], [/\brd\b/g, "road"], [/\bsheepdog\b/g, "sheep dog"],
+  [/\bblush\b/g, "rose"], [/\bb\.\s*org\b/g, "blood orange"], [/\borg\b/g, "orange"], [/\brasp\b/g, "raspberry"],
+];
+const LOOSE_FILLER = new Set(["isle", "of", "de", "du", "del", "le", "la", "aged", "years", "year", "and", "crianza", "reserva", "res", "resrv", "reserve", "whiskey", "whisky", "vermouth", "port", "brandy", "liqueur", "spark", "wine", "gin", "rum", "vodka"]);
+const LOOSE_VARIANTS = new Set([...VARIANT_WORDS, "cold", "brew", "royale", "blood", "bramble", "0", "rosa", "arancia", "limone", "lavender", "toffee", "blue", "crush", "oak", "double", "16", "12", "18", "sticky"]);
+const COLOURS = new Set(["red", "white", "rose"]);
+
+function looseTokens(name: string): string[] {
+  let n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[’'`]/g, "");
+  n = n.replace(/(^|\s)0(?:[.,]0+)?\s*%/g, " zero ").replace(PACK_RE, " ").replace(SIZE_RE, " ").replace(/\b\d+(?:[.,]\d+)?\s*%/g, " ");
+  for (const [re, to] of LOOSE_ABBREV) n = n.replace(re, to);
+  return n.replace(/[^a-z0-9]+/g, " ").split(/\s+/)
+    .filter(t => t && !NOISE_WORDS.has(t) && !LOOSE_FILLER.has(t))
+    .map(t => STYLE_ALIASES[t] ?? LOOSE_STYLE[t] ?? t);
+}
+// Grapes and regions: describe the wine, don't name the maker.
+const LOOSE_STYLE: Record<string, string> = { gavi: "gavi", picpoul: "picpoul", cotes: "cotes", rhone: "rhone", chianti: "chianti", tempranillo: "tempranillo", colombard: "colombard", sangiovese: "sangiovese", primitivo: "primitivo", albarino: "albarino", verdejo: "verdejo", viognier: "viognier" };
+const isLooseStyle = (t: string) => isStyleToken(t) || t in LOOSE_STYLE;
+const editDistance1 = (a: string, b: string): boolean => {
+  if (Math.abs(a.length - b.length) > 1 || a === b) return a === b;
+  let i = 0, j = 0, edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+  }
+  return edits + (a.length - i) + (b.length - j) <= 1;
+};
+const tokenHit = (p: string, c: string): boolean =>
+  p === c || (p.length === 1 && c.startsWith(p)) || prefixMatch(p, c) || (p.length >= 5 && c.length >= 5 && editDistance1(p, c));
+
+/** Looser match for abbreviated, category-first names. Needs every word of the catalogue name. */
+export function matchKnownBottleLoose(
+  product: Pick<HygieneProduct, "name" | "category" | "size_ml">,
+  catalogue: CatalogueNameRow[],
+): CatalogueNameRow | null {
+  const pt = looseTokens(product.name);
+  const pb = pt.filter(t => !isLooseStyle(t)), ps = pt.filter(isLooseStyle);
+  if (!pb.length) return null;
+  let best: { row: CatalogueNameRow; score: number } | null = null, tie = false;
+  for (const row of catalogue) {
+    if (!row.has_calibration) continue;
+    if (product.category && row.category && product.category !== row.category) continue;
+    if (product.size_ml != null && row.size_ml != null && Math.abs(product.size_ml - Number(row.size_ml)) > 30) continue;
+    for (const nm of [row.canonical_name, ...(row.aliases ?? [])]) {
+      const ct = looseTokens(nm);
+      const cb = ct.filter(t => !isLooseStyle(t)), cs = ct.filter(isLooseStyle);
+      if (!cb.length) continue;
+      const used = new Set<number>();
+      let ok = true, strong = false;
+      for (const c of cb) {
+        const k = pb.findIndex((p, idx) => !used.has(idx) && tokenHit(p, c));
+        if (k < 0) { ok = false; break; }
+        used.add(k);
+        if (c.length >= 4 && pb[k].length >= 3) strong = true;
+      }
+      if (!ok || !strong) continue;
+      const left = pb.filter((_, idx) => !used.has(idx));
+      if (left.length > 3 || left.some(t => LOOSE_VARIANTS.has(t))) continue;
+      // One matching word is only enough when nothing else is left over.
+      if (left.length && cb.length < 2) continue;
+      const pc = ps.filter(t => COLOURS.has(t)), cc = cs.filter(t => COLOURS.has(t));
+      if (pc.length && cc.length && !pc.some(t => cc.includes(t))) continue;
+      const pg = ps.filter(t => !COLOURS.has(t)), cg = cs.filter(t => !COLOURS.has(t));
+      if (pg.length && cg.length && !pg.some(t => cg.includes(t))) continue;
+      const score = cb.length * 10 - left.length;
+      if (!best || score > best.score) { best = { row, score }; tie = false; }
+      else if (score === best.score && best.row.id !== row.id) tie = true;
+    }
+  }
+  return best && !tie ? best.row : null;
+}
+
+/**
+ * A best guess at the category from a product name, used on Add Product until the
+ * user picks one themselves. Returns null when nothing in the name gives it away.
+ */
+export function guessCategoryFromName(name: string): ProductCategory | null {
+  const n = ` ${name.toLowerCase()} `;
+  if (/\b(postmix|bib|bag.in.box)\b/.test(n)) return "postmix";
+  if (/\b(keg|cask|firkin|kilderkin|11g|22g)\b/.test(n) || /\b\d{2}\s?l\b/.test(n) && /\b(keg|lager|ale|cider|stout)\b/.test(n)) {
+    if (/\b(stout|guinness|porter)\b/.test(n)) return "draught_stout";
+    if (/\b(cider|strongbow|thatchers|inch|old mout|aspall|rekorderlig)\b/.test(n)) return "draught_cider";
+    if (/\b(ale|bitter|ipa|mild|cask|firkin|best)\b/.test(n)) return "draught_ale";
+    return "draught_lager";
+  }
+  if (/\b(crisps|nuts|snacks?|pork scratchings|scampi fries|chocolate)\b/.test(n)) return "packaged";
+  if (/\b(ppl|ppa|ppc|pps|ppw|lager|beer|ale|ipa|cider|alcopop|rtd|hooch|wkd|smirnoff ice)\b/.test(n)) return "packaged";
+  if (/\b(soft|j2o|mixer|tonic|soda|juice|water|cordial|squash|syrup|pur[eé]e|red bull|coke|cola|pepsi|lemonade|fruit ?shoot|appletiser|tango|vimto|ginger (ale|beer)|energy)\b/.test(n)) return "minerals";
+  if (/\b(wine|prosecco|champagne|cava|cr[eé]mant|sauv|sauvignon|merlot|rioja|pinot|malbec|shiraz|chardonnay|chard|ros[eé]|zinfandel|tempranillo|picpoul|gavi|port|sherry)\b/.test(n)) return "wines";
+  return null;
 }

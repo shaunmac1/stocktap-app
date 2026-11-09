@@ -134,7 +134,7 @@ function InvoiceLineEditor({
             <div className="text-xs text-muted-foreground mt-1">Line {line.line_number} · {confidenceText(line.match_confidence)}</div>
           </div>
           <Badge className={line.review_status === "accepted" ? "bg-green-100 text-green-800" : line.review_status === "ignored" ? "bg-muted text-muted-foreground" : "bg-amber-100 text-amber-800"}>
-            {line.review_status}
+            {line.review_status === "accepted" ? "Accepted" : line.review_status === "ignored" ? "Ignored" : "To check"}
           </Badge>
         </div>
 

@@ -197,3 +197,25 @@ describe("matchKnownBottle", () => {
     expect(matchKnownBottle({ name: "Gordon's Gin", category: "spirits", size_ml: 1000 }, catalogue)).toBeNull();
   });
 });
+
+import { matchKnownBottle as mkb2 } from "./library-hygiene";
+describe("known bottles: stocktaker-style names", () => {
+  const row = (n: string, category = "wines", size_ml = 750) => ({ id: n, canonical_name: n, aliases: [], category, size_ml, has_calibration: true });
+  const cat = [row("Hardys Main Road Rose"), row("Waipara Hills Pinot Noir"), row("Victor Bernard Cotes du Rhone"), row("Le Terre Gavi"),
+    row("Jura Aged 10 Years", "spirits", 700), row("Gordon's Gin", "spirits", 700), row("Jagermeister", "spirits", 700), row("Luxardo Sambuca Liquorice", "spirits", 700)];
+  const m = (name: string, category = "wines", size_ml = 750) => mkb2({ name, category, size_ml } as any, cat as any)?.canonical_name ?? null;
+  it("matches abbreviations, initials and category-first names", () => {
+    expect(m("Wine Rose Hardy's Main Rd")).toBe("Hardys Main Road Rose");
+    expect(m("Wine Pinot Noir Waipara H.")).toBe("Waipara Hills Pinot Noir");
+    expect(m("Wine Cotes du Rhone V.Berard")).toBe("Victor Bernard Cotes du Rhone");
+    expect(m("Whisky Isle of Jura 10yr", "spirits", 700)).toBe("Jura Aged 10 Years");
+  });
+  it("never guesses a different bottle", () => {
+    expect(m("Gin Gordons 0%", "spirits", 700)).toBeNull();
+    expect(m("Jägermeister Cold Brew", "spirits", 700)).toBeNull();
+    expect(m("Liqueur Luxardo Sambuca Black", "spirits", 700)).toBeNull();
+    expect(m("Wine Gavi Terre del Barolo")).toBeNull();
+    expect(m("Whisky Isle of Jura 16yr", "spirits", 700)).toBeNull();
+    expect(m("Wine Red Hardy's Main Rd")).toBeNull();
+  });
+});

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to count part bottles of spirits in a stocktake | StockTap</title>
+  <meta name="description" content="Tenths by eye, or scales and a density sum. How to count part bottles of spirits, what an eyeballed tenth costs, and which bottles deserve the weigh." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/stocktake-spirits-part-bottles" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How to count part bottles of spirits in a stocktake | StockTap" />
+  <meta property="og:description" content="Tenths by eye, or scales and a density sum. How to count part bottles of spirits, what an eyeballed tenth costs, and which bottles deserve the weigh." />
+  <meta property="og:url" content="https://stocktap.net/guides/stocktake-spirits-part-bottles" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to count part bottles of spirits in a stocktake | StockTap" />
+  <meta name="twitter:description" content="Tenths by eye, or scales and a density sum. How to count part bottles of spirits, what an eyeballed tenth costs, and which bottles deserve the weigh." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Part bottles are where spirit counts go wrong. Weigh them",
+      "description": "Tenths by eye, or scales and a density sum. How to count part bottles of spirits, what an eyeballed tenth costs, and which bottles deserve the weigh.",
+      "datePublished": "2026-09-10",
+      "dateModified": "2026-09-10",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/stocktake-spirits-part-bottles"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What scales do I need to weigh spirits for a stocktake?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Any kitchen scale that reads to 1 gram and takes 2kg or so, which is a £10 to £15 purchase. One gram is roughly one millilitre of spirit, and a serve is 25ml, so even cheap scales measure about 25 times finer than the unit you sell. Flat platform beats a bowl, and check it against a known weight now and then."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What density figure do I use to convert grams to millilitres?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "About 0.95 g/ml for a 40% ABV spirit, because ethanol is lighter than water. Cream liqueurs and heavy syruped liqueurs sit nearer 1.05. Being a point or two out matters far less than being consistent: use the same figure for the same product every count and your movement numbers stay true."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I have to weigh every open bottle at every count?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Weigh the expensive lines, anything opaque, and anything in dispute, and let tenths cover the cheap fast movers on weekly checks. A full weighed count once a month with tenths in between is a workable rhythm for most wet-led pubs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I find the empty bottle weight?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Weigh a dead bottle of that product before it goes in the bin, with its cap and any pourer removed, and record it once. It barely changes between batches. StockTap recognises a lot of standard bottles and fills the empty and full weights in for you; anything unusual, weigh one empty and it's stored against the product for good."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Part bottles are where spirit counts go wrong. Weigh them",
+          "item": "https://stocktap.net/guides/stocktake-spirits-part-bottles"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Stocktaking &amp; variance</div>
+
+      <header class="article-header">
+        <div class="article-category">Stocktaking &amp; variance</div>
+        <h1>Part bottles are where spirit counts go wrong. Weigh them</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-10">10 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+
+<p><strong>Full bottles count themselves. The number that decides whether your spirit stocktake means anything is what's in the open ones, and most bars settle it by holding a bottle up to the light and guessing. A 70cl bottle holds 28 single measures, which at &pound;3.60 a single is about &pound;100 of revenue, so the open shelf behind an ordinary bar is a four-figure sum being estimated by eye in bad light. There's a better way and it costs a tenner: scales.</strong></p>
+
+<p>Here's the maths on both methods, the density sum that turns grams into measures, and which bottles are worth the extra thirty seconds.</p>
+
+<h2>What eyeballing actually costs</h2>
+
+<p>The standard eyeball method is tenths: hold the bottle up, call it 0.6, move on. Done carefully it's honest to about one tenth either way, and on a clear bottle in decent light that's fine for a lot of jobs. But be clear what one tenth is. On a 70cl bottle it's 70ml, which is 2.8 single measures, which is &pound;10 of revenue at &pound;3.60 a serve. Call forty open bottles a typical back bar, misjudge each by an honest tenth in random directions, and any single count can sit &pound;100 or more adrift of reality without a drop having gone anywhere.</p>
+
+<p>That error doesn't announce itself. It lands in your <a href="/guides/acceptable-stocktake-variance">variance figure</a> looking exactly like missing stock, or like stock you never had. Then next count it unwinds and reverses. If your spirit variance swings from minus &pound;60 to plus &pound;40 and back while draught behaves itself, you probably haven't got a pouring problem, you've got a measuring one. I wrote about telling those apart in <a href="/guides/pub-stock-loss-pouring-waste-or-measuring-error">the stock loss diagnosis guide</a>, and eyeballed part bottles are the single biggest measuring-error culprit on the wet side.</p>
+
+<p>And some bottles can't be eyeballed at all. Ceramic gins, dark glass, frosted glass, anything with a full-wrap label. For those, guessing isn't even guessing, it's making a number up.</p>
+
+<h2>Weighing: the method</h2>
+
+<p>Weighing turns the same job into arithmetic. Three steps.</p>
+
+<ol>
+  <li><strong>Know the empty weight.</strong> Called the tare. Weigh a dead bottle of that product before it goes in the bin, cap on, pourer off, and record it. You do this once per product, ever. Standard bottles barely vary batch to batch.</li>
+  <li><strong>Weigh the open bottle.</strong> Count night, bottle on the scales, read the grams. Cap on, pourer off, same as the tare so you're comparing like with like.</li>
+  <li><strong>Grams minus tare, divided by density.</strong> A 40% ABV spirit is about 0.95 g/ml, because ethanol is lighter than water. So a bottle reading 812g with a 480g tare holds (812 &minus; 480) &divide; 0.95 = 349ml. That's 13.9 single measures. Not "call it half".</li>
+  </ol>
+
+<p>Density is the bit people overthink. Ethanol is 0.789 g/ml, water is 1.000, and a 40% spirit lands near 0.95. Cream liqueurs are heavier, call them 1.05. You could chase the exact figure per product off a spec sheet, but a point or two of density is a few millilitres on a part bottle, and consistency count to count matters far more than the third decimal. Pick a figure per product, keep it.</p>
+
+<p>On precision: a &pound;10 kitchen scale resolves 1 gram, which is about 1ml. The unit you sell is 25ml. You're measuring twenty-five times finer than you need, on every bottle, regardless of glass colour or how tired you are. The eyeball on a good night resolves maybe 70ml.</p>
+
+<h2>Where tenths still earns its place</h2>
+
+<p>I'm not telling you to weigh sixty bottles every Sunday night. Tenths is quicker, and speed is worth real money on a weekly check. The sensible split is by value and by visibility:</p>
+
+<ul>
+  <li><strong>Weigh:</strong> malts, premium gins, cognac, anything north of &pound;20 a bottle at cost, anything opaque, and any line that's shown up in a variance argument. If a figure might end up in a dispute with a stocktaker or an area manager, weigh it, because "I weighed it" ends conversations that "it looked about half" starts.</li>
+  <li><strong>Tenths:</strong> house spirits and fast movers on weekly spot checks, where a 70ml error on a bottle you'll empty by Thursday is noise.</li>
+</ul>
+
+<p>A full weighed count monthly with tenths in between suits most wet-led pubs. How often to run each is its own question, covered in <a href="/guides/how-often-should-a-pub-do-a-stocktake">how often should a pub do a stocktake</a>.</p>
+
+<h2>Doing it without the spreadsheet</h2>
+
+<p>You can run all of this on paper: a tare list taped inside the cupboard, scales, and a calculator. It works, it's just slow, and the density sum at 1am on a Sunday is where mistakes breed.</p>
+
+<p>StockTap was built around exactly this job. Empty and full weights live against each product, and it recognises a lot of standard bottles so the weights are filled in before you start. On the count you put the bottle on the scales, type the grams, and it does the density sum and turns it into measures and money on the spot. Any bottle can flip between Weigh and Tenths with one tap mid-count, so the malts get weighed and the house vodka gets a quick tenth without changing screens. The <a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">DIY stocktake guide</a> covers where the spirit count sits in the full method.</p>
+
+<p>However you run it, the principle is the one that holds your whole stocktake together: a variance figure is only as good as the count underneath it. Weighing takes the guess out of the one place spirits hide.</p>
+
+<h2>Common questions</h2>
+<h3>What scales do I need to weigh spirits for a stocktake?</h3>
+<p>Any kitchen scale that reads to 1 gram and takes 2kg or so, which is a &pound;10 to &pound;15 purchase. One gram is roughly one millilitre of spirit, and a serve is 25ml, so even cheap scales measure about 25 times finer than the unit you sell. Flat platform beats a bowl, and check it against a known weight now and then.</p>
+<h3>What density figure do I use to convert grams to millilitres?</h3>
+<p>About 0.95 g/ml for a 40% ABV spirit, because ethanol is lighter than water. Cream liqueurs and heavy syruped liqueurs sit nearer 1.05. Being a point or two out matters far less than being consistent: use the same figure for the same product every count and your movement numbers stay true.</p>
+<h3>Do I have to weigh every open bottle at every count?</h3>
+<p>No. Weigh the expensive lines, anything opaque, and anything in dispute, and let tenths cover the cheap fast movers on weekly checks. A full weighed count once a month with tenths in between is a workable rhythm for most wet-led pubs.</p>
+<h3>How do I find the empty bottle weight?</h3>
+<p>Weigh a dead bottle of that product before it goes in the bin, with its cap and any pourer removed, and record it once. It barely changes between batches. StockTap recognises a lot of standard bottles and fills the empty and full weights in for you; anything unusual, weigh one empty and it's stored against the product for good.</p>
+
+<div class="article-sources">
+  <h2>Sources</h2>
+  <ul>
+    <li>Ethanol density 0.789 g/ml at 20&deg;C; water 1.000 g/ml &mdash; standard reference values. A 40% ABV spirit works out near 0.95 g/ml.</li>
+    <li>Weights and Measures (Intoxicating Liquor) Order 1988 &mdash; gin, rum, vodka and whisky sold in 25ml or 35ml measures.</li>
+    <li>Author&rsquo;s arithmetic &mdash; measures per bottle, revenue per tenth and worked weighing example at typical 2026 prices.</li>
+  </ul>
+</div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/how-to-stocktake-a-pub-yourself-diy-guide">How to stocktake a pub yourself: the DIY method</a></li>
+          <li><a href="/guides/acceptable-stocktake-variance">What's an acceptable stocktake variance in a pub?</a></li>
+          <li><a href="/guides/pub-stock-loss-pouring-waste-or-measuring-error">Pub stock loss: pouring, waste, or measuring error?</a></li>
+          <li><a href="/guides/till-not-matching-stocktake">Why your till and your stocktake never agree: the eight causes, in the order to check them</a></li>
+          <li><a href="/guides/how-often-should-a-pub-do-a-stocktake">How often should a pub do a stocktake?</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

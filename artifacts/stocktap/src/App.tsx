@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth, DEV_BYPASS } from "@/contexts/AuthContext";
 import { SyncProvider } from "@/contexts/SyncContext";
 import { SyncBanner } from "@/components/SyncBanner";
+import { UpdateBanner } from "@/components/UpdateBanner";
 
 import { requiresVenueSetup } from "@/lib/auth-utils";
 import NotFound from "@/pages/not-found";
@@ -25,6 +26,11 @@ import Settings from "@/pages/settings";
 import Ledger from "@/pages/ledger";
 import Suggestions from "@/pages/suggestions";
 import InvoiceScan from "@/pages/invoice-scan";
+import Delivery from "@/pages/delivery";
+import Orders from "@/pages/orders";
+import TillImport from "@/pages/till-import";
+import AuditCheck from "@/pages/audit-check";
+import { PendingAuditImporter } from "@/components/PendingAuditImporter";
 import DailyBoard from "@/pages/daily-board";
 import Finances from "@/pages/finances";
 import Team from "@/pages/team";
@@ -93,6 +99,9 @@ const ReportsRoute     = () => <ProtectedRoute component={Reports} />;
 const SettingsRoute    = () => <ProtectedRoute component={Settings} />;
 const LedgerRoute      = () => <ProtectedRoute component={Ledger} />;
 const InvoiceScanRoute = () => <ProtectedRoute component={InvoiceScan} />;
+const DeliveryRoute    = () => <ProtectedRoute component={Delivery} />;
+const OrdersRoute      = () => <ProtectedRoute component={Orders} />;
+const TillImportRoute  = () => <ProtectedRoute component={TillImport} />;
 const SuggestionsRoute = () => <ProtectedRoute component={Suggestions} />;
 const DailyBoardRoute  = () => <ProtectedRoute component={DailyBoard} />;
 const FinancesRoute    = () => <ProtectedRoute component={Finances} />;
@@ -107,6 +116,7 @@ function AppRouter({ authenticated }: { authenticated: boolean }) {
       <Route path="/help"          component={Help} />
       <Route path="/terms"         component={Terms} />
       <Route path="/privacy"       component={Privacy} />
+      <Route path="/free-audit-check" component={AuditCheck} />
       <Route path="/"              component={authenticated ? HomeRouteAuth : Landing} />
       <Route path="/daily-board"   component={DailyBoardRoute} />
       <Route path="/team"          component={TeamRoute} />
@@ -121,6 +131,9 @@ function AppRouter({ authenticated }: { authenticated: boolean }) {
       <Route path="/ledger"        component={LedgerRoute} />
       <Route path="/finances"      component={FinancesRoute} />
       <Route path="/invoice-scan"  component={InvoiceScanRoute} />
+      <Route path="/delivery"      component={DeliveryRoute} />
+      <Route path="/orders"        component={OrdersRoute} />
+      <Route path="/till-import"   component={TillImportRoute} />
       <Route path="/suggestions"   component={SuggestionsRoute} />
       <Route component={NotFound} />
     </Switch>
@@ -132,7 +145,9 @@ function AuthenticatedApp() {
   return (
     <SyncProvider>
       <SyncBanner />
+      <UpdateBanner />
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+        <PendingAuditImporter />
         <AppRouter authenticated />
       </WouterRouter>
     </SyncProvider>

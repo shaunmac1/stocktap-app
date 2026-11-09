@@ -318,7 +318,7 @@ export const METHOD_LABELS: Record<CountingMethod, string> = {
   dozen: "Dozen",
   photo_tap: "Photo tap",
   each: "Each",
-  litre: "Litre",
+  litre: "By the litre",
   weigh: "Weigh",
   tenths: "Tenths",
 };
@@ -346,6 +346,7 @@ export function productCapacityMl(p: {
   container_l?: number | null;
   size_ml?: number | null;
   pack_size?: number | null;
+  category?: string | null;
 }): number {
   const m = p.counting_method;
   if (m === "keg_weight" || m === "dipstick" || m === "tenths_pints") {
@@ -353,7 +354,63 @@ export function productCapacityMl(p: {
   }
   if (m === "each")  return p.size_ml || 1;
   if (m === "dozen") return (p.pack_size ?? 12) * (p.size_ml || 1);
+  // Litre lines are costed per container: a bag-in-box (container_l), else the
+  // bottle size, else per litre. Never fall back to 700ml here — that valued a
+  // 12L postmix box as if it were a 70cl bottle.
+  if (m === "litre") return litreContainerMl(p);
   return p.size_ml ?? 700;
+}
+
+/**
+ * Postmix is counted in litres of finished drink (as Venners and the till do), so a box is
+ * worth the drink it makes: a 12L syrup box mixed 5:1 makes 72L, a high-yield box 6:1 makes 84L.
+ * The product's pack_size holds "litres of drink per box" for postmix; otherwise 6 × the box.
+ */
+export const POSTMIX_DEFAULT_DRINK_PER_SYRUP = 6;
+export function postmixDrinkLitresPerBox(p: { container_l?: number | null; pack_size?: number | null }): number {
+  if (p.pack_size && p.pack_size > 0) return p.pack_size;
+  return (p.container_l && p.container_l > 0 ? p.container_l : 12) * POSTMIX_DEFAULT_DRINK_PER_SYRUP;
+}
+
+/** The container a litre-counted line is costed against: box, then bottle, then 1 litre. */
+export function litreContainerMl(p: { container_l?: number | null; size_ml?: number | null; pack_size?: number | null; category?: string | null }): number {
+  if (p.category === "postmix") return postmixDrinkLitresPerBox(p) * 1000;
+  if (p.container_l && p.container_l > 0) return p.container_l * 1000;
+  if (p.size_ml && p.size_ml > 0) return p.size_ml;
+  return 1000;
+}
+
+/** Imperial: 8 pints to the gallon. */
+export const PINTS_PER_GALLON = 8;
+
+/**
+ * 144 pints -> { gallons: 18, pints: 0 }. Pints are rounded to 1dp first, because a
+ * "50L" keg is 87.99 pints and nobody wants "17 gal 7.99 pt" for one keg + 56 pints.
+ */
+export function pintsToGallonsAndPints(totalPints: number): { gallons: number; pints: number } {
+  const p = Math.max(0, Math.round(totalPints * 10) / 10);
+  const gallons = Math.floor(p / PINTS_PER_GALLON + 1e-9);
+  const pints = Math.round((p - gallons * PINTS_PER_GALLON) * 10) / 10;
+  return { gallons, pints };
+}
+
+/** "18 gal 0 pt", "11 gal 1.75 pt" — how a stocktaker's sheet shows draught. */
+export function formatGallonsPints(totalPints: number): string {
+  const { gallons, pints } = pintsToGallonsAndPints(totalPints);
+  const pt = String(pints);
+  return `${gallons} gal ${pt} pt`;
+}
+
+/**
+ * Split a total volume into full containers and pints left in the part one.
+ * 144 pints in 50L kegs -> 1 full keg + 56 pints.
+ */
+export function splitIntoContainers(totalPints: number, containerL: number | null | undefined): { full: number; partPints: number } {
+  const capPints = containerL && containerL > 0 ? (containerL * 1000) / ML_PER_PINT : 0;
+  if (capPints <= 0) return { full: 0, partPints: Math.max(0, totalPints) };
+  const full = Math.floor(Math.max(0, totalPints) / capPints + 1e-9);
+  const partPints = Math.max(0, totalPints - full * capPints);
+  return { full, partPints: Math.round(partPints * 100) / 100 };
 }
 
 /** Result of a single reading entry, normalised for display regardless of counting method. */
@@ -377,6 +434,9 @@ export interface CategoryReadingInput {
   dipMm?: number;
   // keg_weight — user reads pints directly off the keg-weigher gadget
   partialPints?: number;
+  // keg_weight "by gallons" — total gallons + pints for the line, like a stocktaker's sheet.
+  // When set it replaces partialPints/fullContainers: the total is split into full kegs + part.
+  totalPints?: number;
   // tenths_pints / tenths (spirits)
   tenths?: number;
   // dozen
@@ -442,6 +502,16 @@ export function computeCategoryReading(
       // When no capacity is set (capacityMl === 0) do NOT clamp — let the raw pint reading
       // through so partial entries aren't silently zeroed. Full containers still contribute 0
       // (we can't know their volume) but that is surfaced as a UI warning, not silent loss.
+      if (input.totalPints != null) {
+        // Entered as a total (gallons + pints). Store it as full kegs + the part keg so the
+        // saved line reads the same whichever way it was typed in.
+        const totalMl = Math.max(0, input.totalPints) * ML_PER_PINT;
+        const full = capacityMl > 0 ? Math.floor(totalMl / capacityMl + 1e-9) : 0;
+        reportedFullContainers = full;
+        partialMl = totalMl - full * capacityMl;
+        const mlTotal = totalMl;
+        return finishReading(product, mlTotal, partialMl, capacityMl, reportedFullContainers, measureMl);
+      }
       const rawPartialMl = (input.partialPints ?? 0) * ML_PER_PINT;
       partialMl = capacityMl > 0 ? Math.max(0, Math.min(rawPartialMl, capacityMl)) : rawPartialMl;
       break;
@@ -477,9 +547,10 @@ export function computeCategoryReading(
       break;
     }
     case "litre": {
-      capacityMl = draughtCapacityMl(product.containerL) || (input.litres ?? 0) * 1000;
-      partialMl = (input.litres ?? 0) * 1000;
-      break;
+      // Litres are the whole count for the line (no separate full containers).
+      capacityMl = litreContainerMl({ container_l: product.containerL, size_ml: product.sizeMl, pack_size: product.packSize, category: product.category });
+      partialMl = Math.max(0, input.litres ?? 0) * 1000;
+      return finishReading(product, partialMl, partialMl, capacityMl, 0, measureMl);
     }
     case "photo_tap": {
       capacityMl = product.sizeMl ?? 0;
@@ -520,6 +591,17 @@ export function computeCategoryReading(
   }
 
   const mlRemaining = fullSpare * capacityMl + partialMl;
+  return finishReading(product, mlRemaining, partialMl, capacityMl, reportedFullContainers, measureMl);
+}
+
+function finishReading(
+  product: CategoryReadingProduct,
+  mlRemaining: number,
+  partialMl: number,
+  capacityMl: number,
+  fullContainers: number,
+  measureMl: number,
+): CategoryReadingResult {
   const tenths = capacityMl > 0 ? calcTenths(partialMl, capacityMl) : 0;
   const partContainerFraction = capacityMl > 0 ? Math.max(0, Math.min(1, partialMl / capacityMl)) : 0;
   const measuresRemaining = calcMeasuresLeft(mlRemaining, measureMl);
@@ -530,7 +612,7 @@ export function computeCategoryReading(
   return {
     mlRemaining,
     tenths,
-    fullContainers: reportedFullContainers,
+    fullContainers,
     partContainerFraction,
     measuresRemaining,
     volumeMl: mlRemaining,

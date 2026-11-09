@@ -68,7 +68,9 @@ export function CataloguePickerSheet({
   tier,
   products,
   locations,
+  initialQuery = "",
 }: {
+  initialQuery?: string;
   open: boolean;
   onClose: () => void;
   venueId: string;
@@ -88,11 +90,11 @@ export function CataloguePickerSheet({
   React.useEffect(() => {
     if (!open) return;
     setTab("global");
-    setQuery("");
+    setQuery(initialQuery);
     setVenueQuery("");
     setSelectedIds([]);
     setLocationId("none");
-  }, [open]);
+  }, [open, initialQuery]);
 
   // Prune selected IDs whenever the catalogue result changes (e.g. an item
   // becomes already_added after being added by another user).  pruneSelectedIds
@@ -181,7 +183,7 @@ export function CataloguePickerSheet({
                 [1, 2, 3, 4].map((index) => <div key={index} className="h-24 rounded-xl bg-muted animate-pulse" />)
               ) : error ? (
                 <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-                  Catalogue search is unavailable until its database migration is applied.
+                  Catalogue search isn't available right now. Add the product yourself instead.
                 </div>
               ) : catalogueItems.length === 0 ? (
                 <div className="text-center py-14 space-y-2">

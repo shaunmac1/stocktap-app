@@ -124,6 +124,20 @@ export function useAddAppliances() {
   });
 }
 
+/** Change an appliance's name or safe range. Past readings keep the value they were logged at. */
+export function useUpdateAppliance() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (row: { id: string; venue_id: string; name: string; kind: ApplianceKind; min_c: number | null; max_c: number | null }) => {
+      const { id, venue_id: _v, ...patch } = row;
+      const { error } = await appliancesTable().update(patch).eq("id", id);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["appliances", vars.venue_id] }),
+  });
+}
+
 /** Soft-delete (deactivate) an appliance so its history is kept. */
 export function useDeactivateAppliance() {
   const qc = useQueryClient();
@@ -299,5 +313,30 @@ export function useAddRefusal() {
       return data as Refusal;
     },
     onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["refusals", vars.venue_id] }),
+  });
+}
+
+/** Everything logged between two dates, for the owner's history view and download. */
+export function useChecksRange(venueId: string | undefined, fromISO: string, toISO: string, enabled = true) {
+  return useQuery({
+    queryKey: ["checks_range", venueId, fromISO, toISO],
+    enabled: !!venueId && enabled,
+    queryFn: async () => {
+      const all = async (t: () => any, orderCol: string) => {
+        const out: any[] = [];
+        for (let from = 0; ; from += 1000) {
+          const { data, error } = await t().select("*").eq("venue_id", venueId!).gte("business_date", fromISO).lte("business_date", toISO)
+            .order(orderCol, { ascending: true }).range(from, from + 999);
+          if (error) throw error;
+          out.push(...(data ?? []));
+          if (!data || data.length < 1000) break;
+        }
+        return out;
+      };
+      const [readings, completions, refusals] = await Promise.all([
+        all(tempReadingsTable, "created_at"), all(completionsTable, "created_at"), all(refusalsTable, "occurred_at"),
+      ]);
+      return { readings: readings as TempReading[], completions: completions as CheckCompletion[], refusals: refusals as Refusal[] };
+    },
   });
 }

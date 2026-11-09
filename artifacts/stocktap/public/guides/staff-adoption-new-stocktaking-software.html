@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting bar staff to use new stocktaking software | StockTap</title>
+  <meta name="description" content="New stock systems die in week three, not week one. One owner, narrow jobs, no blame at launch, and the month-one plan that gets a team past the novelty cliff." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/staff-adoption-new-stocktaking-software" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Getting bar staff to use new stocktaking software | StockTap" />
+  <meta property="og:description" content="New stock systems die in week three, not week one. One owner, narrow jobs, no blame at launch, and the month-one plan that gets a team past the novelty cliff." />
+  <meta property="og:url" content="https://stocktap.net/guides/staff-adoption-new-stocktaking-software" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Getting bar staff to use new stocktaking software | StockTap" />
+  <meta name="twitter:description" content="New stock systems die in week three, not week one. One owner, narrow jobs, no blame at launch, and the month-one plan that gets a team past the novelty cliff." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Getting your staff to use the new stocktaking system (it dies in week three, not week one)",
+      "description": "New stock systems die in week three, not week one. One owner, narrow jobs, no blame at launch, and the month-one plan that gets a team past the novelty cliff.",
+      "datePublished": "2026-09-27",
+      "dateModified": "2026-09-27",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/staff-adoption-new-stocktaking-software"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Should every staff member learn the whole system?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. One owner, one backup, narrow jobs for the rest. The full system is maybe two people's business. Training everyone on everything fails twice: nobody masters it, and everybody resents the training time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What if staff think it's surveillance?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Beat it with behaviour, not reassurance: read results by reason not by name, blame the button not the person the first ten times something's off, and when the system finds money, say so out loud."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "My head bartender hates it. Now what?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Find out which recording moment is annoying them, because it's usually one specific moment, and it's usually right to be annoyed at. Recruit them by asking them to break the system, then fixing what they break."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long until it's just routine?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "If it survives week three, the second month mostly runs itself, and by the third count you're arguing about results instead of the system. Still fighting the software itself after a month? The problem may be the software."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Getting your staff to use the new stocktaking system (it dies in week three, not week one)",
+          "item": "https://stocktap.net/guides/staff-adoption-new-stocktaking-software"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Getting your staff to use the new stocktaking system (it dies in week three, not week one)</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-27">27 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>New stocktaking systems don't die in week one. Week one everyone's keen, the app is a novelty, and the first count feels like progress. They die in week three, when the novelty's gone, the Friday delivery didn't get booked in, two spot checks got skipped, and the numbers quietly stop being true. Then the app becomes the thing nobody mentions, and the spreadsheet comes back. I've watched this cycle from both sides, as a licensee and as the person who built one of these systems, and the failure is almost never the staff. It's the rollout design.</strong></p>
+
+<p>Vendors won't put a page like this on their sites because "your team may ignore our product by October" is a hard sell. But adoption, not features, is where the money you spend on <a href="/guides/pub-stocktaking-software-cost-2026">stocktaking software</a> is won or lost, so here's what actually keeps a system alive past the first month.</p>
+
+<p class="hub-link" style="border-left:3px solid #2E6B3F;padding:8px 12px;background:rgba(46,107,63,0.06)">New to this? Start with my plain guide to <a href="/guides/stocktaking-software-for-pubs">pub stocktaking software</a>: what it does, what it costs and how to pick one.</p>
+        <h2>One owner, narrow jobs for everyone else</h2>
+
+<p>The single biggest design decision: the count belongs to one person. You, or one senior you trust. Not "the team". A stocktake owned by everyone is owned by no one, and the first week someone's off sick you'll find out which.</p>
+
+<p>Everyone else gets, at most, one small and specific job. A five-line spot check on the Tuesday day shift. Writing the wastage line in the book when something goes down the drain. Checking the dray against the delivery note before signing. Each of those is a two-minute task a person can actually be responsible for, and none of them requires learning the whole system. Most decent software supports this shape with team roles, so bar staff can record a count or a spot check without ever seeing settings or reports. Use that. Handing every part-timer the full system is how you end up with nobody confident in any of it.</p>
+
+<h2>Launch without the blame, out loud</h2>
+
+<p>Here's the thing your team is silently wondering at the first mention of new stock software: is this about catching us? If you don't answer that question, they'll answer it themselves, and the system will be resented before it's even installed.</p>
+
+<p>So say it out loud, before the first count: the first results will show variance, and most early variance is recording, not people. Till buttons that don't match products, deliveries booked wrong, wastage nobody logged, comps nobody wrote down. That's not a speech to make them feel better, it's what the evidence says: work through <a href="/guides/stock-loss-you-cant-explain-what-to-do-next">an unexplained loss properly</a> and the paperwork causes come up long before anything sinister. If the first team meeting about the new system is about theft, you've lost the room, and you were probably wrong anyway.</p>
+
+<p>The same rule applies to how you read the reports afterwards: by reason and by time, never by name on a noticeboard. The <a href="/guides/till-voids-refunds-stock-variance-pub">voids and refunds guide</a> covers why reading reports by name backfires even when you're right.</p>
+
+<h2>Train inside the count, not in a meeting</h2>
+
+<p>A one-hour classroom session for four staff costs you about £51 in wages at the £12.71 National Living Wage before employer's NI goes on top, and a week later most of it has evaporated because nothing was learned by hand. Ten minutes each, on a quiet shift, doing a real five-line spot check on the actual bar: cheaper, and it sticks, because they did the thing rather than watched the thing.</p>
+
+<p>It also surfaces problems training can't. The product that's missing from the list, the keg with no size set, the wine that's in the system at the wrong bottle. Your staff find setup gaps faster than you will, because they touch the stock all day. The <a href="/guides/pub-stocktaking-software-setup-time-onboarding">setup-time guide</a> makes the same point from the other direction: the first counts are the best setup audit you'll get.</p>
+
+<h2>Don't put money on the number too early</h2>
+
+<p>The fastest way to poison a rollout is to bolt an incentive or a penalty onto a number nobody trusts yet. If the first month's GP is built on estimated prices and half-recorded wastage, and someone's bonus or someone's blame hangs on it, every conversation about the system becomes a negotiation. Fix the recording first, prove the number over a few counts, and only then think about incentives. The <a href="/guides/kitchen-gp-bonus-scheme-pub">kitchen GP bonus guide</a> covers how to build one that doesn't blow up, and the first rule there is the same: never announce a target before you've proved you can measure it.</p>
+
+<h2>Make the system carry the load, not the people</h2>
+
+<p>A rule I'd apply to any vendor, including mine: if recording something takes longer than doing the thing it records, it will not happen at 11pm, and your data will be fiction by Christmas. Comps need one till button, wastage needs one line, a spot check needs one screen. When you're choosing software, weigh the recording moments, not the reporting dashboards; dashboards are for you, recording is for a busy nineteen-year-old on a Saturday, and the second one decides whether the first one is true. Pick tools that flag what's missing (unset keg sizes, products with no price) rather than relying on anyone's memory, and let the app nag so you don't have to.</p>
+
+<h2>The first month, week by week</h2>
+
+<table>
+<caption>A rollout shape that survives contact with a real pub. Author's working method, not a published standard.</caption>
+<thead>
+<tr><th>Week</th><th>What happens</th><th>Who's involved</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>Owner runs the first full count solo, in tenths where setup is incomplete. Say the "early variance is recording" line to the team</td><td>Owner only</td></tr>
+<tr><td>2</td><td>Fix what count one exposed: prices, sizes, missing products. One senior learns the count</td><td>Owner plus one</td></tr>
+<tr><td>3</td><td>The dangerous week. Spot checks start, two minutes, five lines, one person per shift. Wastage book goes live</td><td>Everyone, narrowly</td></tr>
+<tr><td>4</td><td>Second full count. Compare, read by reason, share one win with the team ("we found the till button that was bleeding lager")</td><td>Owner, results to all</td></tr>
+</tbody>
+</table>
+
+<p>Week three is in bold in my head because that's where the quiet deaths happen. The novelty is gone and the habit isn't formed yet. Whatever you do, don't let a skipped spot check slide silently that week; ask about it the same day, kindly, once.</p>
+
+<h2>Common questions</h2>
+
+<h3>Should every staff member learn the whole system?</h3>
+<p>No. One owner, one backup, narrow jobs for the rest. The full system is maybe two people's business. Trying to train everyone on everything is the most common rollout mistake I see, and it fails twice: nobody masters it, and everybody resents the training time.</p>
+
+<h3>What if staff think it's surveillance?</h3>
+<p>Some will, quietly, whatever you say, because plenty of them have worked somewhere that used stock results as a stick. You beat it with behaviour, not reassurance: read results by reason not by name, blame the button not the person the first ten times something's off, and when the system finds money, say so out loud. Nothing converts a sceptical bartender like watching the thing catch a short delivery instead of catching her.</p>
+
+<h3>My head bartender hates it. Now what?</h3>
+<p>Find out which recording moment is annoying them, because it's usually one specific moment, and it's usually right to be annoyed at. Fix that: a quicker button, or take the task off them entirely. A senior who's been counting the bar their own way for a decade isn't wrong to be sceptical of your app; recruit them by asking them to break it, then fixing what they break.</p>
+
+<h3>How long until it's just routine?</h3>
+<p>If it survives week three, the second month mostly runs itself: counts get faster as the library gets accurate, and by the third count you're arguing about results instead of the system, which is the goal. If you're still fighting the software itself after a month, the problem may be the software; the <a href="/guides/switching-stocktaking-software-provider-uk">switching guide</a> covers getting out cleanly.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>National Living Wage £12.71 an hour from April 2026: gov.uk NLW/NMW rates (verified at source for our <a href="/guides/national-living-wage-rise-2026-pub-margin-impact">wage-rise guide</a>). The £51 training-hour sum is that rate times four staff for one hour, author&rsquo;s arithmetic, before employer&rsquo;s National Insurance.</li>
+<li>No independent published data exists on stocktaking-software adoption or abandonment rates in UK pubs; this page says so plainly rather than inventing any. The week-by-week rollout, the one-owner rule and the week-three observation are the author&rsquo;s working method from running his own bar and building StockTap, offered as a shape, not a study.</li>
+<li>Early-variance causes (till mapping, deliveries, unlogged wastage and comps): see the linked guides on unexplained loss, voids and refunds, each with their own sources.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/pub-stocktaking-software-setup-time-onboarding">How long does stocktaking software really take to set up? A 270-line answer</a></li>
+          <li><a href="/guides/switching-stocktaking-software-provider-uk">Switching stocktaking software: the exports to take, the notice traps, and the overlap count</a></li>
+          <li><a href="/guides/kitchen-gp-bonus-scheme-pub">Kitchen GP bonuses: how to set one that doesn’t backfire</a></li>
+          <li><a href="/guides/stock-loss-you-cant-explain-what-to-do-next">Stock loss you can't explain: the fortnight that finds it</a></li>
+          <li><a href="/guides/staff-pours-margin-cost">What Bad Pours Are Actually Costing You (And Why Nobody Tells New Staff)</a></li>
+          <li><a href="/guides/best-pub-stocktaking-software-2026">Best pub stocktaking software 2026: an honest shortlist</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

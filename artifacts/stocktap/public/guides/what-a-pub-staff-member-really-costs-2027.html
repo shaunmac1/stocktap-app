@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What a member of staff really costs a pub from April 2027</title>
+<meta name="description" content="A £13.21 bar worker really costs a pub about £16.75 an hour once holiday pay, employer NI and pension are added. What the Budget changed, and how to check your rota.">
+<link rel="canonical" href="https://stocktap.net/guides/what-a-pub-staff-member-really-costs-2027">
+<meta property="og:type" content="website"><meta property="og:title" content="What a member of staff really costs a pub from April 2027">
+<meta property="og:description" content="A £13.21 bar worker really costs about £16.75 an hour. The sums, and a free calculator.">
+<meta property="og:url" content="https://stocktap.net/guides/what-a-pub-staff-member-really-costs-2027">
+<meta name="theme-color" content="#0f3d3a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--bg:#f2f6f4;--surface:#fff;--ink:#0d2a28;--muted:#45605b;--line:#cbdad5;--band:#0f3d3a;--band-ink:#eaf2ef;--band-muted:#a9c6c0;
+--gold:#f5c04a;--gold-ink:#231900;--ok:#17784a;--bad:#b23a2b;--focus:#1b7cd6;--soft:#e3eeea;
+--display:"Anton","Impact","Arial Narrow",sans-serif;--body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;--max:1000px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a201e;--surface:#102d2b;--ink:#eaf2ef;--muted:#a9c2bd;--line:#22423f;--band:#0f3936;--soft:#163835;--ok:#5ccf92;--bad:#ff8a7a;--focus:#7cc4ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a201e;--surface:#102d2b;--ink:#eaf2ef;--muted:#a9c2bd;--line:#22423f;--band:#0f3936;--soft:#163835;--ok:#5ccf92;--bad:#ff8a7a;--focus:#7cc4ff;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.55;overflow-x:hidden}
+a{color:inherit;text-decoration-thickness:2px;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
+.wrap{width:100%;max-width:var(--max);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--band);color:var(--band-ink)}.nav{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding-block:14px;font-size:16px}
+.nav a{text-decoration:none}.brand{font-family:var(--display);font-size:22px;letter-spacing:.5px;margin-right:auto}
+.hero{background:var(--band);color:var(--band-ink);padding-block:28px 40px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,7vw,56px);line-height:1.05;margin:0 0 12px;letter-spacing:.3px}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,34px);line-height:1.1;margin:0 0 10px;letter-spacing:.3px}
+.hero p{color:var(--band-muted);max-width:640px;margin:0}
+main{padding-block:28px 40px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px}
+.step{display:inline-block;background:var(--gold);color:var(--gold-ink);font-weight:700;border-radius:999px;padding:2px 12px;font-size:15px;margin-bottom:8px}
+label{display:block;font-weight:700;font-size:16px;margin-bottom:4px}
+.hint{color:var(--muted);font-size:15px;margin:2px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:16px}
+input[type=number],select{width:100%;font:inherit;font-size:18px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:400}.check input{width:22px;height:22px;margin-top:3px}
+.big{font-family:var(--display);font-size:clamp(44px,10vw,64px);line-height:1;color:var(--ink)}
+.result{background:var(--soft);border-radius:12px;padding:16px;margin-top:16px}
+.breakdown{font-size:15px;color:var(--muted);margin-top:8px}
+.days{width:100%;border-collapse:collapse;font-size:16px}
+.days th,.days td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+.days th:first-child,.days td:first-child{text-align:left}
+.days input{font-size:16px;padding:8px;width:100%;min-width:72px;max-width:120px;margin-left:auto;display:block}.days td{white-space:nowrap}.small{font-size:14px}
+.yes{color:var(--ok);font-weight:700}.no{color:var(--bad);font-weight:700}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:14px;margin-top:16px}
+.tile{background:var(--soft);border-radius:12px;padding:14px}.tile .n{font-family:var(--display);font-size:34px;line-height:1.1}.tile .l{font-size:15px;color:var(--muted)}
+.note{background:var(--soft);border-radius:12px;padding:14px 16px;font-size:16px}
+.btn{display:inline-block;font:inherit;font-weight:700;border-radius:999px;padding:12px 20px;text-decoration:none;border:2px solid transparent;cursor:pointer}
+.btn.gold{background:var(--gold);color:var(--gold-ink)}.btn.ghost{border-color:currentColor;background:transparent;color:inherit}
+.band{background:var(--band);color:var(--band-ink);padding-block:32px}.band .muted{color:var(--band-muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:28px}
+footer{padding-block:24px;font-size:15px;color:var(--muted)}footer nav{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+
+article{max-width:720px}article p,article li{font-size:18px}article h2{margin-top:32px}
+table.t{width:100%;border-collapse:collapse;font-size:16px;margin:12px 0}table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:right}table.t th:first-child,table.t td:first-child{text-align:left}
+.lead{font-size:20px}.cta{background:var(--soft);border-radius:16px;padding:18px;margin:24px 0}
+</style><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"What a member of staff really costs a pub from April 2027","datePublished":"2026-10-29","author":{"@type":"Person","name":"Shaun McManus"},"publisher":{"@type":"Organization","name":"StockTap"}}</script></head><body>
+<header class="top"><div class="wrap nav"><a class="brand" href="https://stocktap.net/">StockTap</a><a href="https://stocktap.net/guides">Guides</a><a href="https://stocktap.net/tools">Tools</a><a href="/tv/">StockTap TV</a></div></header>
+
+<section class="hero"><div class="wrap">
+<h1>What a member of staff really costs a pub from April 2027</h1>
+<p>By Shaun McManus, licensee in Washington, Tyne and Wear. 29 October 2026.</p>
+</div></section>
+<main class="wrap"><article>
+<p class="lead"><b>Short answer: a bar worker on the new £13.21 minimum wage costs a typical pub about £16.75 for every hour they actually work.</b> That's before you've sold a single pint. Here's where the extra £3.54 comes from, what the Budget changed, and how to check whether each day of your week is paying for the people working it.</p>
+
+<h2>What the Budget changed for staff costs</h2>
+<p>From 1 April 2027 the legal minimum rates go up by 3.9%:</p>
+<table class="t"><thead><tr><th>Age</th><th>Now</th><th>From April 2027</th></tr></thead><tbody>
+<tr><td>21 and over</td><td>£12.71</td><td>£13.21</td></tr>
+<tr><td>18 to 20</td><td>£10.85</td><td>£11.27</td></tr>
+<tr><td>16 to 17 and apprentices</td><td>£8.00</td><td>£8.31</td></tr>
+</tbody></table>
+<p>No change to employer National Insurance was announced, so it stays at 15% on earnings above £5,000 a year (£96.15 a week). VAT stayed at 20% with no hospitality cut, so there's no help on the other side of the till. Pubs in England do get more business rates relief from April, but only whoever pays the rates bill sees that.</p>
+
+<h2>Why £13.21 costs you £16.75</h2>
+<p>Take one member of staff aged 21 or over, working 25 hours a week at £13.21:</p>
+<table class="t"><thead><tr><th>Each week</th><th>£</th></tr></thead><tbody>
+<tr><td>Pay for 25 hours</td><td>330.25</td></tr>
+<tr><td>Holiday pay (12.07%)</td><td>39.86</td></tr>
+<tr><td>Employer National Insurance (15% above £96.15)</td><td>41.09</td></tr>
+<tr><td>Workplace pension (3% above £120)</td><td>7.50</td></tr>
+<tr><td><b>Total cost to you</b></td><td><b>418.71</b></td></tr>
+<tr><td><b>Per hour worked</b></td><td><b>16.75</b></td></tr>
+</tbody></table>
+<p>That's about £21,770 a year for one 25-hour person. On this year's rate the same person costs £16.09 an hour, so the April rise adds about 66p for every hour they work, or roughly £860 a year.</p>
+<p>Three things move the number a lot:</p>
+<ul>
+<li><b>Age.</b> Employers pay no National Insurance for under-21s (up to £50,270 a year), and auto-enrolment into the pension starts at 22. An 18 to 20 year old on £11.27 costs about £12.60 an hour.</li>
+<li><b>Employment Allowance.</b> Most small employers can knock up to £10,500 a year off their employer NI bill. If you claim it and it isn't used up, the 21+ example above drops to about £15.10 an hour. It isn't automatic: you or your payroll provider have to claim it. Worth one phone call to check.</li>
+<li><b>Hours.</b> The £96.15 a week NI threshold applies to each person, so lots of short-hours staff pay less NI between them than a few long-hours staff.</li>
+</ul>
+
+<h2>The easy rule: what a staff hour has to bring in</h2>
+<p>Knowing the cost is only half of it. The question that matters is: how much has to go through the till in that hour to pay for it? That depends on how much of each £1 you keep, and that depends on your agreement.</p>
+<table class="t"><thead><tr><th>Your agreement (example figures)</th><th>You keep of each £1</th><th>A £16.75 hour needs</th></tr></thead><tbody>
+<tr><td>Free of tie, 60% gross profit</td><td>about 50p</td><td>about £34</td></tr>
+<tr><td>Tied tenancy, 50% gross profit</td><td>about 42p</td><td>about £40</td></tr>
+<tr><td>Retail or franchise, 20% of net takings</td><td>about 17p</td><td>about £100</td></tr>
+</tbody></table>
+<p>The "keep" figures take VAT off first (one sixth of the price at 20%). They're examples, so put in your own. The point is how different the answer is. A quiet Monday taking £35 per staff hour is fine for a free house and losing money on a percentage deal. If you're on a retail or franchise agreement, every member of staff is coming out of a much smaller share, so the rota matters more for you than for anyone.</p>
+
+<h2>Check your own week in ten minutes</h2>
+<ol>
+<li>Take last week's takings for each day off the till.</li>
+<li>Next to each day, write the total staff hours worked that day.</li>
+<li>Divide takings by hours. That's your sales per staff hour.</li>
+<li>Compare each day with the line for your agreement.</li>
+</ol>
+<p>Or let the free calculator do it, including the real cost of a staff hour for your own rates:</p>
+<div class="cta"><b>Free tools:</b> <a href="/tools/pub-staff-hour-calculator">the staff cost calculator</a> checks last week, and <a href="/tools/free-pub-rota-maker">the free rota maker</a> shows each day's staff cost while you plan next week. No sign-up, and nothing you type leaves your phone.</div>
+
+<h2>What to do about a day that doesn't pay</h2>
+<p>There are only two fixes: more people through the door, or fewer hours on when it's quiet. Some things to try before you cut anything:</p>
+<ul>
+<li><b>Trim the edges, not the shift.</b> It's nearly always the first and last hour on quiet days that don't pay. Starting someone an hour later or finishing an hour earlier is easier on staff than losing whole shifts.</li>
+<li><b>Rota from the till, not from last week's rota.</b> Plan each week from the same week last year, then adjust for football, weather and events. Put the hours where the money is.</li>
+<li><b>Get the rota right before you post it.</b> Under the Employment Rights Act, workers are expected to get reasonable notice of shifts, and payment when shifts are cancelled at short notice, from 2027. The details are still being consulted on, but sending people home on the day is going to get more expensive.</li>
+<li><b>Never go below safe cover.</b> Whatever the till says, you need enough people on to run the pub safely.</li>
+<li><b>Give the quiet night a reason.</b> A regular quiz, a screen showing your offers, a food deal: if the day isn't paying, it usually needs more people in more than it needs fewer staff.</li>
+</ul>
+<p>If you're thinking about shutting a whole day instead, I worked through that sum in <a href="/guides/should-a-pub-close-on-quiet-nights">should a pub close on quiet nights?</a></p>
+
+<h2>Common questions</h2>
+<p><b>Does holiday pay really add 12.07%?</b> For staff on irregular hours, holiday can be worked out as 12.07% of hours worked, which is 5.6 weeks' holiday spread over the 46.4 weeks they work. Salaried and fixed-hours staff get the same 5.6 weeks, so the cost is similar.</p>
+<p><b>Do I have to put part-timers in a pension?</b> You have to auto-enrol staff aged 22 to State Pension age earning over £10,000 a year. Others can ask to join. The employer minimum is 3% of earnings above £6,240 a year.</p>
+<p><b>Do tips or service charge count towards minimum wage?</b> No. Tips can't be used to top up pay, and by law they have to go to staff.</p>
+
+<h2>Sources</h2>
+<ul class="hint">
+<li>GOV.UK, "LPC recommendations take the National Living Wage to £13.21", 28 October 2026.</li>
+<li>HMRC rates and thresholds for employers 2026 to 2027 (employer NI 15%, secondary threshold £5,000, Employment Allowance £10,500, upper secondary threshold for under-21s £50,270).</li>
+<li>The Pensions Regulator and DWP: automatic enrolment thresholds for 2026/27 (trigger £10,000, qualifying earnings from £6,240).</li>
+<li>GOV.UK holiday entitlement guidance (5.6 weeks; 12.07% accrual for irregular hours workers).</li>
+<li>Employment Rights Act 2025: reasonable notice and short-notice cancellation payments expected 2027, subject to consultation.</li>
+<li>Calculations are mine. NI and pension thresholds for 2027/28 may change.</li>
+</ul>
+<p class="hint">Not financial or legal advice. Check your own figures with your accountant or payroll provider.</p>
+</article></main>
+<section class="band"><div class="wrap two">
+<div><h2>Fill the quiet days</h2><p class="muted">I built StockTap TV for my own pub: a phone quiz every 20 minutes, your offers and match-day build-up on every screen. Free 14-day trial, then £34 a month for the whole pub.</p><a class="btn gold" href="/tv/">See StockTap TV</a></div>
+<div><h2>Know what your bar is losing</h2><p class="muted">StockTap is my stocktaking app for pubs. Weigh bottles, count kegs and see your GP every day.</p><a class="btn ghost" href="https://stocktap.net/">See StockTap</a></div>
+</div></section>
+<footer><div class="wrap"><nav><a href="https://stocktap.net/guides">Guides</a><a href="https://stocktap.net/tools">Tools</a><a href="/tv/">StockTap TV</a><a href="https://stocktap.net/">StockTap</a></nav>
+<p>Made by Shaun McManus, licensee of a pub in Washington, Tyne and Wear. A planning aid, not financial or legal advice.</p></div></footer>
+
+</body></html>

@@ -1,3 +1,4 @@
+import { HELP_VIDEOS } from "@/lib/help-videos";
 import React, { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
@@ -71,17 +72,17 @@ const FAQS: FAQ[] = [
   {
     category: "Reports & GP%",
     q: "Can I export my stocktake and reports data?",
-    a: "Yes — Reports has a CSV export for any date range, so you can hand figures to your accountant, area manager or brewery rep without retyping anything.",
+    a: "Yes — Reports exports your valuation, GP and order guide as CSV, so you can hand figures to your accountant, area manager or brewery rep without retyping anything.",
   },
   {
     category: "Account & billing",
     q: "Is there a free trial and do I need a card to start?",
-    a: "Yes — you can start free with no card required. Settings > Plan shows exactly what's included on Free vs Pro vs Premium, and you can upgrade or cancel any time.",
+    a: "Yes — you can start free with no card required. You get 14 days with everything switched on. After that it's Premium at £39 a month, or stay on the Free plan. Settings > Plan shows what's included, and you can upgrade or cancel any time.",
   },
   {
     category: "Account & billing",
     q: "What is 'The Lock-In' founding landlord badge?",
-    a: "Early venues get a permanent 'Founding Landlord' badge as a thank-you for backing us early. It's automatic, there's nothing to apply for. Separately, the first 50 paying customers keep the £19 a month Pro founding rate.",
+    a: "Early venues get a permanent 'Founding Landlord' badge as a thank-you for backing us early. It's automatic, there's nothing to apply for.",
   },
   {
     category: "Account & billing",
@@ -137,7 +138,7 @@ export default function Help() {
 
       <div className="max-w-3xl mx-auto px-6 pb-4">
         <a href="/videos/" className="block rounded-xl border border-[#E0A343]/30 bg-[#E0A343]/10 p-4" data-testid="link-help-videos">
-          <div className="font-semibold text-[#F3F1EC]">Watch how it works (16 short videos)</div>
+          <div className="font-semibold text-[#F3F1EC]">Watch how it works ({HELP_VIDEOS.length} short videos)</div>
           <div className="text-sm text-[#8A9099] mt-0.5">Set-up, weighing, stocktakes, spot checks, daily board, checks, delivery scanning, finances, reports, offers, team, rota, staff access.</div>
         </a>
       </div>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy hour and drinks promotions: what a £1 off pint really costs | StockTap</title>
+  <meta name="description" content="A £1 off a £5.34 pint costs 83p of GP and needs 40% more volume to stand still. The happy hour sums plus the promotion rules in England, Wales and Scotland." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/happy-hour-promotions-margin-leak-pub" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Happy hour and drinks promotions: what a £1 off pint really costs | StockTap" />
+  <meta property="og:description" content="A £1 off a £5.34 pint costs 83p of GP and needs 40% more volume to stand still. The happy hour sums plus the promotion rules in England, Wales and Scotland." />
+  <meta property="og:url" content="https://stocktap.net/guides/happy-hour-promotions-margin-leak-pub" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Happy hour and drinks promotions: what a £1 off pint really costs | StockTap" />
+  <meta name="twitter:description" content="A £1 off a £5.34 pint costs 83p of GP and needs 40% more volume to stand still. The happy hour sums plus the promotion rules in England, Wales and Scotland." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Happy hour arithmetic: £1 off a £5.34 pint is 29% off your margin",
+      "description": "A £1 off a £5.34 pint costs 83p of GP and needs 40% more volume to stand still. The happy hour sums plus the promotion rules in England, Wales and Scotland.",
+      "datePublished": "2026-09-29",
+      "dateModified": "2026-09-29",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/happy-hour-promotions-margin-leak-pub"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Are happy hours legal in the UK?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "In England and Wales, yes. Time-limited discounts are fine as long as the promotion isn't irresponsible under the mandatory licensing conditions and nothing sells below the duty plus VAT floor. In Scotland the rules are different: a price change for on-sales can only start at the beginning of licensed hours and must then hold for at least 72 hours, which rules out the classic two-hour happy hour."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I work out what a discount actually costs?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Take the discount off the ex-VAT price, not the till price, then compare it to your GP per pint. A £1 discount on a £5.34 pint is 83p off the ex-VAT price, and if your GP was £2.89 a pint it's now £2.06. Divide old GP by new GP for the volume you need: 2.89 over 2.06 is 1.4, so 40% more pints just to bank the same cash."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does my GP% drop in promotion weeks with no stock missing?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Because achieved GP% is calculated from what the till took, and the till took less per pint. Sell a quarter of the week's pints at £1 off and your achieved GP% drops nearly two points with every drop accounted for. If promo sales don't go through their own buttons or price level, that price effect is indistinguishable from missing stock."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which drinks promotions are banned?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The mandatory conditions in England and Wales ban irresponsible promotions: unlimited or unspecified quantities of alcohol for free or a fixed fee where there's a significant risk to the licensing objectives, drinking games and speed-drinking, prizes or rewards for drinking, and staff pouring drinks directly into a customer's mouth. Selling below the cost of duty plus VAT has also been banned since May 2014."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Happy hour arithmetic: £1 off a £5.34 pint is 29% off your margin",
+          "item": "https://stocktap.net/guides/happy-hour-promotions-margin-leak-pub"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Money &amp; Margins
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Money &amp; Margins</div>
+        <h1>Happy hour arithmetic: £1 off a £5.34 pint is 29% off your margin</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-29">29 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>The quiet Tuesday happy hour feels free. The staff are already paid, the lights are already on, so any extra pint looks like pure gravy. Except the discount doesn't come off your overheads. It comes straight off your GP, the only line that was actually making you money, and most pubs running a promotion have never done the sum on what that costs.</strong></p>
+
+<p>So here's the sum, using the Morning Advertiser's average pint of £5.34.</p>
+
+<h2>The discount table</h2>
+
+<p>A £5.34 pint is £4.45 before VAT. At a 65% GP the beer in the glass cost you £1.56, which leaves £2.89 of gross profit per pint. Now watch what the discount does.</p>
+
+<table>
+<thead><tr><th>Price on the board</th><th>Ex VAT</th><th>GP per pint</th><th>Extra pints needed to bank the same cash</th></tr></thead>
+<tbody>
+<tr><td>£5.34 (full price)</td><td>£4.45</td><td>£2.89</td><td>baseline</td></tr>
+<tr><td>£4.84 (50p off)</td><td>£4.03</td><td>£2.47</td><td>+17%</td></tr>
+<tr><td>£4.34 (£1 off)</td><td>£3.62</td><td>£2.06</td><td>+40%</td></tr>
+</tbody>
+</table>
+
+<p>All author's arithmetic, and the shape holds at your own numbers even if the pounds move. The £1 discount is 19% off the price the customer sees. It's 29% off the margin you keep. And because the discount comes off the ex-VAT price while your cost per pint stays exactly where it was, the volume you need to stand still is always bigger than the discount looks. Forty per cent more pints through the same two hours, every week, before the promotion has made you a penny more than doing nothing.</p>
+
+<h2>Who actually gets the discount</h2>
+
+<p>The harder question is who those cheap pints go to. Some of them go to new custom the promotion pulled in, which is the point. The rest go to the people who were coming in anyway, and every one of those is a pint you'd have sold at £5.34 now going out at £4.34. A busy happy hour is not evidence the promotion works. It's evidence people like cheap beer. The test is whether the room is fuller than the same two hours last month, and unless your till can show you that by time band, you're guessing.</p>
+
+<h2>What a promotion does to your stocktake</h2>
+
+<p>This is the bit that catches pubs with good stock control. Say you sell 800 pints a week and 200 of them go out at £1 off. Revenue ex VAT is £3,394 instead of £3,560, cost is unchanged at £1,248, and your achieved GP comes out at 63.2% instead of 65%. Nearly two points gone, with every single pint accounted for.</p>
+
+<p>If the discounted sales went through their own till buttons or a happy hour price level, that's a five-minute explanation on the <a href="/guides/how-to-read-gp-percentage-report">GP report</a>: price effect, known, move on. If they went through the standard buttons with the price keyed down, or worse, rung in at full price with the difference taken off at the end, your variance report cannot tell a promotion from a leak. You'll spend an evening hunting for stock that was never missing, and the week you finally shrug and accept "the numbers are just off" is the week a real leak starts hiding inside the promotion. The <a href="/guides/stock-variance-till-buttons">till buttons guide</a> covers the setup; the rule is one button per way of selling, including the cheap way.</p>
+
+<h2>The rules in England and Wales</h2>
+
+<p>Happy hours are legal here, but they sit inside the mandatory licensing conditions, which every premises licence carries whether you've read them or not. Since May 2014 there have been six of them, and the irresponsible promotions condition is the one that bites promotions. Banned: unlimited or unspecified quantities of alcohol free or for a fixed fee where there's a significant risk to the licensing objectives, so "all you can drink for £15" is a conversation with your licensing officer waiting to happen. Banned: games or activities that require or encourage drinking a quantity within a time limit or drinking as much as possible. Banned: prizes and rewards for drinking, and staff dispensing alcohol directly into a customer's mouth, the dentist's chair. A straightforward time-limited discount on the price of a drink is none of those things.</p>
+
+<p>There's also a floor under how far you can cut. Selling alcohol below the cost of duty plus VAT has been banned since 28 May 2014. On a 4.5% draught pint the duty is about 49.7p at the current rates, so the floor works out around 60p a pint, author's arithmetic from the Home Office formula. Nobody's happy hour goes anywhere near it, but if you ever run a token deal, a wristband deal or a free-pint voucher, the floor is the legal backstop the promotion has to clear.</p>
+
+<h2>Scotland is a different country for this</h2>
+
+<p>If your pub is in Scotland, the classic happy hour is effectively off the table. The Licensing (Scotland) Act 2005 says a price variation for drinks sold for consumption on the premises can only come into effect at the start of a period of licensed hours, and once it does, no further price change is allowed for 72 hours. Cut the price at 5pm Monday and that's your price until Thursday. It's why Scottish promotions run as week-long deals or permanent price positioning rather than two golden hours, and why a promotion idea borrowed from an English operator's playbook can put a Scottish licence at risk.</p>
+
+<h2>If you're going to discount, aim it</h2>
+
+<p>I'm not against promotions. I'm against blanket ones, because a blanket happy hour is a price cut for a room that mostly contains your regulars. A discount earns its keep when it has a job: shifting the <a href="/guides/dead-stock-pub-what-to-do">dead stock</a> that's been sitting on the back shelf since March, filling the two truly dead hours you can name from your till data rather than the two hours the brewery rep suggested, or pulling the afternoon food trade onto a drink they wouldn't otherwise order. Give the deal its own buttons, give it an end date, and read the GP report the week after with the discount's cost written next to whatever it bought you. If you can't say what it bought you, that's your answer.</p>
+
+<p>Run the numbers on your own bar before you run the promotion. Your <a href="/guides/pub-gp-percentage-benchmark-2026">GP benchmark</a> tells you what a point of margin is worth in your pub, and once you know a point is worth £60 or £80 a week, "it was a busy couple of hours" stops being a good enough reason on its own.</p>
+
+<h2>Common questions</h2>
+
+<h3>Are happy hours legal in the UK?</h3>
+<p>In England and Wales, yes. Time-limited discounts are fine as long as the promotion isn't irresponsible under the mandatory licensing conditions and nothing sells below the duty plus VAT floor. In Scotland the rules are different: a price change for on-sales can only start at the beginning of licensed hours and must then hold for at least 72 hours, which rules out the classic two-hour happy hour.</p>
+
+<h3>How do I work out what a discount actually costs?</h3>
+<p>Take the discount off the ex-VAT price, not the till price, then compare it to your GP per pint. A £1 discount on a £5.34 pint is 83p off the ex-VAT price, and if your GP was £2.89 a pint it's now £2.06. Divide old GP by new GP for the volume you need: 2.89 over 2.06 is 1.4, so 40% more pints just to bank the same cash.</p>
+
+<h3>Why does my GP% drop in promotion weeks with no stock missing?</h3>
+<p>Because achieved GP% is calculated from what the till took, and the till took less per pint. Sell a quarter of the week's pints at £1 off and your achieved GP% drops nearly two points with every drop accounted for. If promo sales don't go through their own buttons or price level, that price effect is indistinguishable from missing stock.</p>
+
+<h3>Which drinks promotions are banned?</h3>
+<p>The mandatory conditions in England and Wales ban irresponsible promotions: unlimited or unspecified quantities of alcohol for free or a fixed fee where there's a significant risk to the licensing objectives, drinking games and speed-drinking, prizes or rewards for drinking, and staff pouring drinks directly into a customer's mouth. Selling below the cost of duty plus VAT has also been banned since May 2014.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Average UK pint £5.34: <a href="https://www.morningadvertiser.co.uk/Article/2026/05/21/average-pint-price-rises-33-to-534-the-morning-advertiser-finds/" rel="noopener">Morning Advertiser pint price survey, 21 May 2026</a>.</li>
+<li>The six mandatory licensing conditions, the banned irresponsible promotions (unlimited or unspecified quantities for free or a fixed fee, drinking games, rewards for drinking, dispensing directly into the mouth) and the ban on selling below duty plus VAT from 28 May 2014: <a href="https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/350507/2014-08-29_MC_Guidance_v1_0.pdf" rel="noopener">Home Office guidance on mandatory licensing conditions (PDF)</a>.</li>
+<li>Scotland's 72-hour rule: <a href="https://www.legislation.gov.uk/asp/2005/16/schedule/3" rel="noopener">Licensing (Scotland) Act 2005, Schedule 3, paragraph 7</a>: on-sales price variations may only start at the beginning of licensed hours and no further variation is allowed for 72 hours.</li>
+<li>Draught duty rates used in the floor sum: <a href="https://www.gov.uk/guidance/alcohol-duty-rates" rel="noopener">gov.uk alcohol duty rates</a>, as worked through in our <a href="/guides/alcohol-duty-2026-what-a-pub-pays-per-pint-keg-bottle">duty guide</a> (49.7p on a 4.5% draught pint).</li>
+<li>The discount table, the 63.2% worked example and the ~60p floor figure are the author's arithmetic at a 65% GP and current VAT, illustrative. Your numbers will differ; the shape won't.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/how-to-read-gp-percentage-report">How to read your GP report (and why four calculators give four answers)</a></li>
+          <li><a href="/guides/stock-variance-till-buttons">Stock variance and till buttons: why your till setup decides your result</a></li>
+          <li><a href="/guides/why-does-gp-percentage-change-week-to-week-pub">Why does your GP% change week to week?</a></li>
+          <li><a href="/guides/dead-stock-pub-what-to-do">Dead stock in a pub: find it, price it, move it</a></li>
+          <li><a href="/guides/pub-gp-percentage-benchmark-2026">Pub GP% benchmarks 2026: what pubs actually make</a></li>
+          <li><a href="/guides/average-price-of-a-pint-uk-2026">The average price of a pint in the UK 2026</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

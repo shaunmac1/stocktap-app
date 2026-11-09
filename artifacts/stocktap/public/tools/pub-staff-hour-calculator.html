@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Staff cost calculator for pubs (2027 rates): which shifts pay for themselves?</title>
+<meta name="description" content="Free staff cost calculator for pubs: what a staff hour really costs from April 2027 with holiday pay, employer NI and pension, and which days of your week pay for their own wages.">
+<link rel="canonical" href="https://stocktap.net/tools/pub-staff-hour-calculator">
+<meta property="og:type" content="website"><meta property="og:title" content="Which shifts pay for themselves? Free pub staff hour calculator">
+<meta property="og:description" content="What a staff hour really costs from April 2027, and which days pay for their own wages. Free, no sign-up.">
+<meta property="og:url" content="https://stocktap.net/tools/pub-staff-hour-calculator">
+<meta name="theme-color" content="#0f3d3a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--bg:#f2f6f4;--surface:#fff;--ink:#0d2a28;--muted:#45605b;--line:#cbdad5;--band:#0f3d3a;--band-ink:#eaf2ef;--band-muted:#a9c6c0;
+--gold:#f5c04a;--gold-ink:#231900;--ok:#17784a;--bad:#b23a2b;--focus:#1b7cd6;--soft:#e3eeea;
+--display:"Anton","Impact","Arial Narrow",sans-serif;--body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;--max:1000px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a201e;--surface:#102d2b;--ink:#eaf2ef;--muted:#a9c2bd;--line:#22423f;--band:#0f3936;--soft:#163835;--ok:#5ccf92;--bad:#ff8a7a;--focus:#7cc4ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a201e;--surface:#102d2b;--ink:#eaf2ef;--muted:#a9c2bd;--line:#22423f;--band:#0f3936;--soft:#163835;--ok:#5ccf92;--bad:#ff8a7a;--focus:#7cc4ff;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.55;overflow-x:hidden}
+a{color:inherit;text-decoration-thickness:2px;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
+.wrap{width:100%;max-width:var(--max);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--band);color:var(--band-ink)}.nav{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding-block:14px;font-size:16px}
+.nav a{text-decoration:none}.brand{font-family:var(--display);font-size:22px;letter-spacing:.5px;margin-right:auto}
+.hero{background:var(--band);color:var(--band-ink);padding-block:28px 40px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,7vw,56px);line-height:1.05;margin:0 0 12px;letter-spacing:.3px}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,34px);line-height:1.1;margin:0 0 10px;letter-spacing:.3px}
+.hero p{color:var(--band-muted);max-width:640px;margin:0}
+main{padding-block:28px 40px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px}
+.step{display:inline-block;background:var(--gold);color:var(--gold-ink);font-weight:700;border-radius:999px;padding:2px 12px;font-size:15px;margin-bottom:8px}
+label{display:block;font-weight:700;font-size:16px;margin-bottom:4px}
+.hint{color:var(--muted);font-size:15px;margin:2px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:16px}
+input[type=number],select{width:100%;font:inherit;font-size:18px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:400}.check input{width:22px;height:22px;margin-top:3px}
+.big{font-family:var(--display);font-size:clamp(44px,10vw,64px);line-height:1;color:var(--ink)}
+.result{background:var(--soft);border-radius:12px;padding:16px;margin-top:16px}
+.breakdown{font-size:15px;color:var(--muted);margin-top:8px}
+.days{width:100%;border-collapse:collapse;font-size:16px}
+.days th,.days td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+.days th:first-child,.days td:first-child{text-align:left}
+.days input{font-size:16px;padding:8px;width:100%;min-width:72px;max-width:120px;margin-left:auto;display:block}.days td{white-space:nowrap}.small{font-size:14px}
+.yes{color:var(--ok);font-weight:700}.no{color:var(--bad);font-weight:700}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:14px;margin-top:16px}
+.tile{background:var(--soft);border-radius:12px;padding:14px}.tile .n{font-family:var(--display);font-size:34px;line-height:1.1}.tile .l{font-size:15px;color:var(--muted)}
+.note{background:var(--soft);border-radius:12px;padding:14px 16px;font-size:16px}
+.btn{display:inline-block;font:inherit;font-weight:700;border-radius:999px;padding:12px 20px;text-decoration:none;border:2px solid transparent;cursor:pointer}
+.btn.gold{background:var(--gold);color:var(--gold-ink)}.btn.ghost{border-color:currentColor;background:transparent;color:inherit}
+.band{background:var(--band);color:var(--band-ink);padding-block:32px}.band .muted{color:var(--band-muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:28px}
+footer{padding-block:24px;font-size:15px;color:var(--muted)}footer nav{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+</style></head><body>
+<header class="top"><div class="wrap nav"><a class="brand" href="https://stocktap.net/">StockTap</a><a href="https://stocktap.net/guides">Guides</a><a href="https://stocktap.net/tools">Tools</a><a href="/tv/">StockTap TV</a></div></header>
+<section class="hero"><div class="wrap">
+<h1>Staff cost calculator for pubs</h1>
+<p><b>Which shifts pay for themselves?</b> Work out what one staff hour really costs you from April 2027, then see which days of your week cover their own wages on your kind of agreement. Nothing you type leaves your phone.</p>
+</div></section>
+<main class="wrap">
+
+<section class="card" aria-labelledby="s1">
+<span class="step">Step 1</span><h2 id="s1">What does one staff hour cost you?</h2>
+<div class="grid">
+<div><label for="band">Age band</label><select id="band">
+<option value="13.21">21 and over: £13.21</option><option value="11.27">18 to 20: £11.27</option><option value="8.31">16 to 17 or apprentice: £8.31</option><option value="custom">My own hourly rate</option></select>
+<p class="hint">Legal minimums from 1 April 2027.</p></div>
+<div><label for="rate">Hourly rate (£)</label><input id="rate" type="number" inputmode="decimal" step="0.01" min="0" value="13.21"></div>
+<div><label for="hours">Hours they work a week</label><input id="hours" type="number" inputmode="decimal" step="0.5" min="1" value="25"></div>
+</div>
+<div style="margin-top:14px;display:grid;gap:10px">
+<label class="check"><input type="checkbox" id="ea"> <span>I claim Employment Allowance and it isn't used up yet (no employer NI)</span></label>
+<label class="check"><input type="checkbox" id="pen" checked> <span>They're in the workplace pension (3% from you)</span></label>
+</div>
+<div class="result" aria-live="polite">
+<div class="hint">One hour of this person's time really costs you</div>
+<div class="big" id="perhour">£0.00</div>
+<div class="breakdown" id="breakdown"></div>
+</div>
+</section>
+
+<section class="card" aria-labelledby="s2">
+<span class="step">Step 2</span><h2 id="s2">How much of each £1 do you keep?</h2>
+<div class="grid">
+<div><label for="deal">Your agreement</label><select id="deal">
+<option value="free">Freehold or free of tie</option><option value="tied">Tied tenancy or lease</option><option value="retail">Retail, franchise or % agreement</option></select></div>
+<div><label for="keep" id="keepLabel">Your gross profit on drinks and food (%)</label><input id="keep" type="number" inputmode="decimal" step="1" min="1" max="100" value="60">
+<p class="hint" id="keepHint">What's left after paying for the drink or food, worked on prices without VAT. Use your own figure.</p></div>
+<div><label for="costhr">Average cost of a staff hour (£)</label><input id="costhr" type="number" inputmode="decimal" step="0.01" min="0" value="16.75">
+<p class="hint">Filled in from Step 1. Type your own average across all your staff if you know it.</p></div>
+</div>
+<div class="result" aria-live="polite">
+<div class="hint">Each staff hour needs this much through the till (including VAT) to pay for itself</div>
+<div class="big" id="line">£0</div>
+<div class="breakdown" id="lineNote"></div>
+</div>
+</section>
+
+<section class="card" aria-labelledby="s3">
+<span class="step">Step 3</span><h2 id="s3">Your week, day by day</h2>
+<p class="hint" style="margin-bottom:12px">Takings from the till (including VAT) and total staff hours worked that day. Use the same week last year if you want to plan ahead.</p>
+<div class="tablewrap"><table class="days"><thead><tr><th>Day</th><th>Takings £</th><th>Staff hrs</th><th>£ per staff hour</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="summary" aria-live="polite">
+<div class="tile"><div class="n" id="wkSplh">–</div><div class="l">£ per staff hour, whole week</div></div>
+<div class="tile"><div class="n" id="wkLeft">–</div><div class="l">kept after wages, whole week</div></div>
+<div class="tile"><div class="n" id="wkWorst">–</div><div class="l">your weakest day</div></div>
+</div>
+<p class="note" id="advice" style="margin-top:16px">Fill in your days to see which ones cover their wages.</p>
+<div class="note" id="tvtip" hidden style="margin-top:12px;border-left:6px solid var(--gold)"><b id="tvHead"></b><p style="margin:6px 0 10px" id="tvBody"></p><a class="btn gold" id="tvLink" href="/tv/?from=staff-calc">See how StockTap TV works</a></div>
+</section>
+
+<section class="card">
+<h2>What this does and doesn't count</h2>
+<p>It checks one thing: does a day bring in enough to cover the staff working it, after stock and VAT. It doesn't count rent, rates, energy or other bills, so a day can pass here and still not make you money overall. Nothing is saved or sent anywhere. Never cut below the cover you need to run the pub safely.</p>
+<p class="hint">Staff cost includes holiday pay at 12.07% (the usual rate for irregular hours), employer National Insurance at 15% above £96.15 a week (none for under-21s), and 3% employer pension on earnings above £120 a week (auto-enrolment is for staff aged 22 and over earning over £10,000 a year). 2027 minimum wage rates from GOV.UK, 28 October 2026. NI and pension thresholds are the 2026/27 figures, which may change from April 2027.</p>
+<p><a href="https://stocktap.net/guides/what-a-pub-staff-member-really-costs-2027">Read the guide: what a member of staff really costs a pub from April 2027</a></p>
+<p><b>Planning next week?</b> <a href="/tools/free-pub-rota-maker">The free pub rota maker</a> shows each day's staff cost as you build the rota.</p>
+</section>
+</main>
+
+<section class="band"><div class="wrap two">
+<div><h2>Fill the quiet days</h2><p class="muted">I built StockTap TV for my own pub: a phone quiz every 20 minutes, your offers and match-day build-up on every screen. Free 14-day trial, then £34 a month for the whole pub.</p><a class="btn gold" href="/tv/">See StockTap TV</a></div>
+<div><h2>Know what your bar is losing</h2><p class="muted">StockTap is my stocktaking app for pubs. Weigh bottles, count kegs and see your GP every day.</p><a class="btn ghost" href="https://stocktap.net/">See StockTap</a></div>
+</div></section>
+<footer><div class="wrap"><nav><a href="https://stocktap.net/guides">Guides</a><a href="https://stocktap.net/tools">Tools</a><a href="/tv/">StockTap TV</a><a href="https://stocktap.net/">StockTap</a></nav>
+<p>Made by Shaun McManus, licensee of a pub in Washington, Tyne and Wear. A planning aid, not financial or legal advice.</p></div></footer>
+
+<script>
+(function(){
+var DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var $=function(id){return document.getElementById(id)};
+var rows=$("rows"),costTouched=false,keepTouched=false;
+DAYS.forEach(function(d,i){var tr=document.createElement("tr");
+tr.innerHTML='<td>'+d.slice(0,3)+'</td><td><input type="number" inputmode="decimal" min="0" step="1" aria-label="'+d+' takings" data-t="'+i+'"></td><td><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="'+d+' staff hours" data-h="'+i+'"></td><td><span data-s="'+i+'">–</span><br><span class="small" data-y="'+i+'"></span></td>';
+rows.appendChild(tr);});
+function num(el){var v=parseFloat(el.value);return isFinite(v)?v:0}
+function gbp(v,dp){return (v<0?"-£":"£")+Math.abs(v).toLocaleString("en-GB",{minimumFractionDigits:dp,maximumFractionDigits:dp})}
+function staffCost(){
+var rate=num($("rate")),hrs=Math.max(num($("hours")),0.5),band=$("band").value;
+var pay=rate*hrs,hol=pay*0.1207,g=pay+hol;
+var under21=(band==="11.27"||band==="8.31");
+var ni=(under21||$("ea").checked)?0:Math.max(0,g-96.15)*0.15;
+var pen=($("pen").checked&&g>=10000/52)?Math.max(0,g-120)*0.03:0;
+var tot=g+ni+pen;
+$("perhour").textContent=gbp(tot/hrs,2);
+$("breakdown").textContent="A week: pay "+gbp(pay,2)+" + holiday pay "+gbp(hol,2)+" + employer NI "+gbp(ni,2)+" + pension "+gbp(pen,2)+" = "+gbp(tot,2)+" ("+gbp(tot*52,0)+" a year)";
+if(!costTouched)$("costhr").value=(tot/hrs).toFixed(2);
+}
+function dealDefaults(){
+var d=$("deal").value;
+if(d==="retail"){$("keepLabel").textContent="Your share of takings after VAT (%)";$("keepHint").textContent="The % of net (ex-VAT) turnover your agreement lets you keep. Check your weekly statement.";if(!keepTouched)$("keep").value=20;}
+else{$("keepLabel").textContent="Your gross profit on drinks and food (%)";$("keepHint").textContent="What's left after paying for the drink or food, worked on prices without VAT. Use your own figure.";if(!keepTouched)$("keep").value=(d==="free"?60:50);}
+}
+function calc(){
+staffCost();
+var keep=num($("keep"))/100,cost=num($("costhr"));
+var perPound=keep/1.2,line=perPound>0?cost/perPound:0;
+$("line").textContent=gbp(Math.round(line),0);
+$("lineNote").textContent="You keep about "+Math.round(perPound*100)+"p of every £1 through the till, so a "+gbp(cost,2)+" hour needs about "+gbp(Math.round(line),0)+". Every £1,000 more takings a week is about "+gbp(perPound*1000,0)+" more for you.";
+var T=0,H=0,worst=null,lows=[];
+DAYS.forEach(function(d,i){
+var t=num(document.querySelector('[data-t="'+i+'"]')),h=num(document.querySelector('[data-h="'+i+'"]'));
+var s=document.querySelector('[data-s="'+i+'"]'),y=document.querySelector('[data-y="'+i+'"]');
+if(h>0){var sp=t/h;s.textContent=gbp(sp,0);var ok=sp>=line;y.innerHTML=ok?'<span class="yes">Pays its way</span>':'<span class="no">'+gbp(Math.round(line*h-t),0)+' short</span>';
+T+=t;H+=h;if(!ok)lows.push(d);if(worst===null||sp<worst.sp)worst={d:d,sp:sp,h:h,t:t};}
+else{s.textContent="–";y.textContent="";}
+});
+if(H>0){
+$("wkSplh").textContent=gbp(T/H,0);
+$("wkLeft").textContent=gbp(T*perPound-H*cost,0);
+$("wkWorst").textContent=worst.d.slice(0,3)+" "+gbp(worst.sp,0);
+var a;
+if(lows.length===0){a="Every day you filled in covers its own wages. Now check the first and last hour of each shift: that's usually where the waste hides.";}
+else{var cut=Math.max(0,worst.h-worst.t/line);
+a=lows.join(", ")+(lows.length>1?" don't":" doesn't")+" cover "+(lows.length>1?"their":"its")+" wages. Two ways to fix a quiet day: bring more people in, or trim hours. On "+worst.d+", it would take about "+gbp(Math.round(line*worst.h-worst.t),0)+" more through the till, or about "+cut.toFixed(1)+" fewer staff hours, to break even. Trimming starts and finishes on quiet days is usually easier than cutting whole shifts. Never go below safe cover.";}
+$("advice").textContent=a;
+var tip=$("tvtip");
+if(lows.length>0){var need=Math.round(line*worst.h-worst.t),pints=Math.ceil(need/4.9);
+$("tvHead").textContent="Filling "+worst.d+" beats cutting it";
+$("tvBody").textContent=worst.d+" is "+gbp(need,0)+" short, about "+pints+" more pints at £4.90 (example price)."+(pints<=60?" That's a few more tables staying for another round.":" That's a big gap, so it probably needs fewer hours and more people in, both.")+" I built StockTap TV for my own pub to bring more people in on quiet nights: a free phone quiz on your screens every 20 minutes, plus your offers. 14-day free trial, then £34 a month for the whole pub.";
+tip.hidden=false;}else{tip.hidden=true;}
+}else{$("wkSplh").textContent="–";$("wkLeft").textContent="–";$("wkWorst").textContent="–";$("advice").textContent="Fill in your days to see which ones cover their wages.";$("tvtip").hidden=true;}
+}
+$("band").addEventListener("change",function(){if(this.value!=="custom")$("rate").value=this.value;costTouched=false;calc();});
+$("rate").addEventListener("input",function(){$("band").value=["13.21","11.27","8.31"].indexOf(this.value)>=0?this.value:"custom";costTouched=false;calc();});
+$("costhr").addEventListener("input",function(){costTouched=true;calc();});
+$("keep").addEventListener("input",function(){keepTouched=true;calc();});
+$("deal").addEventListener("change",function(){keepTouched=false;dealDefaults();calc();});
+["hours","ea","pen"].forEach(function(id){$(id).addEventListener("input",function(){costTouched=false;calc();});$(id).addEventListener("change",function(){costTouched=false;calc();});});
+rows.addEventListener("input",calc);
+dealDefaults();calc();
+})();
+</script>
+</body></html>

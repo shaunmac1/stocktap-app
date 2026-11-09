@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { parseUkDate } from "@/lib/daily-board";
 import { useLocations, useStocktakes, useStocktakeReadings, useInsertSalesRecords, useSalesRecords, useMovements } from "@/hooks/api";
 import { useInsights, useGenerateInsights, useDismissInsight } from "@/hooks/useInsights";
 import { Card, CardContent } from "@/components/ui/card";
@@ -380,7 +381,7 @@ export default function Reports() {
         <h1 className="text-2xl font-bold text-primary">Reports</h1>
       </div>
 
-      <Tabs defaultValue="valuation" className="flex-1 flex flex-col overflow-hidden">
+      <Tabs defaultValue={typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "order" ? "order" : "valuation"} className="flex-1 flex flex-col overflow-hidden">
         <TabsList className="mx-4 mt-4 grid grid-cols-3 h-auto">
           <TabsTrigger value="valuation">Valuation</TabsTrigger>
           <TabsTrigger value="gp">GP Analysis</TabsTrigger>
@@ -405,7 +406,7 @@ export default function Reports() {
                 </Button>
               ) : (
                 <Button size="sm" variant="outline" className="text-muted-foreground border-dashed" onClick={() => setLocation("/settings?tab=subscription")} data-testid="button-export-valuation">
-                  <Lock className="w-3.5 h-3.5 mr-1.5" /> Pro
+                  <Lock className="w-3.5 h-3.5 mr-1.5" /> Premium
                 </Button>
               )}
             </div>
@@ -459,7 +460,7 @@ export default function Reports() {
                 </Button>
               ) : (
                 <Button size="sm" variant="outline" className="text-muted-foreground border-dashed" onClick={() => setLocation("/settings?tab=subscription")} data-testid="button-export-gp">
-                  <Lock className="w-3.5 h-3.5 mr-1.5" /> Pro
+                  <Lock className="w-3.5 h-3.5 mr-1.5" /> Premium
                 </Button>
               )}
             </div>
@@ -513,10 +514,10 @@ export default function Reports() {
                   <Lock className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <div className="font-bold mb-1">Pro feature</div>
-                  <div className="text-sm text-muted-foreground max-w-xs">Per-location valuation breakdown is available on the Pro plan.</div>
+                  <div className="font-bold mb-1">Premium feature</div>
+                  <div className="text-sm text-muted-foreground max-w-xs">Per-location valuation breakdown is available on Premium.</div>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => setLocation("/settings?tab=subscription")}>Upgrade to Pro</Button>
+                <Button size="sm" variant="outline" onClick={() => setLocation("/settings?tab=subscription")}>Upgrade to Premium</Button>
               </div>
             ) : (() => {
               const locationMap = new Map((locations ?? []).map(l => [l.id, l.name]));
@@ -737,6 +738,10 @@ export default function Reports() {
                 Upload sales
               </Button>
             </div>
+            <button type="button" onClick={() => setLocation("/till-import")} className="w-full text-left rounded-xl border border-border bg-card p-3 text-xs" data-testid="link-till-import">
+              <span className="font-semibold text-sm block">Import till sales (Sharp, Casio or any CSV)</span>
+              <span className="text-muted-foreground">Bring in the SD-card file from an older till and see what the till sold against what your counts say was used.</span>
+            </button>
 
             {(!stocktakes || stocktakes.length < 2) ? (
               <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
@@ -1038,6 +1043,15 @@ export default function Reports() {
         {/* ── Order Guide ────────────────────────────────────────────────── */}
         <TabsContent value="order" className="flex-1 overflow-auto mt-0">
           <div className="px-4 py-4 space-y-4">
+            <button
+              type="button"
+              onClick={() => setLocation("/orders")}
+              className="w-full text-left rounded-xl border-2 border-primary/40 bg-primary/5 p-4"
+              data-testid="banner-stock-orders"
+            >
+              <div className="font-bold text-primary">Your full order list is in Stock &amp; Orders →</div>
+              <div className="text-xs text-muted-foreground mt-1">Built from what sold between your stocktakes (or your Venners audits) plus deliveries, in kegs, cases and boxes, with busy weeks built in. The guide below only covers lines you've given a par level.</div>
+            </button>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">Order Guide</p>
@@ -1136,7 +1150,7 @@ type SalesField = "product_name" | "quantity" | "date" | "sku" | "unit_price" | 
 const SALES_FIELDS: { key: SalesField; label: string; required: boolean }[] = [
   { key: "product_name", label: "Product name", required: true },
   { key: "quantity", label: "Quantity sold", required: true },
-  { key: "date", label: "Sale date", required: true },
+  { key: "date", label: "Sale date (or pick one below)", required: false },
   { key: "sku", label: "SKU / barcode", required: false },
   { key: "unit_price", label: "Unit price (£)", required: false },
   { key: "revenue", label: "Total revenue (£)", required: false },
@@ -1145,6 +1159,8 @@ const SALES_FIELDS: { key: SalesField; label: string; required: boolean }[] = [
 function parseSaleDate(raw: string): string | null {
   const s = raw?.trim();
   if (!s) return null;
+  const uk = parseUkDate(s);
+  if (uk) return uk;
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
   if (dmyMatch) return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, "0")}-${dmyMatch[1].padStart(2, "0")}`;
@@ -1172,7 +1188,7 @@ function guessMapping(headers: string[]): Partial<Record<SalesField, string>> {
     if (!m.date && (l.includes("date") || l === "day" || l.includes("period"))) m.date = h;
     if (!m.sku && (l.includes("sku") || l.includes("barcode") || l.includes("plu") || l.includes("code"))) m.sku = h;
     if (!m.unit_price && (l.includes("unit") && l.includes("price"))) m.unit_price = h;
-    if (!m.revenue && (l.includes("revenue") || l.includes("total") || (l.includes("net") && l.includes("sale")))) m.revenue = h;
+    if (!m.revenue && h !== m.quantity && h !== m.product_name && /revenue|total|sales|gross|amount|value/.test(l) && !/qty|quantity|count|%|^tax$|^vat$|(tax|vat) amount|discount|margin|cost/.test(l)) m.revenue = h;
   }
   return m;
 }
@@ -1192,6 +1208,8 @@ function SalesUploadSheet({ open, onClose, venueId, products }: {
   const [mapping, setMapping] = useState<Partial<Record<SalesField, string>>>({});
   const [previewRows, setPreviewRows] = useState<ParsedSalesRow[]>([]);
   const [insertedCount, setInsertedCount] = useState(0);
+  // Most till product reports cover a date range with no date on each row: one date for the lot.
+  const [fileDate, setFileDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const { nameMap, skuMap } = useMemo(() => {
     const nameMap = new Map<string, string>();
@@ -1237,18 +1255,18 @@ function SalesUploadSheet({ open, onClose, venueId, products }: {
   };
 
   const handleApplyMapping = () => {
-    if (!mapping.product_name || !mapping.quantity || !mapping.date) return;
+    if (!mapping.product_name || !mapping.quantity) return;
     const rows: ParsedSalesRow[] = (rawRows as Record<string, string>[])
       .map(row => {
         const nameRaw = row[mapping.product_name!] ?? "";
         const qtyRaw = (row[mapping.quantity!] ?? "").replace(/[^0-9.-]/g, "");
-        const dateRaw = row[mapping.date!] ?? "";
+        const dateRaw = mapping.date ? (row[mapping.date] ?? "") : fileDate;
         const skuRaw = mapping.sku ? (row[mapping.sku] ?? "") : "";
         const upRaw = mapping.unit_price ? (row[mapping.unit_price] ?? "").replace(/[^0-9.-]/g, "") : "";
         const revRaw = mapping.revenue ? (row[mapping.revenue] ?? "").replace(/[^0-9.-]/g, "") : "";
         const qty = parseFloat(qtyRaw);
         const saleDate = parseSaleDate(dateRaw);
-        if (!nameRaw.trim() || isNaN(qty) || qty <= 0 || !saleDate) return null;
+        if (!nameRaw.trim() || /^(grand\s+)?totals?:?$/i.test(nameRaw.trim()) || isNaN(qty) || qty <= 0 || !saleDate) return null;
         const productId = matchProduct(nameRaw, skuRaw);
         const up = upRaw ? Math.round(parseFloat(upRaw) * 100) : null;
         const rev = revRaw ? Math.round(parseFloat(revRaw) * 100) : null;
@@ -1311,7 +1329,7 @@ function SalesUploadSheet({ open, onClose, venueId, products }: {
           <div className="space-y-4 pb-8">
             <div className="bg-muted/60 rounded-xl p-4 text-sm space-y-1.5">
               <p className="font-semibold">Export a sales CSV from your till / EPOS system</p>
-              <p className="text-muted-foreground text-xs">Any format works — you'll map the columns to the right fields in the next step.</p>
+              <p className="text-muted-foreground text-xs">Any till's product sales report works. You'll say which column is which next. <a href="/guides/import-takings-from-your-till" target="_blank" rel="noreferrer" className="text-primary font-semibold">Where to find it on your till →</a></p>
             </div>
             <div>
               <label htmlFor="sales-csv-file" className="text-sm font-medium">Choose CSV file</label>
@@ -1351,9 +1369,15 @@ function SalesUploadSheet({ open, onClose, venueId, products }: {
                 </div>
               ))}
             </div>
+            {!mapping.date && (
+              <div data-testid="sales-file-date">
+                <label className="text-xs text-muted-foreground">No date on each row? These sales are for the period ending</label>
+                <Input type="date" value={fileDate} max={new Date().toISOString().slice(0, 10)} onChange={e => setFileDate(e.target.value)} className="mt-1 h-9" data-testid="input-sales-file-date" />
+              </div>
+            )}
             <Button
               className="w-full h-12 font-bold"
-              disabled={!mapping.product_name || !mapping.quantity || !mapping.date}
+              disabled={!mapping.product_name || !mapping.quantity || (!mapping.date && !fileDate)}
               onClick={handleApplyMapping}
               data-testid="button-apply-sales-mapping"
             >

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  rankCatalogueResults,
   catalogueConfidenceLabel,
   catalogueSizeLabel,
   isCatalogueProduct,
@@ -120,5 +121,22 @@ describe("pruneSelectedIds — Error #185 regression", () => {
     const result = pruneSelectedIds(ids, [item({ already_added: true })]);
     expect(result).not.toBe(ids);
     expect(result).toEqual([]);
+  });
+});
+
+describe("rankCatalogueResults", () => {
+  const items = [
+    { canonical_name: "KP Original Salted" },
+    { canonical_name: "Gordon's Gin" },
+    { canonical_name: "Gin Aber Falls" },
+  ];
+  it("drops mid-word matches when real word matches exist", () => {
+    expect(rankCatalogueResults(items, "gin").map(i => i.canonical_name)).toEqual(["Gin Aber Falls", "Gordon's Gin"]);
+  });
+  it("keeps everything when nothing starts a word", () => {
+    expect(rankCatalogueResults(items, "rigin")).toHaveLength(3);
+  });
+  it("handles apostrophes", () => {
+    expect(rankCatalogueResults(items, "gordons gin").map(i => i.canonical_name)).toEqual(["Gordon's Gin"]);
   });
 });

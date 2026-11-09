@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { recomputeEntryMl } from "@/lib/stock-display";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
 import { queueWrite } from "@/lib/sync";
@@ -105,6 +106,9 @@ export function useUpdateProduct() {
     },
     onSuccess: ({ venue_id }) => {
       queryClient.invalidateQueries({ queryKey: ["products", venue_id] });
+      // The Library's "no keg size" banner reads its own query; refresh it too so it
+      // clears the moment a size is saved instead of waiting for a reload.
+      queryClient.invalidateQueries({ queryKey: ["null-capacity-kegs", venue_id] });
     },
   });
 }
@@ -125,11 +129,14 @@ export function useCalibrateFullBottle() {
       venueId,
       userId,
       weightG,
+      recordReading = true,
     }: {
       product: { id: string; size_ml: number | null; density: number | null; location_id: string | null; type?: string | null; empty_weight_g?: number | null };
       venueId: string;
       userId: string;
       weightG: number;
+      /** Setting a bottle up from the Library is not a count: don't log a full bottle as stock. */
+      recordReading?: boolean;
     }) => {
       const sizeMl = product.size_ml ?? 700;
 
@@ -162,17 +169,19 @@ export function useCalibrateFullBottle() {
         ...(product.empty_weight_g != null ? { density: Math.round(resolvedDensity * 1000) / 1000 } : {}),
       });
 
-      const { error } = await supabase.from("readings").insert({
-        venue_id: venueId,
-        product_id: product.id,
-        location_id: product.location_id,
-        method: "weigh",
-        weight_g: weightG,
-        ml_remaining: sizeMl,
-        user_id: userId,
-        reading_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      if (recordReading) {
+        const { error } = await supabase.from("readings").insert({
+          venue_id: venueId,
+          product_id: product.id,
+          location_id: product.location_id,
+          method: "weigh",
+          weight_g: weightG,
+          ml_remaining: sizeMl,
+          user_id: userId,
+          reading_at: new Date().toISOString(),
+        });
+        if (error) throw error;
+      }
 
       // Moat write-back: if this product came from the shared global catalogue,
       // contribute the calibrated full/empty weights back so every venue's
@@ -522,20 +531,31 @@ export function useLocations(venueId: string | undefined) {
     queryKey: ["locations", venueId],
     queryFn: async () => {
       if (!venueId) return [] as Location[];
-      const local = await db.locations
-        .where("venue_id")
-        .equals(venueId)
-        .toArray();
-      local.sort((a, b) => a.sort - b.sort);
-      if (local.length > 0) return local;
-      const { data, error } = await supabase
-        .from("locations")
-        .select("*")
-        .eq("venue_id", venueId)
-        .order("sort");
-      if (error) throw error;
-      if (data?.length) await db.locations.bulkPut(data);
-      return data ?? [];
+      const readLocal = async () => {
+        const local = await db.locations.where("venue_id").equals(venueId).toArray();
+        local.sort((a, b) => a.sort - b.sort);
+        return local;
+      };
+      // Network first, so a location added or removed in Settings shows straight away;
+      // the on-device copy is only for when there's no signal (the cellar).
+      try {
+        const { data, error } = await supabase
+          .from("locations")
+          .select("*")
+          .eq("venue_id", venueId)
+          .order("sort");
+        if (error) throw error;
+        const rows = data ?? [];
+        const keep = new Set(rows.map(r => r.id));
+        const stale = (await readLocal()).filter(l => !keep.has(l.id)).map(l => l.id);
+        if (stale.length) await db.locations.bulkDelete(stale);
+        if (rows.length) await db.locations.bulkPut(rows);
+        return rows;
+      } catch (err) {
+        const local = await readLocal();
+        if (local.length) return local;
+        throw err;
+      }
     },
     enabled: !!venueId,
     staleTime: 60_000,
@@ -1413,6 +1433,41 @@ export async function addLineEntry(entry: LocalLineEntry): Promise<void> {
 /** Remove a line entry from Dexie; delete remotely, queueing durably on failure
  *  so an offline delete is never silently lost (the count would otherwise
  *  resurrect on the next device that hydrates from Supabase). */
+/**
+ * After a product's can/bottle size or pack size is corrected, re-work the ml on its
+ * entries in any OPEN stocktake (each / dozen lines store what was typed, so the fix is
+ * exact). Closed stocktakes are history and are never touched. Returns how many changed.
+ */
+export async function recomputeOpenEntriesForProduct(product: {
+  id: string; venue_id: string; size_ml: number | null; pack_size: number | null; counting_method?: string | null;
+  container_l?: number | null; old_container_l?: number | null;
+}): Promise<number> {
+  const { data: open } = await supabase
+    .from("stocktakes")
+    .select("id")
+    .eq("venue_id", product.venue_id)
+    .eq("status", "open");
+  const openIds = new Set((open ?? []).map((r: { id: string }) => r.id));
+  if (openIds.size === 0) return 0;
+  const { data: rows, error } = await supabase
+    .from("stocktake_line_entries")
+    .select("id, stocktake_id, method, full_containers, part_value, ml_remaining")
+    .eq("product_id", product.id);
+  if (error || !rows) return 0;
+  let changed = 0;
+  for (const row of rows as any[]) {
+    if (!row.stocktake_id || !openIds.has(row.stocktake_id)) continue;
+    const ml = recomputeEntryMl(row, product);
+    if (ml == null || Math.abs(ml - Number(row.ml_remaining)) < 0.01) continue;
+    const { error: upErr } = await supabase.from("stocktake_line_entries").update({ ml_remaining: ml } as never).eq("id", row.id);
+    if (!upErr) {
+      await db.line_entries.update(row.id, { ml_remaining: ml, updated_at: new Date().toISOString() } as never);
+      changed++;
+    }
+  }
+  return changed;
+}
+
 export async function deleteLineEntry(id: string): Promise<void> {
   await db.line_entries.delete(id);
   const { error } = await supabase.from("stocktake_line_entries").delete().eq("id", id);

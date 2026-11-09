@@ -28,12 +28,12 @@ export default function Terms() {
 
         <section>
           <h2 className="text-base font-semibold text-[#F3F1EC] mb-2">2. Your account</h2>
-          <p>You need an account to use StockTap. You're responsible for keeping your login secure and for what happens under your account. One venue may have multiple team members with different roles (owner, manager, staff) — the venue owner controls who has access.</p>
+          <p>You need an account to use StockTap. You're responsible for keeping your login secure and for what happens under your account. A venue has an owner, who can add staff. Staff join with a code the owner sends them, and the owner controls who has access.</p>
         </section>
 
         <section>
           <h2 className="text-base font-semibold text-[#F3F1EC] mb-2">3. Plans, pricing and billing</h2>
-          <p>Plan prices are in pounds sterling and no VAT is added (StockTap is not VAT registered). Your own stock costs and pour prices inside the app are entered ex-VAT so GP% is right. Free, Pro and Premium plans and their features are listed in Settings &gt; Plan. Subscriptions renew automatically until cancelled; you can cancel any time from Settings and you'll keep access until the end of the period you've already paid for. We don't offer pro-rata refunds for early cancellation, but if something's gone wrong, contact support and we'll sort it out fairly.</p>
+          <p>Plan prices are in pounds sterling and no VAT is added (StockTap is not VAT registered). Your own stock costs and pour prices inside the app are entered ex-VAT so GP% is right. The Free and Premium plans and their features are listed on our homepage and in Settings &gt; Plan. Subscriptions renew automatically until cancelled; you can cancel any time from Settings and you'll keep access until the end of the period you've already paid for. We don't offer pro-rata refunds for early cancellation. Our guarantee: if StockTap doesn't help you catch at least one variance you'd otherwise have missed in your first 30 days on a paid plan, tell us and we'll refund that month in full. If anything else has gone wrong, contact support and we'll sort it out fairly.</p>
         </section>
 
         <section>

@@ -13,7 +13,8 @@ import {
   formatGBP,
   productCapacityMl,
 } from "@/lib/calculations";
-import { isVolumeCountingMethod } from "@/lib/inventory-reporting";
+import { stockValueFromReading } from "@/lib/inventory-reporting";
+import { valueProductEntries } from "@/lib/stocktake-close";
 import { formatDistanceToNow } from "date-fns";
 import { TrendingDown, TrendingUp, Settings } from "lucide-react";
 import { StocktakeTasksCard } from "@/components/StocktakeTasksCard";
@@ -37,18 +38,28 @@ export default function Home() {
 
   const measureMl = venue?.measure_ml ?? 25;
 
+  // Value of what's been counted so far in the open stocktake.
+  const countedSoFar = useMemo(() => {
+    if (!products || !openEntries.length) return 0;
+    const byProduct = new Map<string, any[]>();
+    for (const e of openEntries as any[]) { const l = byProduct.get(e.product_id) ?? []; l.push(e); byProduct.set(e.product_id, l); }
+    let sum = 0;
+    for (const [pid, es] of byProduct) {
+      const p = products.find(x => x.id === pid);
+      if (!p || !p.cost_price) continue;
+      try { sum += valueProductEntries(p as any, es as any); } catch { /* one bad line never breaks home */ }
+    }
+    return sum;
+  }, [products, openEntries]);
+
   // Total stock value
   const totalValue = useMemo(() => {
     if (!products) return 0;
+    // Same valuation as Reports, so the two screens always agree.
     return products.reduce((sum, p) => {
       const r = latestByProduct[p.id];
       if (!r || !p.cost_price) return sum;
-      // Draught is stored as unit "count" but read in ml (keg weight, dipstick),
-      // so it has to be valued by volume like a bottle, not by count.
-      if (p.unit === "count" && !isVolumeCountingMethod(p.counting_method)) {
-        return sum + calcCountValuation(r.count ?? 0, p.cost_price);
-      }
-      return sum + calcWeighValuation(r.ml_remaining, productCapacityMl(p), p.cost_price);
+      return sum + stockValueFromReading(p as any, r as any);
     }, 0);
   }, [products, latestByProduct]);
 
@@ -98,7 +109,16 @@ export default function Home() {
         <Card className="bg-primary text-primary-foreground border-none shadow-md">
           <CardContent className="p-5">
             <div className="text-sm font-medium text-primary-foreground/75">Total Stock Value</div>
-            <div className="text-5xl font-bold mt-1" data-testid="text-stock-value">{formatGBP(totalValue)}</div>
+            {Object.keys(latestByProduct).length === 0 ? (
+              <>
+                <div className="text-5xl font-bold mt-1" data-testid="text-stock-value">{countedSoFar > 0 ? formatGBP(countedSoFar) : "—"}</div>
+                <div className="text-xs text-primary-foreground/75 mt-2" data-testid="text-stock-value-hint">
+                  {countedSoFar > 0 ? `Counted so far, ${openDone} of ${openTotal} lines. Final when you close the count.` : openStocktake ? "Shows here when you close your stocktake." : "Shows here after your first count."}
+                </div>
+              </>
+            ) : (
+              <div className="text-5xl font-bold mt-1" data-testid="text-stock-value">{formatGBP(totalValue)}</div>
+            )}
             {lastUpdated && (
               <div className="text-xs text-primary-foreground/60 mt-2">Updated {lastUpdated}</div>
             )}
@@ -138,7 +158,7 @@ export default function Home() {
               data-testid="banner-trial-ending"
             >
               <span>
-                Your Pro trial ends in {trial.daysLeft} {trial.daysLeft === 1 ? "day" : "days"}. Pick a plan to keep spot checks, reports and unlimited products.
+                Your free trial ends in {trial.daysLeft} {trial.daysLeft === 1 ? "day" : "days"}. Pick a plan to keep spot checks, reports and unlimited products.
               </span>
               <span className="font-semibold whitespace-nowrap">Plans →</span>
             </div>
@@ -195,12 +215,18 @@ export default function Home() {
                 Spot Check
               </Button>
             </Link>
-            <Link href="/invoice-scan" className="block">
+            <Link href="/delivery" className="block">
               <Button variant="secondary" size="lg" className="w-full h-14 font-semibold" data-testid="button-home-scan-delivery">
-                Scan Delivery
+                Add Delivery
               </Button>
             </Link>
           </div>
+          <Link href="/orders" className="block">
+            <Button variant="outline" size="lg" className="w-full h-auto py-2.5 flex-col gap-0 font-semibold border-2 border-primary/25 text-primary whitespace-normal" data-testid="button-home-orders">
+              <span>Stock &amp; Orders</span>
+              <span className="text-xs font-normal text-muted-foreground">What to order, what's up and down</span>
+            </Button>
+          </Link>
           <Link href="/library" className="block">
             <Button variant="outline" size="lg" className="w-full h-12 font-semibold" data-testid="button-home-add-bottle">
               Add or manage products

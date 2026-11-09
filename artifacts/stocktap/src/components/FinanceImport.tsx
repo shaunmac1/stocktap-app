@@ -116,7 +116,7 @@ export function FinanceImport({
           <textarea
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
-            placeholder={"Date, Supplier, Amount, Reference\n22/08/2026, Marston's, 1200.00, INV-1"}
+            placeholder={"Date, Supplier, Amount, Reference\n22/08/2026, Brewery, 1200.00, INV-1"}
             className="w-full h-28 rounded-md border border-border p-2 text-xs font-mono"
             data-testid="textarea-finance-paste"
           />

@@ -39,7 +39,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-base font-semibold text-[#F3F1EC] mb-2">Shift and variance data — no-accusation policy</h2>
-          <p>Readings can record which staff were on shift at the time (`staff_on`), purely so a manager can have an informed, fair conversation about a pattern — never as an automatic accusation. StockTap never labels a specific person as responsible for a variance; it only ever shows shifts, not blame.</p>
+          <p>Readings can record which staff were on shift at the time, purely so a manager can have an informed, fair conversation about a pattern — never as an automatic accusation. StockTap never labels a specific person as responsible for a variance; it only ever shows shifts, not blame.</p>
         </section>
 
         <section>

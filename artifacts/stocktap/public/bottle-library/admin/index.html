@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bottle Library Admin | StockTap</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="color-scheme" content="dark light" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#111316; --panel:#16191D; --panel-2:#1C2025; --ink:#F3F1EC; --ink-soft:#DDD9D3; --muted:#8A9099;
+      --line:#2A2E34; --amber:#E0A343; --amber-ink:#111316; --amber-dim:rgba(224,163,67,.12);
+      --good:#5BC08A; --good-dim:rgba(91,192,138,.12); --bad:#E57373; --bad-dim:rgba(229,115,115,.12);
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg:#F7F5F0; --panel:#FFFFFF; --panel-2:#F1EEE7; --ink:#16191D; --ink-soft:#33383F; --muted:#666C75;
+        --line:#E1DDD4; --amber:#B97A16; --amber-ink:#FFFFFF; --amber-dim:rgba(185,122,22,.10);
+        --good:#1F8A52; --good-dim:rgba(31,138,82,.10); --bad:#C0392B; --bad-dim:rgba(192,57,43,.10);
+      }
+    }
+    body { background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,'Segoe UI',sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    .wrap { max-width:1100px; margin:0 auto; padding:1.25rem 1rem 4rem; }
+    header { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+    h1 { font-size:1.4rem; }
+    h2 { font-size:1.1rem; margin:1.75rem 0 .6rem; }
+    a { color:var(--amber); }
+    .muted { color:var(--muted); font-size:.9rem; }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:.6rem; }
+    @media (min-width:640px) { .stats { grid-template-columns:repeat(4,1fr); } }
+    .stat { background:var(--panel); border:1px solid var(--line); border-radius:.75rem; padding:.8rem .9rem; }
+    .stat b { display:block; font-size:1.5rem; font-variant-numeric:tabular-nums; }
+    .stat span { font-size:.8rem; color:var(--muted); }
+    .tabs { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.4rem; }
+    .tabs button { font:inherit; font-size:.85rem; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:9999px; padding:.35rem .8rem; cursor:pointer; }
+    .tabs button[aria-pressed="true"] { background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
+    .list { display:grid; gap:.6rem; margin-top:.7rem; }
+    .item { background:var(--panel); border:1px solid var(--line); border-radius:.75rem; padding:.85rem .95rem; }
+    .item-top { display:flex; justify-content:space-between; gap:.6rem; align-items:flex-start; }
+    .item-name { font-weight:600; overflow-wrap:anywhere; }
+    .meta { display:flex; flex-wrap:wrap; gap:.3rem .9rem; font-size:.85rem; color:var(--ink-soft); margin-top:.45rem; }
+    .meta span b { color:var(--ink); font-weight:600; }
+    .who { font-size:.85rem; color:var(--muted); margin-top:.4rem; overflow-wrap:anywhere; }
+    .pill { font-size:.75rem; font-weight:600; border-radius:9999px; padding:.2rem .6rem; white-space:nowrap; background:var(--panel-2); color:var(--ink-soft); }
+    .pill.pending { background:var(--amber-dim); color:var(--amber); }
+    .pill.verified, .pill.approved { background:var(--good-dim); color:var(--good); }
+    .pill.rejected { background:var(--bad-dim); color:var(--bad); }
+    .acts { display:flex; gap:.5rem; margin-top:.7rem; }
+    .btn { font:inherit; font-weight:600; font-size:.9rem; border-radius:.5rem; padding:.55rem 1rem; cursor:pointer; border:1px solid var(--line); background:var(--panel-2); color:var(--ink); }
+    .btn.ok { background:var(--good); border-color:var(--good); color:#0d1a12; }
+    .btn.no { color:var(--bad); }
+    .btn:disabled { opacity:.5; cursor:default; }
+    .table-wrap { overflow-x:auto; background:var(--panel); border:1px solid var(--line); border-radius:.75rem; }
+    table { width:100%; border-collapse:collapse; font-size:.9rem; min-width:560px; }
+    th, td { text-align:left; padding:.6rem .75rem; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-weight:600; font-size:.8rem; }
+    tr:last-child td { border-bottom:0; }
+    td.num { font-variant-numeric:tabular-nums; }
+    tr.earned td { background:var(--good-dim); }
+    .box { background:var(--panel); border:1px solid var(--line); border-radius:.75rem; padding:1.1rem; margin-top:1rem; line-height:1.6; }
+    .err { color:var(--bad); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Bottle Library admin</h1>
+        <div class="muted" id="who">Checking you're signed in...</div>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn" id="refresh" type="button">Refresh</button>
+        <a class="btn" href="/bottle-library/" style="text-decoration:none">Public page</a>
+      </div>
+    </header>
+
+    <div id="gate" class="box" hidden></div>
+
+    <div id="main" hidden>
+      <div class="stats">
+        <div class="stat"><b id="sIn">-</b><span>in the library (goal 1,000)</span></div>
+        <div class="stat"><b id="sWait">-</b><span>waiting</span></div>
+        <div class="stat"><b id="sPubs">-</b><span>pubs with a verified bottle</span></div>
+        <div class="stat"><b id="sMonths">-</b><span>free months earned</span></div>
+      </div>
+
+      <h2>Queue</h2>
+      <div class="tabs" id="tabs">
+        <button type="button" data-f="pending" aria-pressed="true">Waiting</button>
+        <button type="button" data-f="verified">Verified</button>
+        <button type="button" data-f="approved">Approved</button>
+        <button type="button" data-f="rejected">Rejected</button>
+        <button type="button" data-f="already_in">Already in</button>
+        <button type="button" data-f="all">All</button>
+      </div>
+      <div class="list" id="list"></div>
+
+      <h2>Rewards</h2>
+      <p class="muted">10 verified new bottles = 1 month free, up to 2. Apply the months by hand in Stripe or the venue, this table just shows who's earned one.</p>
+      <div class="table-wrap" style="margin-top:.6rem">
+        <table>
+          <thead><tr><th>Pub</th><th>Email</th><th>Verified new</th><th>Waiting</th><th>Months earned</th></tr></thead>
+          <tbody id="rewards"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script>
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var SB = "https://nyqohgaxvqypdvdmpyix.supabase.co";
+    var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55cW9oZ2F4dnF5cGR2ZG1weWl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTA5NjUsImV4cCI6MjA5ODQ4Njk2NX0.I3LUpSbwiYnRj7_-4XOyuU02smoQkZTrz7Rbng6Lfso";
+    var sb = window.supabase.createClient(SB, KEY); // same default storage key as the StockTap app, so it shares your login
+    var data = null, filter = "pending";
+
+    function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    function size(ml) { ml = Number(ml); if (!ml) return ""; if (ml >= 1000) return (ml / 1000) + "L"; return ml % 10 === 0 ? (ml / 10) + "cl" : ml + "ml"; }
+    function when(t) { try { return new Date(t).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch (e) { return t; } }
+    var LABEL = { pending: "Waiting", verified: "Verified", approved: "Approved", rejected: "Rejected", already_in: "Already in" };
+
+    function gate(html) { $("main").hidden = true; var g = $("gate"); g.hidden = false; g.innerHTML = html; }
+
+    function load() {
+      $("refresh").disabled = true;
+      sb.auth.getSession().then(function (r) {
+        var s = r.data && r.data.session;
+        if (!s) {
+          $("who").textContent = "Not signed in";
+          gate('You need to be signed in to StockTap on this browser first. <a href="/auth">Sign in</a>, then come back to this page.');
+          return;
+        }
+        $("who").textContent = "Signed in as " + (s.user && s.user.email || "?");
+        return sb.rpc("bottle_library_admin_list").then(function (res) {
+          if (res.error) {
+            if (/not_admin/.test(res.error.message || "")) gate("This page is just for Shaun. You're signed in as someone else.");
+            else gate('<span class="err">Couldn\'t load the queue: ' + escapeHtml(res.error.message || "unknown error") + "</span>");
+            return;
+          }
+          data = res.data; $("gate").hidden = true; $("main").hidden = false; render();
+        });
+      }).catch(function (e) { gate('<span class="err">' + escapeHtml(String(e && e.message || e)) + "</span>"); })
+        .then(function () { $("refresh").disabled = false; });
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+    function render() {
+      var st = data.stats || {};
+      $("sIn").textContent = st.in_library != null ? st.in_library : "-";
+      $("sWait").textContent = st.waiting != null ? st.waiting : "-";
+      $("sPubs").textContent = st.pub_count != null ? st.pub_count : "-";
+      var rewards = data.rewards || [];
+      $("sMonths").textContent = rewards.reduce(function (a, r) { return a + (Number(r.months_earned) || 0); }, 0);
+
+      var subs = data.submissions || [];
+      var btns = $("tabs").querySelectorAll("button");
+      for (var i = 0; i < btns.length; i++) {
+        var f = btns[i].dataset.f;
+        var n = f === "all" ? subs.length : subs.filter(function (s) { return s.status === f; }).length;
+        btns[i].textContent = (f === "all" ? "All" : LABEL[f]) + " (" + n + ")";
+        btns[i].setAttribute("aria-pressed", String(f === filter));
+      }
+      var list = $("list"); list.innerHTML = "";
+      var shown = filter === "all" ? subs : subs.filter(function (s) { return s.status === filter; });
+      if (!shown.length) list.appendChild(el("div", "box muted", filter === "pending" ? "Nothing waiting. All caught up." : "Nothing here."));
+      shown.forEach(function (s) {
+        var it = el("div", "item");
+        var top = el("div", "item-top");
+        top.appendChild(el("div", "item-name", s.bottle_name + " " + size(s.size_ml)));
+        top.appendChild(el("span", "pill " + s.status, LABEL[s.status] || s.status));
+        it.appendChild(top);
+        var meta = el("div", "meta");
+        [["Type", s.bottle_type], ["Full", s.full_weight_g + "g"], ["Empty est", s.empty_weight_g + "g"],
+         ["ABV", s.abv != null ? s.abv + "%" : "-"], ["Other readings", s.other_readings], ["Till", s.till || "-"]]
+          .forEach(function (p) { var sp = el("span"); sp.appendChild(el("b", null, p[0] + ": ")); sp.appendChild(document.createTextNode(String(p[1]))); meta.appendChild(sp); });
+        it.appendChild(meta);
+        it.appendChild(el("div", "who", s.pub_name + " · " + s.contact_email + (s.show_name ? "" : " · hidden from wall") + " · " + when(s.created_at) + (s.decided_by ? " · " + s.decided_by : "")));
+        if (s.status === "pending" || s.status === "verified") {
+          var acts = el("div", "acts");
+          if (s.status === "pending") { var a = el("button", "btn ok", "Approve"); a.type = "button"; a.onclick = function () { decide(s.id, "approve", acts); }; acts.appendChild(a); }
+          var r = el("button", "btn no", "Reject"); r.type = "button"; r.onclick = function () { decide(s.id, "reject", acts); }; acts.appendChild(r);
+          it.appendChild(acts);
+        }
+        list.appendChild(it);
+      });
+
+      var tb = $("rewards"); tb.innerHTML = "";
+      if (!rewards.length) { var tr0 = el("tr"); var td0 = el("td", "muted", "No pubs yet."); td0.colSpan = 5; tr0.appendChild(td0); tb.appendChild(tr0); }
+      rewards.forEach(function (r) {
+        var tr = el("tr", Number(r.months_earned) > 0 ? "earned" : null);
+        [r.pub_name, r.contact_email, r.verified_new, r.waiting, Number(r.months_earned) > 0 ? r.months_earned + (r.months_earned == 1 ? " month" : " months") : "0"]
+          .forEach(function (v, i) { tr.appendChild(el("td", i >= 2 ? "num" : null, String(v))); });
+        tb.appendChild(tr);
+      });
+    }
+
+    function decide(id, d, acts) {
+      var bs = acts.querySelectorAll("button"); for (var i = 0; i < bs.length; i++) bs[i].disabled = true;
+      sb.rpc("bottle_library_admin_decide", { p_id: id, p_decision: d }).then(function (res) {
+        if (res.error) { acts.appendChild(el("span", "err", "Couldn't " + d + ": " + res.error.message)); for (var i = 0; i < bs.length; i++) bs[i].disabled = false; return; }
+        load();
+      });
+    }
+
+    $("tabs").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; filter = b.dataset.f; render(); });
+    $("refresh").addEventListener("click", load);
+    load();
+  })();
+  </script>
+</body>
+</html>

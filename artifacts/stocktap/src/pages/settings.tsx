@@ -107,7 +107,7 @@ export default function Settings() {
   const addLocation = async () => {
     if (!venue?.id || !newLocationName.trim()) return;
     if (venue.tier === "free" && (locations?.length ?? 0) >= 1) {
-      toast({ title: "Free plan — 1 location limit", description: "Upgrade to Pro to add multiple locations.", variant: "destructive" });
+      toast({ title: "Free plan — 1 location limit", description: "Upgrade to Premium to add multiple locations.", variant: "destructive" });
       return;
     }
     setAddingLocation(true);
@@ -263,6 +263,7 @@ export default function Settings() {
 
         {/* LOCATIONS TAB */}
         <TabsContent value="locations" className="flex-1 overflow-auto p-4 space-y-3">
+          <p className="text-xs text-muted-foreground">Where your stock lives, like the cellar or back bar. Lets you count one area at a time and see reports by location. The spots you tag each count with are on the Counting tab.</p>
           <div className="flex gap-2">
             <Input
               placeholder="New location name"
@@ -577,7 +578,7 @@ export default function Settings() {
             <Card key={m.user_id}>
               <CardContent className="p-3 flex justify-between items-center">
                 <div>
-                  <div className="font-medium text-sm">{m.profiles?.full_name ?? m.user_id.slice(0, 12)}</div>
+                  <div className="font-medium text-sm">{m.profiles?.full_name || (m.user_id === user?.id ? "You" : "Team member")}</div>
                   <Badge variant="secondary" className="text-xs capitalize mt-0.5">{m.role}</Badge>
                 </div>
                 {m.user_id !== user?.id && m.role !== "owner" && (
@@ -595,7 +596,7 @@ export default function Settings() {
             </Card>
           ))}
           <p className="text-xs text-muted-foreground text-center pt-2">
-            To add team members, ask them to sign up at this app's URL and you can then assign their role.
+            Adding staff? Add them on the <a href="/team" className="underline text-primary" data-testid="link-settings-team">Team</a> page and send them their code. They sign up on their phone and enter it.
           </p>
         </TabsContent>
 
@@ -608,7 +609,7 @@ export default function Settings() {
                 <div>
                   <div className="font-semibold text-sm">Invite a mate, earn a free month</div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Share your code with another venue. Once they've been on Pro for 30 days straight, you get a month of Pro free.
+                    Share your code with another venue. Once they've been on a paid plan for 30 days straight, you get a free month.
                   </p>
                 </div>
               </CardContent>
@@ -666,14 +667,14 @@ export default function Settings() {
                         </div>
                         {referral.status === "qualified" ? (
                           <div className="flex items-center gap-2 text-sm text-[#3FAE74] font-medium pt-1">
-                            <CheckCircle2 className="w-4 h-4" /> Qualified — your free Pro month is on us. We'll be in touch to apply it.
+                            <CheckCircle2 className="w-4 h-4" /> Qualified — your free month is on us. We'll be in touch to apply it.
                           </div>
-                        ) : referralProgress.tier === "pro" && referralProgress.pro_since ? (
+                        ) : (referralProgress.tier === "pro" || referralProgress.tier === "premium") && referralProgress.pro_since ? (
                           <p className="text-xs text-muted-foreground">
-                            On Pro since {new Date(referralProgress.pro_since).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} — needs 30 continuous days to qualify.
+                            On a paid plan since {new Date(referralProgress.pro_since).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} — needs 30 continuous days to qualify.
                           </p>
                         ) : (
-                          <p className="text-xs text-muted-foreground">Not on Pro yet — reward unlocks once they've been on Pro for 30 continuous days.</p>
+                          <p className="text-xs text-muted-foreground">Not on a paid plan yet. The reward unlocks once they've been on one for 30 days in a row.</p>
                         )}
                       </>
                     ) : (
@@ -831,12 +832,13 @@ const PRO_FEATURES = [
   "Daily spot checks + till variance",
   "Product library with GP% tracking",
   "Offline-first — works in the cellar",
-  "CSV export for any period",
+  "CSV export of valuation, GP and the order guide",
+  "Team, rota and daily checks",
+  "Stock & Orders: what to order, days of cover",
 ];
 
 const PREMIUM_EXTRA_FEATURES = [
   "Insight alerts: GP drift, variance trends, reorder nudges",
-  "Days-of-cover reorder alerts on every line",
   "Scan delivery notes into stock and prices",
   "Priority support",
 ];
@@ -1004,18 +1006,18 @@ function SubscriptionTab({ venueId, stripeCustomerId, email, trialEndsAt, tier }
         <Card className="border-[#E0A343]/30 bg-[#E0A343]/5" data-testid="card-local-trial">
           <CardContent className="p-5 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="font-semibold">Pro trial</span>
+              <span className="font-semibold">Free trial</span>
               <Badge className="bg-[#E0A343] text-black font-semibold">{localTrial.daysLeft} {localTrial.daysLeft === 1 ? "day" : "days"} left</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              You have everything in Pro until {localTrial.endsAt.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}. Pick a plan below to keep it after that. You won't be charged before then.
+              You have everything switched on until {localTrial.endsAt.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}. Choose Premium below to keep it after that. You won't be charged before then.
             </p>
           </CardContent>
         </Card>
       )}
       {!localTrial.active && tier === "free" && trialEndsAt && (
         <p className="text-sm text-muted-foreground text-center">
-          Your trial has ended. You're on Free: 50 products, 1 location. Pick a plan to get everything back.
+          Your trial has ended. You're on Free: 50 products, 1 location. Choose Premium to get everything back.
         </p>
       )}
       <div className="flex items-center justify-center gap-3">
@@ -1036,21 +1038,7 @@ function SubscriptionTab({ venueId, stripeCustomerId, email, trialEndsAt, tier }
           Annual <span className="text-[#3FAE74] font-semibold">— save 2 months</span>
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <PlanCard
-          name="Pro"
-          price={proPrice ? fmt(proPrice.unit_amount, proPrice.currency) : billingInterval === "year" ? "£190" : "£19"}
-          period={billingInterval === "year" ? "/yr" : "/mo"}
-          features={PRO_FEATURES}
-          accentClass="border-border"
-          badge={undefined}
-          buttonLabel={localTrial.active ? "Keep Pro after my trial" : "Start Pro trial"}
-          onStart={() => startCheckout(proPrice)}
-          isPending={checkout.isPending}
-          disabled={!venueId || !proPrice}
-          testId="button-start-trial-pro"
-          trialNote={localTrial.active ? "Nothing to pay until your trial ends" : "14-day free trial — no card required upfront"}
-        />
+      <div className="grid grid-cols-1 gap-3 max-w-md mx-auto w-full">
         <PlanCard
           name="Premium"
           price={premiumPrice ? fmt(premiumPrice.unit_amount, premiumPrice.currency) : billingInterval === "year" ? "£390" : "£39"}
@@ -1058,7 +1046,7 @@ function SubscriptionTab({ venueId, stripeCustomerId, email, trialEndsAt, tier }
           features={PRO_FEATURES}
           extraFeatures={PREMIUM_EXTRA_FEATURES}
           accentClass="border-[#E0A343]/40 bg-[#E0A343]/5"
-          badge="Best value"
+          badge="Everything included"
           buttonLabel={localTrial.active ? "Keep Premium after my trial" : "Start Premium trial"}
           onStart={() => startCheckout(premiumPrice)}
           isPending={checkout.isPending}
@@ -1067,9 +1055,9 @@ function SubscriptionTab({ venueId, stripeCustomerId, email, trialEndsAt, tier }
           trialNote={localTrial.active ? "Nothing to pay until your trial ends" : "14-day free trial — no card required upfront"}
         />
       </div>
-      {billingInterval === "year" && !pricesLoading && !proPrice && !premiumPrice && (
+      {billingInterval === "year" && !pricesLoading && !premiumPrice && (
         <p className="text-xs text-center text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          Annual billing isn't available yet — the buttons stay disabled until annual prices are added in Stripe. Switch back to Monthly to subscribe today.
+          Annual plans are coming soon. Switch to Monthly to subscribe today.
         </p>
       )}
       <p className="text-xs text-center text-muted-foreground">

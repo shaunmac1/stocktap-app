@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Free pub rota maker: see what every day's staff cost before you post it</title>
+<meta name="description" content="Free rota maker for pubs and bars. Build the week on your phone and see each day's real staff cost with holiday pay, NI and pension, and the takings you need. No sign-up.">
+<link rel="canonical" href="https://stocktap.net/tools/free-pub-rota-maker">
+<meta property="og:type" content="website"><meta property="og:title" content="Free pub rota maker">
+<meta property="og:description" content="Build the week and see each day's real staff cost before you post the rota. Free, no sign-up.">
+<meta property="og:url" content="https://stocktap.net/tools/free-pub-rota-maker">
+<meta name="theme-color" content="#0f3d3a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--bg:#f2f6f4;--surface:#fff;--ink:#0d2a28;--muted:#45605b;--line:#cbdad5;--band:#0f3d3a;--band-ink:#eaf2ef;--band-muted:#a9c6c0;
+--gold:#f5c04a;--gold-ink:#231900;--ok:#17784a;--bad:#b23a2b;--focus:#1b7cd6;--soft:#e3eeea;
+--display:"Anton","Impact","Arial Narrow",sans-serif;--body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;--max:1000px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a201e;--surface:#102d2b;--ink:#eaf2ef;--muted:#a9c2bd;--line:#22423f;--band:#0f3936;--soft:#163835;--ok:#5ccf92;--bad:#ff8a7a;--focus:#7cc4ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a201e;--surface:#102d2b;--ink:#eaf2ef;--muted:#a9c2bd;--line:#22423f;--band:#0f3936;--soft:#163835;--ok:#5ccf92;--bad:#ff8a7a;--focus:#7cc4ff;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.55;overflow-x:hidden}
+a{color:inherit;text-decoration-thickness:2px;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
+.wrap{width:100%;max-width:var(--max);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--band);color:var(--band-ink)}.nav{display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding-block:14px;font-size:16px}
+.nav a{text-decoration:none}.brand{font-family:var(--display);font-size:22px;letter-spacing:.5px;margin-right:auto}
+.hero{background:var(--band);color:var(--band-ink);padding-block:28px 40px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,7vw,56px);line-height:1.05;margin:0 0 12px;letter-spacing:.3px}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,34px);line-height:1.1;margin:0 0 10px;letter-spacing:.3px}
+.hero p{color:var(--band-muted);max-width:640px;margin:0}
+main{padding-block:28px 40px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px}
+.step{display:inline-block;background:var(--gold);color:var(--gold-ink);font-weight:700;border-radius:999px;padding:2px 12px;font-size:15px;margin-bottom:8px}
+label{display:block;font-weight:700;font-size:16px;margin-bottom:4px}
+.hint{color:var(--muted);font-size:15px;margin:2px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:16px}
+input[type=number],select{width:100%;font:inherit;font-size:18px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:400}.check input{width:22px;height:22px;margin-top:3px}
+.big{font-family:var(--display);font-size:clamp(44px,10vw,64px);line-height:1;color:var(--ink)}
+.result{background:var(--soft);border-radius:12px;padding:16px;margin-top:16px}
+.breakdown{font-size:15px;color:var(--muted);margin-top:8px}
+.days{width:100%;border-collapse:collapse;font-size:16px}
+.days th,.days td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+.days th:first-child,.days td:first-child{text-align:left}
+.days input{font-size:16px;padding:8px;width:100%;min-width:72px;max-width:120px;margin-left:auto;display:block}.days td{white-space:nowrap}.small{font-size:14px}
+.yes{color:var(--ok);font-weight:700}.no{color:var(--bad);font-weight:700}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:14px;margin-top:16px}
+.tile{background:var(--soft);border-radius:12px;padding:14px}.tile .n{font-family:var(--display);font-size:34px;line-height:1.1}.tile .l{font-size:15px;color:var(--muted)}
+.note{background:var(--soft);border-radius:12px;padding:14px 16px;font-size:16px}
+.btn{display:inline-block;font:inherit;font-weight:700;border-radius:999px;padding:12px 20px;text-decoration:none;border:2px solid transparent;cursor:pointer}
+.btn.gold{background:var(--gold);color:var(--gold-ink)}.btn.ghost{border-color:currentColor;background:transparent;color:inherit}
+.band{background:var(--band);color:var(--band-ink);padding-block:32px}.band .muted{color:var(--band-muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:28px}
+footer{padding-block:24px;font-size:15px;color:var(--muted)}footer nav{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+
+.addrow{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;margin-top:12px}
+.addrow input,.addrow select,input[type=text],input[type=time]{width:100%;font:inherit;font-size:17px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0}
+@media (max-width:560px){.addrow{grid-template-columns:1fr 1fr}.addrow input:first-child{grid-column:1/-1}.addrow .btn{grid-column:1/-1}}
+.staffrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.link{background:none;border:0;color:var(--bad);font:inherit;font-size:15px;text-decoration:underline;cursor:pointer;padding:8px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
+.tab{font:inherit;font-weight:700;font-size:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;flex:0 0 auto}
+.tab.on{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.dayname{font-family:var(--display);font-weight:400;font-size:26px;margin:6px 0 4px}
+.shift{display:grid;grid-template-columns:minmax(0,1.2fr) repeat(3,minmax(0,1fr)) auto;gap:8px;align-items:end;padding:10px 0;border-bottom:1px solid var(--line)}
+.shift .who{font-weight:700;align-self:center}.shift .hrs{font-size:15px;color:var(--muted);align-self:center;min-width:52px;text-align:right}
+.mini{font-size:13px;font-weight:700;color:var(--muted)}.mini input{margin-top:2px}
+@media (max-width:560px){.shift{grid-template-columns:1fr 1fr}.shift .who{grid-column:1/-1}.shift .hrs{text-align:left}}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+#printArea{display:none}
+.gate{margin-top:16px;background:var(--soft);border-radius:14px;padding:16px;border-left:6px solid var(--gold)}
+input[type=email]{width:100%;font:inherit;font-size:17px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+@media print{body>*{display:none!important}#printArea{display:block!important;color:#000}#printArea table{border-collapse:collapse;width:100%}#printArea th,#printArea td{border:1px solid #999;padding:6px;font-size:13px;text-align:left}}
+</style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is this rota maker really free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. No sign-up, no card and no trial. Your rota is saved on your own phone or computer only and is never sent anywhere."}}, {"@type": "Question", "name": "What does it count in the staff cost?", "acceptedAnswer": {"@type": "Answer", "text": "Pay, holiday pay at 12.07%, employer National Insurance at 15% above \u00a396.15 a week (none for under-21s or if you claim Employment Allowance) and 3% employer pension above \u00a3120 a week. It does not count rent, rates, energy or stock."}}, {"@type": "Question", "name": "Can I send the rota to my staff?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Copy the rota as text for your staff group chat, or print it or save it as a PDF."}}, {"@type": "Question", "name": "Does it do holiday booking, shift swaps or payroll?", "acceptedAnswer": {"@type": "Answer", "text": "No. It is a simple planning tool. If you need holiday booking, shift swaps and payroll, see our comparison of paid rota apps for pubs."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free pub rota maker","applicationCategory":"BusinessApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"author":{"@type":"Person","name":"Shaun McManus"}}</script>
+</head><body>
+<header class="top"><div class="wrap nav"><a class="brand" href="https://stocktap.net/">StockTap</a><a href="https://stocktap.net/guides">Guides</a><a href="https://stocktap.net/tools">Tools</a><a href="/tv/">StockTap TV</a></div></header>
+<section class="hero"><div class="wrap">
+<h1>Free pub rota maker</h1>
+<p><b>See what every day costs before you post the rota.</b> Add your staff, put in their shifts, and it shows each day's real staff cost (with holiday pay, employer NI and pension) and what has to go through the till to pay for it. Free, no sign-up, no card. Saved on this phone only.</p>
+</div></section>
+<main class="wrap">
+
+<section class="card" aria-labelledby="s1">
+<span class="step">Step 1</span><h2 id="s1">Your staff</h2>
+<p class="hint">Name, hourly rate and age band. Under-21s cost less because there's no employer NI.</p>
+<div id="staffList"></div>
+<div class="addrow">
+<input id="newName" type="text" placeholder="Name" aria-label="New staff name" autocomplete="off">
+<input id="newRate" type="number" inputmode="decimal" step="0.01" min="0" value="13.21" aria-label="Hourly rate">
+<select id="newAge" aria-label="Age band"><option value="21">21+</option><option value="18">18 to 20</option><option value="16">16 to 17</option></select>
+<button class="btn gold" id="addStaff" type="button">Add</button>
+</div>
+<p class="hint">2027 minimums: 21+ £13.21, 18 to 20 £11.27, 16 to 17 and apprentices £8.31.</p>
+</section>
+
+<section class="card" aria-labelledby="s2">
+<span class="step">Step 2</span><h2 id="s2">How much of each £1 do you keep?</h2>
+<div class="grid">
+<div><label for="deal">Your agreement</label><select id="deal"><option value="free">Freehold or free of tie</option><option value="tied">Tied tenancy or lease</option><option value="retail">Retail, franchise or % agreement</option></select></div>
+<div><label for="keep" id="keepLabel">Your gross profit on drinks and food (%)</label><input id="keep" type="number" inputmode="decimal" min="1" max="100" step="1" value="60"><p class="hint" id="keepHint">Worked on prices without VAT. Use your own figure.</p></div>
+<div><label class="check" style="margin-top:28px"><input type="checkbox" id="ea"> <span>I claim Employment Allowance (no employer NI)</span></label></div>
+</div>
+</section>
+
+<section class="card" aria-labelledby="s3">
+<span class="step">Step 3</span><h2 id="s3">Build the week</h2>
+<div class="tabs" role="tablist" id="tabs"></div>
+<div id="dayPanel"></div>
+</section>
+
+<section class="card" aria-labelledby="s4">
+<h2 id="s4">Your week</h2>
+<div class="tablewrap"><table class="days" id="weekTable"><thead><tr><th>Day</th><th>Staff hrs</th><th>Staff cost</th><th>Needs through till</th><th>Expected</th></tr></thead><tbody></tbody></table></div>
+<div class="summary">
+<div class="tile"><div class="n" id="wkCost">£0</div><div class="l">staff cost this week</div></div>
+<div class="tile"><div class="n" id="wkNeed">£0</div><div class="l">takings needed to cover it</div></div>
+<div class="tile"><div class="n" id="wkHours">0</div><div class="l">staff hours</div></div>
+</div>
+<p class="note" id="advice" style="margin-top:16px">Add staff and shifts to see the week.</p>
+<div class="note" id="tvtip" hidden style="margin-top:12px;border-left:6px solid var(--gold)"><b id="tvHead"></b><p style="margin:6px 0 10px" id="tvBody"></p><a class="btn gold" href="/tv/?from=rota-maker">See how StockTap TV works</a></div>
+<div class="btnrow">
+<button class="btn ghost" id="copyRota" type="button">Copy rota for the staff group chat</button>
+<button class="btn ghost" id="printRota" type="button">Print or save as PDF</button>
+<button class="btn ghost" id="clearWeek" type="button">Clear shifts</button>
+</div>
+<p class="hint" id="copied" aria-live="polite"></p>
+<form id="gate" class="gate" hidden novalidate>
+<h3 class="dayname" style="font-size:24px">Take your rota away, free</h3>
+<p style="margin:4px 0 12px">Pop your email in once and you can copy it to the staff group chat and print it as often as you like. I'll also tell you when the wage rules change, so your costs stay right.</p>
+<label for="gEmail">Email</label><input id="gEmail" type="email" autocomplete="email" inputmode="email" required>
+<label for="gPub" style="margin-top:10px">Pub name (optional)</label><input id="gPub" type="text" autocomplete="organization">
+<input type="text" name="website" id="gWeb" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+<label class="check" style="margin-top:12px"><input type="checkbox" id="gUpd"> <span>Yes, email me my rota and staff cost tools, and when the wage rules change. I can unsubscribe any time.</span></label>
+<label class="check" style="margin-top:8px"><input type="checkbox" id="gNews"> <span>Also email me now and then about Shaun's other pub tools (StockTap and StockTap TV).</span></label>
+<p class="no" id="gErr" aria-live="polite" style="min-height:22px;margin:8px 0 0"></p>
+<button class="btn gold" type="submit" id="gGo">Unlock my rota</button>
+<p class="hint" style="margin-top:8px">Your rota itself never leaves this phone. Only your email and pub name are saved. <a href="/safety/privacy/">Privacy</a></p>
+</form>
+</section>
+
+<section class="card">
+<h2>How the cost is worked out</h2>
+<p>Each person's cost for the week is their pay plus holiday pay at 12.07% (the usual rate for irregular hours), employer National Insurance at 15% on weekly earnings above £96.15 (none for under-21s, or if you tick Employment Allowance), and 3% employer pension on earnings above £120 a week for staff 22 and over earning more than £10,000 a year (we use 21+ as a guide). That cost is then shared across the days they work. "Needs through the till" is the staff cost divided by what you keep of each £1 after VAT. It doesn't count rent, rates, energy or stock losses.</p>
+<p class="hint">2027 minimum wage rates from GOV.UK, 28 October 2026. NI and pension thresholds are 2026/27 figures and may change from April 2027. A planning aid, not payroll or legal advice. Never go below the cover you need to run the pub safely.</p>
+<p>Want to check last week instead? <a href="/tools/pub-staff-hour-calculator">The staff cost calculator</a> works from your till takings. Comparing paid rota apps? <a href="/guides/rota-app-for-pubs-uk-compared">Rota apps for pubs compared</a>.</p>
+</section>
+</main>
+
+<section class="band"><div class="wrap two">
+<div><h2>Fill the quiet days</h2><p class="muted">I built StockTap TV for my own pub: a phone quiz on every screen every 20 minutes, your offers and match-day build-up. Free 14-day trial, then £34 a month for the whole pub.</p><a class="btn gold" href="/tv/?from=rota-maker">See StockTap TV</a></div>
+<div><h2>Wages against takings, every week</h2><p class="muted">StockTap, my stocktaking app for pubs, also has a staff list, a rota, clock in and out on a phone, and your wage % against takings.</p><a class="btn ghost" href="https://stocktap.net/">See StockTap</a></div>
+</div></section>
+<footer><div class="wrap"><nav><a href="https://stocktap.net/guides">Guides</a><a href="https://stocktap.net/tools">Tools</a><a href="/tv/">StockTap TV</a><a href="https://stocktap.net/">StockTap</a></nav>
+<p>Made by Shaun McManus, licensee of a pub in Washington, Tyne and Wear. A planning aid, not payroll or legal advice.</p></div></footer>
+<div id="printArea" aria-hidden="true"></div>
+<script>
+(function(){
+var DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var KEY="stocktap_rota_v1";
+var $=function(id){return document.getElementById(id)};
+var st={staff:[],shifts:{},takings:{},deal:"free",keep:60,keepTouched:false,ea:false,day:0,nextId:1};
+try{var saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&saved.staff)st=Object.assign(st,saved);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function gbp(v,dp){dp=dp||0;return (v<0?"-£":"£")+Math.abs(v).toLocaleString("en-GB",{minimumFractionDigits:dp,maximumFractionDigits:dp})}
+function mins(t){if(!t)return null;var p=t.split(":");return (+p[0])*60+(+p[1]||0)}
+function shiftHours(sh){if(!sh||!sh.s||!sh.e)return 0;var a=mins(sh.s),b=mins(sh.e);if(a===null||b===null)return 0;if(b<=a)b+=1440;var h=(b-a)/60-(+sh.b||0)/60;return h>0?h:0}
+function hoursFor(id,d){return shiftHours((st.shifts[id]||{})[d])}
+function personWeek(p){
+  var hrs=0,byDay=[];for(var d=0;d<7;d++){var h=hoursFor(p.id,d);byDay.push(h);hrs+=h;}
+  var pay=p.rate*hrs,hol=pay*0.1207,g=pay+hol;
+  var ni=(p.age!=="21"||st.ea)?0:Math.max(0,g-96.15)*0.15;
+  var pen=(p.age==="21"&&g>=10000/52)?Math.max(0,g-120)*0.03:0;
+  var tot=g+ni+pen;
+  return {hrs:hrs,tot:tot,perHr:hrs?tot/hrs:p.rate*1.1207,byDay:byDay};
+}
+function keepPerPound(){return (st.keep/100)/1.2}
+function renderStaff(){
+  var el=$("staffList");
+  if(!st.staff.length){el.innerHTML='<p class="hint" style="margin:8px 0 12px">No staff yet. Add the first person below.</p>';return;}
+  el.innerHTML=st.staff.map(function(p){var w=personWeek(p);
+    return '<div class="staffrow"><div><b>'+esc(p.name)+'</b><div class="hint">'+gbp(p.rate,2)+' an hour · '+(p.age==="21"?"21+":p.age==="18"?"18 to 20":"16 to 17")+' · really costs '+gbp(w.perHr,2)+' an hour</div></div><button class="link" data-del="'+p.id+'" type="button" aria-label="Remove '+esc(p.name)+'">Remove</button></div>';}).join("");
+}
+function renderTabs(){
+  $("tabs").innerHTML=DAYS.map(function(d,i){return '<button role="tab" type="button" class="tab'+(i===st.day?" on":"")+'" aria-selected="'+(i===st.day)+'" data-day="'+i+'">'+d.slice(0,3)+'</button>'}).join("");
+}
+function renderDay(){
+  var d=st.day,el=$("dayPanel");
+  if(!st.staff.length){el.innerHTML='<p class="hint">Add your staff in Step 1 first.</p>';return;}
+  var rows=st.staff.map(function(p){var sh=(st.shifts[p.id]||{})[d]||{};
+    return '<div class="shift"><div class="who">'+esc(p.name)+'</div><label class="mini">Start<input type="time" step="900" data-p="'+p.id+'" data-k="s" value="'+(sh.s||"")+'"></label><label class="mini">Finish<input type="time" step="900" data-p="'+p.id+'" data-k="e" value="'+(sh.e||"")+'"></label><label class="mini">Unpaid break (min)<input type="number" inputmode="numeric" min="0" step="5" data-p="'+p.id+'" data-k="b" value="'+(sh.b||"")+'"></label><div class="hrs" data-hrs="'+p.id+'"></div></div>';}).join("");
+  el.innerHTML='<h3 class="dayname">'+DAYS[d]+'</h3>'+rows+
+   '<div class="grid" style="margin-top:14px"><div><label for="tk">Takings you expect on '+DAYS[d]+' (£, optional)</label><input id="tk" type="number" inputmode="decimal" min="0" step="10" value="'+(st.takings[d]||"")+'"><p class="hint">Use the same day last year off the till.</p></div></div>'+
+   '<div class="result" aria-live="polite"><div class="hint">'+DAYS[d]+' staff cost</div><div class="big" id="dayCost">£0</div><div class="breakdown" id="dayNote"></div></div>';
+  updateDayFigures();
+}
+function dayTotals(){
+  var out=[];var people=st.staff.map(function(p){return {p:p,w:personWeek(p)}});
+  for(var d=0;d<7;d++){var hrs=0,cost=0;people.forEach(function(x){var h=x.w.byDay[d];if(h>0){hrs+=h;cost+=x.w.hrs?x.w.tot*h/x.w.hrs:0;}});
+    out.push({hrs:hrs,cost:cost,need:keepPerPound()>0?cost/keepPerPound():0,tk:+st.takings[d]||0});}
+  return out;
+}
+function updateDayFigures(){
+  var t=dayTotals()[st.day];
+  st.staff.forEach(function(p){var e=document.querySelector('[data-hrs="'+p.id+'"]');if(e){var h=hoursFor(p.id,st.day);e.textContent=h?h.toFixed(h%1?2:0).replace(/\.?0+$/,"")+" hrs":"Off";}});
+  if(!$("dayCost"))return;
+  $("dayCost").textContent=gbp(t.cost);
+  var note=t.hrs?t.hrs.toFixed(1).replace(/\.0$/,"")+" staff hours. To pay for them you need about "+gbp(t.need)+" through the till (including VAT).":"No shifts on "+DAYS[st.day]+" yet.";
+  if(t.hrs&&t.tk){note+=t.tk>=t.need?" You expect "+gbp(t.tk)+", so this day pays its way.":" You expect "+gbp(t.tk)+", so it's about "+gbp(t.need-t.tk)+" short.";}
+  $("dayNote").textContent=note;
+}
+function renderWeek(){
+  var tot=dayTotals(),C=0,N=0,H=0,lows=[],worst=null;
+  $("weekTable").querySelector("tbody").innerHTML=tot.map(function(t,i){C+=t.cost;N+=t.need;H+=t.hrs;
+    var verdict="–";if(t.hrs&&t.tk){var ok=t.tk>=t.need;verdict=gbp(t.tk)+'<br><span class="small '+(ok?"yes":"no")+'">'+(ok?"Pays its way":gbp(t.need-t.tk)+" short")+'</span>';if(!ok){lows.push(DAYS[i]);var gap=t.need-t.tk;if(!worst||gap>worst.gap)worst={d:DAYS[i],gap:gap};}}
+    return '<tr><td>'+DAYS[i].slice(0,3)+'</td><td>'+(t.hrs?t.hrs.toFixed(1).replace(/\.0$/,""):"–")+'</td><td>'+(t.hrs?gbp(t.cost):"–")+'</td><td>'+(t.hrs?gbp(t.need):"–")+'</td><td>'+verdict+'</td></tr>';}).join("");
+  $("wkCost").textContent=gbp(C);$("wkNeed").textContent=gbp(N);$("wkHours").textContent=H.toFixed(1).replace(/\.0$/,"");
+  var a;
+  if(!H)a="Add staff and shifts to see the week.";
+  else if(lows.length)a=lows.join(", ")+(lows.length>1?" don't":" doesn't")+" cover the staff on, going by the takings you expect. Trimming the first or last hour on a quiet day is usually easier than cutting a whole shift. Never go below safe cover.";
+  else if(tot.some(function(t){return t.hrs&&!t.tk}))a="Add the takings you expect for each day (Step 3) to see which days pay for their staff.";
+  else a="Every day covers its staff on the takings you expect. Check the first and last hour of each shift, that's where waste usually hides.";
+  $("advice").textContent=a;
+  var tip=$("tvtip");
+  if(worst){var pints=Math.ceil(worst.gap/4.9);$("tvHead").textContent="Filling "+worst.d+" beats cutting it";
+    $("tvBody").textContent=worst.d+" is about "+gbp(worst.gap)+" short, roughly "+pints+" more pints at £4.90 (example price)."+(pints<=60?" That's a few more tables staying for another round.":" That's a big gap, so it probably needs fewer hours and more people in, both.")+" I built StockTap TV for my own pub to bring people in on quiet nights: a free phone quiz on your screens every 20 minutes, plus your offers. 14-day free trial, then £34 a month for the whole pub.";tip.hidden=false;}
+  else tip.hidden=true;
+}
+function dealDefaults(){
+  var d=st.deal;$("deal").value=d;
+  if(d==="retail"){$("keepLabel").textContent="Your share of takings after VAT (%)";$("keepHint").textContent="The % of net (ex-VAT) turnover your agreement lets you keep.";if(!st.keepTouched)st.keep=20;}
+  else{$("keepLabel").textContent="Your gross profit on drinks and food (%)";$("keepHint").textContent="Worked on prices without VAT. Use your own figure.";if(!st.keepTouched)st.keep=(d==="free"?60:50);}
+  $("keep").value=st.keep;
+}
+function all(){renderStaff();renderTabs();renderDay();renderWeek();save();}
+function rotaText(){
+  var lines=["Rota, week of "+new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short"})];
+  DAYS.forEach(function(d,i){var on=st.staff.filter(function(p){return hoursFor(p.id,i)>0}).map(function(p){var sh=st.shifts[p.id][i];return p.name+" "+sh.s+"-"+sh.e});lines.push(d.slice(0,3)+": "+(on.length?on.join(", "):"no shifts"));});
+  return lines.join("\n");
+}
+$("addStaff").addEventListener("click",function(){var n=$("newName").value.trim();if(!n){$("newName").focus();return;}
+  st.staff.push({id:st.nextId++,name:n.slice(0,40),rate:Math.max(0,parseFloat($("newRate").value)||0),age:$("newAge").value});$("newName").value="";all();$("newName").focus();});
+$("newName").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();$("addStaff").click();}});
+$("newAge").addEventListener("change",function(){$("newRate").value={"21":"13.21","18":"11.27","16":"8.31"}[this.value];});
+$("staffList").addEventListener("click",function(e){var id=e.target.getAttribute("data-del");if(!id)return;id=+id;st.staff=st.staff.filter(function(p){return p.id!==id});delete st.shifts[id];all();});
+$("tabs").addEventListener("click",function(e){var d=e.target.getAttribute("data-day");if(d===null)return;st.day=+d;renderTabs();renderDay();save();});
+$("dayPanel").addEventListener("input",function(e){var t=e.target;
+  if(t.id==="tk"){st.takings[st.day]=t.value;}
+  else{var p=t.getAttribute("data-p"),k=t.getAttribute("data-k");if(!p)return;st.shifts[p]=st.shifts[p]||{};st.shifts[p][st.day]=st.shifts[p][st.day]||{};st.shifts[p][st.day][k]=t.value;}
+  renderStaff();updateDayFigures();renderWeek();save();});
+$("deal").addEventListener("change",function(){st.deal=this.value;st.keepTouched=false;dealDefaults();all();});
+$("keep").addEventListener("input",function(){st.keep=parseFloat(this.value)||0;st.keepTouched=true;updateDayFigures();renderWeek();save();});
+$("ea").checked=!!st.ea;$("ea").addEventListener("change",function(){st.ea=this.checked;all();});
+var UNLOCK="stocktap_rota_unlocked",pending=null;
+function unlocked(){try{return localStorage.getItem(UNLOCK)==="1"}catch(e){return false}}
+function doCopy(){var t=rotaText();var done=function(){$("copied").textContent="Copied. Paste it into your staff group chat.";};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,function(){prompt("Copy this:",t)});else prompt("Copy this:",t);}
+function doPrint(){
+  var head='<tr><th>Staff</th>'+DAYS.map(function(d){return '<th>'+d.slice(0,3)+'</th>'}).join("")+'</tr>';
+  var body=st.staff.map(function(p){return '<tr><td>'+esc(p.name)+'</td>'+DAYS.map(function(d,i){var h=hoursFor(p.id,i);return '<td>'+(h?esc(st.shifts[p.id][i].s+"-"+st.shifts[p.id][i].e):"")+'</td>'}).join("")+'</tr>'}).join("");
+  $("printArea").innerHTML='<h1>Rota</h1><table>'+head+body+'</table>';window.print();}
+function gated(fn){if(!st.staff.length){$("copied").textContent="Add your staff and shifts first.";return;}if(unlocked()){fn();return;}pending=fn;$("gate").hidden=false;$("gate").scrollIntoView({behavior:"smooth",block:"center"});setTimeout(function(){$("gEmail").focus()},300);}
+$("copyRota").addEventListener("click",function(){gated(doCopy)});
+$("printRota").addEventListener("click",function(){gated(doPrint)});
+$("gate").addEventListener("submit",function(e){e.preventDefault();
+  var email=$("gEmail").value.trim();$("gErr").textContent="";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){$("gErr").textContent="That email doesn't look right. Check it and try again.";return;}
+  if(!$("gUpd").checked){$("gErr").textContent="Tick the first box so I can email you, then tap Unlock.";return;}
+  $("gGo").disabled=true;$("gGo").textContent="Unlocking...";
+  fetch("/safety/api/signup",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email:email,pub:$("gPub").value.trim(),updates:true,news:$("gNews").checked,source:"rota-maker",website:$("gWeb").value})})
+   .then(function(r){return r.json().catch(function(){return {ok:false}})}).then(function(d){
+     $("gGo").disabled=false;$("gGo").textContent="Unlock my rota";
+     if(!d||!d.ok){$("gErr").textContent=(d&&d.error)||"Something went wrong. Please try again.";return;}
+     try{localStorage.setItem(UNLOCK,"1")}catch(e){}
+     $("gate").hidden=true;$("copied").textContent="Unlocked, thanks. Copy and print are yours now.";if(pending){var f=pending;pending=null;f();}
+   }).catch(function(){$("gGo").disabled=false;$("gGo").textContent="Unlock my rota";$("gErr").textContent="No connection. Try again in a moment.";});
+});
+$("clearWeek").addEventListener("click",function(){if(!st.staff.length)return;st.shifts={};st.takings={};all();});
+dealDefaults();all();
+})();
+</script>
+</body></html>

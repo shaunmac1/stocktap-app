@@ -210,3 +210,37 @@ describe("itemsInSection / sectionCompletion / activeSections", () => {
     expect(activeSections(items)).toEqual(["opening", "closing"]); // cleaning item is inactive
   });
 });
+
+import { checksHistory, checksCsv } from "./checks";
+describe("checks history", () => {
+  const A = [{ id: "f", name: "Cellar fridge", kind: "fridge", min_c: 0, max_c: 5 }, { id: "z", name: "Freezer", kind: "freezer", min_c: null, max_c: -18 }] as any;
+  const I = [{ id: "o1", section: "opening", label: "Fridges running", cadence: "daily" }, { id: "w1", section: "cleaning", label: "Deep clean", cadence: "weekly" }] as any;
+  const R = [
+    { appliance_id: "f", business_date: "2026-09-29", reading_c: 3, created_at: "2026-09-29T10:02:00Z", recorded_by: "u1" },
+    { appliance_id: "z", business_date: "2026-09-29", reading_c: -12, created_at: "2026-09-29T10:03:00Z", recorded_by: "u1" },
+    { appliance_id: "f", business_date: "2026-09-28", reading_c: 4, created_at: "2026-09-28T10:00:00Z", recorded_by: null },
+  ] as any;
+  const C = [{ item_id: "o1", business_date: "2026-09-29", done: true, created_at: "2026-09-29T09:55:00Z", recorded_by: "u1" }] as any;
+  const F = [{ business_date: "2026-09-28", occurred_at: "2026-09-28T21:10:00Z", reason: "No ID shown", description: "Two lads, \"forgot\" ID", recorded_by: "u2" }] as any;
+  it("summarises each day, newest first, flagging out-of-range and gaps", () => {
+    const h = checksHistory(A, I, R, C, F, "2026-09-27", "2026-09-29");
+    expect(h.map(d => d.date)).toEqual(["2026-09-29", "2026-09-28", "2026-09-27"]);
+    expect(h[0]).toMatchObject({ tempsDone: 2, tempsTotal: 2, dailyDone: 1, dailyTotal: 1, refusals: 0, complete: true });
+    expect(h[0].outOfRange).toEqual([{ name: "Freezer", reading_c: -12, status: "high" }]);
+    expect(h[1]).toMatchObject({ tempsDone: 1, dailyDone: 0, refusals: 1, complete: false });
+    expect(h[2]).toMatchObject({ tempsDone: 0, complete: false });
+  });
+  it("exports every entry with who logged it", () => {
+    const csv = checksCsv(A, I, R, C, F, u => (u === "u1" ? "Alex" : u === "u2" ? "Jordan" : null)).split("\n");
+    expect(csv[0]).toBe("Date,Time,Type,What,Result,Status,Logged by,Note");
+    expect(csv).toHaveLength(6);
+    expect(csv.some(l => l.includes("Freezer,-12°C,Too warm,Alex"))).toBe(true);
+    expect(csv.some(l => l.includes('Refusal,No ID shown,"Two lads, ""forgot"" ID",,Jordan'))).toBe(true);
+  });
+  it("marks anything filled in on a later day", () => {
+    const late = [{ appliance_id: "f", business_date: "2026-09-27", reading_c: 3, created_at: "2026-09-29T08:00:00Z", recorded_by: "u1" }] as any;
+    const csv = checksCsv(A, I, late, [], [], () => "Alex").split("\n");
+    expect(csv[1].endsWith("Alex,Filled in later on 29/09/2026")).toBe(true);
+    expect(checksCsv(A, I, R.slice(0, 1), [], [], () => "Alex").split("\n")[1].endsWith("Alex,")).toBe(true);
+  });
+});

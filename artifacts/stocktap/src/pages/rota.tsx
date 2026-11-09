@@ -11,7 +11,7 @@ import { useRotaForDate, useRotaForWeek, useAddRotaShift, useUpdateRotaShift, us
 import { RotaUpload } from "@/components/RotaUpload";
 import {
   ROTA_AREAS, AREA_LABELS, weekStartISO, weekDaysISO, addDaysISO, weekdayShort,
-  shiftsByArea, shiftRangeLabel, prettyTime, type RotaArea,
+  shiftsByArea, shiftRangeLabel, prettyTime, plannedCost, type RotaArea,
 } from "@/lib/rota";
 
 function todayISO(): string {
@@ -49,6 +49,11 @@ export default function Rota() {
     staff.forEach((s, i) => m.set(s.id, { name: s.name, i }));
     return m;
   }, [staff]);
+  const closeTimes = (venue as any)?.close_times as Record<string, string> | undefined;
+  const rateByStaff = useMemo(() => new Map(staff.map((s) => [s.id, s.hourly_rate] as [string, number | null])), [staff]);
+  const dayCost = useMemo(() => plannedCost(dayShifts, rateByStaff, closeTimes), [dayShifts, rateByStaff, closeTimes]);
+  const weekCost = useMemo(() => plannedCost(weekShifts, rateByStaff, closeTimes), [weekShifts, rateByStaff, closeTimes]);
+  const gbp = (n: number) => "£" + Math.round(n).toLocaleString("en-GB");
   const countByDay = useMemo(() => {
     const m = new Map<string, number>();
     for (const s of weekShifts) m.set(s.shift_date, (m.get(s.shift_date) ?? 0) + 1);
@@ -153,6 +158,28 @@ export default function Rota() {
           );
         })}
       </div>
+
+      {/* Planned wage cost */}
+      {staff.length > 0 && (
+        <Card data-testid="rota-planned-cost"><CardContent className="p-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <div>
+              <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Planned wages · {prettyDate(dateISO)}</div>
+              <div className="text-2xl font-bold tabular-nums" data-testid="text-day-planned-cost">{gbp(dayCost.cost)}</div>
+              <div className="text-[11px] text-muted-foreground">{dayCost.hours.toFixed(1).replace(/\.0$/, "")} hrs</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[11px] text-muted-foreground uppercase tracking-wide">This week</div>
+              <div className="text-lg font-bold tabular-nums" data-testid="text-week-planned-cost">{gbp(weekCost.cost)}</div>
+              <div className="text-[11px] text-muted-foreground">{weekCost.hours.toFixed(1).replace(/\.0$/, "")} hrs</div>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">Pay plus 12.07% holiday pay, before employer NI and pension.
+            {weekCost.noRate > 0 && <> {weekCost.noRate} shift{weekCost.noRate === 1 ? "" : "s"} this week {weekCost.noRate === 1 ? "has" : "have"} no hourly rate, add it on <Link href="/team" className="text-primary underline">Team</Link>.</>}
+            {weekCost.noEnd > 0 && <> {weekCost.noEnd} "until close" shift{weekCost.noEnd === 1 ? "" : "s"} not counted yet, give {weekCost.noEnd === 1 ? "it" : "them"} a finish time to include {weekCost.noEnd === 1 ? "it" : "them"}.</>}
+          </p>
+        </CardContent></Card>
+      )}
 
       {/* Copy last week */}
       <Button variant="outline" className="w-full" onClick={handleCopyLastWeek} disabled={copyWeek.isPending}>

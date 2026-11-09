@@ -265,3 +265,79 @@ export const DEFAULT_CHECK_ITEMS: Array<{ section: CheckSection; label: string; 
 // ─── Refusals register (Challenge 25) ───────────────────────────────────────
 
 export const REFUSAL_REASONS = ["No ID shown", "ID looked fake", "Appeared under 18", "Proxy sale (buying for a minor)", "Other"] as const;
+
+// ─── History: every day's checks, for the owner to look back on ─────────────
+
+export interface CheckDay {
+  date: string;
+  tempsDone: number; // temperature points with a reading that day
+  tempsTotal: number;
+  outOfRange: { name: string; reading_c: number; status: ReadingStatus }[];
+  dailyDone: number; // daily checklist items ticked that day
+  dailyTotal: number;
+  refusals: number;
+  complete: boolean;
+}
+
+/** One row per day from `fromISO` to `toISO`, newest first, using today's temperature points and daily items. */
+export function checksHistory(
+  appliances: Appliance[], items: CheckItem[], readings: TempReading[], completions: CheckCompletion[], refusals: Refusal[],
+  fromISO: string, toISO: string,
+): CheckDay[] {
+  const daily = items.filter(i => i.cadence === "daily");
+  const out: CheckDay[] = [];
+  for (let d = toISO; d >= fromISO; d = shift(d, -1)) {
+    const rs = readings.filter(r => r.business_date === d);
+    const withReading = new Set(rs.map(r => r.appliance_id));
+    const outOfRange: CheckDay["outOfRange"] = [];
+    for (const a of appliances) {
+      const mine = rs.filter(r => r.appliance_id === a.id);
+      const last = mine[mine.length - 1];
+      if (!last) continue;
+      const st = readingStatus(last.reading_c, a.min_c, a.max_c);
+      if (st !== "ok") outOfRange.push({ name: a.name, reading_c: last.reading_c, status: st });
+    }
+    const ticked = new Set(completions.filter(c => c.business_date === d && c.done !== false).map(c => c.item_id));
+    const tempsDone = appliances.filter(a => withReading.has(a.id)).length;
+    const dailyDone = daily.filter(i => ticked.has(i.id)).length;
+    out.push({
+      date: d, tempsDone, tempsTotal: appliances.length, outOfRange, dailyDone, dailyTotal: daily.length,
+      refusals: refusals.filter(r => r.business_date === d).length,
+      complete: tempsDone === appliances.length && dailyDone === daily.length,
+    });
+  }
+  return out;
+}
+
+const csvCell = (v: unknown) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+
+/** Every reading, tick and refusal in the range as a CSV, oldest first, with who logged it. */
+export function checksCsv(
+  appliances: Appliance[], items: CheckItem[], readings: TempReading[], completions: CheckCompletion[], refusals: Refusal[],
+  nameOf: (uid: string | null) => string | null,
+): string {
+  const app = new Map(appliances.map(a => [a.id, a])); const it = new Map(items.map(i => [i.id, i]));
+  const time = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
+  // Filled in on a later day than the one it's for: say so, so the record is honest.
+  const late = (businessDate: string, iso: string) => {
+    const d = new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+    return d !== businessDate ? `Filled in later on ${d.split("-").reverse().join("/")}` : "";
+  };
+  const note = (a: string, b: string | null | undefined) => [a, b ?? ""].filter(Boolean).join(". ");
+  const rows: string[][] = [];
+  for (const r of readings) {
+    const a = app.get(r.appliance_id);
+    rows.push([r.business_date, time(r.created_at), "Temperature", a?.name ?? "Removed point", `${r.reading_c}°C`, a ? statusLabel(readingStatus(r.reading_c, a.min_c, a.max_c)) : "", nameOf(r.recorded_by) ?? "", note(late(r.business_date, r.created_at), r.note)]);
+  }
+  for (const c of completions) {
+    const i = it.get(c.item_id);
+    rows.push([c.business_date, time(c.created_at), i ? SECTION_LABELS[i.section] : "Check", i?.label ?? "Removed check", c.done === false ? "Not done" : "Done", "", nameOf(c.recorded_by) ?? "", note(late(c.business_date, c.created_at), c.note)]);
+  }
+  for (const f of refusals) rows.push([f.business_date, time(f.occurred_at), "Refusal", f.reason ?? "", f.description ?? "", "", nameOf(f.recorded_by) ?? "", note(late(f.business_date, f.occurred_at), f.note)]);
+  rows.sort((a, b) => (a[0] + a[1]).localeCompare(b[0] + b[1]));
+  return [["Date", "Time", "Type", "What", "Result", "Status", "Logged by", "Note"], ...rows].map(r => r.map(csvCell).join(",")).join("\n");
+}
+
+function shift(dateISO: string, days: number): string {
+  const d = new Date(dateISO + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10);
+}

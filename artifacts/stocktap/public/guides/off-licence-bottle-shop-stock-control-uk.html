@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Off-licence and bottle shop stock control UK: what actually fits | StockTap</title>
+  <meta name="description" content="Stock control for off-licences and pub bottle shops: when the EPOS is the right tool, the duty maths on packaged beer, and where hybrid venues leak." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/off-licence-bottle-shop-stock-control-uk" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Off-licence and bottle shop stock control UK: what actually fits | StockTap" />
+  <meta property="og:description" content="Stock control for off-licences and pub bottle shops: when the EPOS is the right tool, the duty maths on packaged beer, and where hybrid venues leak." />
+  <meta property="og:url" content="https://stocktap.net/guides/off-licence-bottle-shop-stock-control-uk" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Off-licence and bottle shop stock control UK: what actually fits | StockTap" />
+  <meta name="twitter:description" content="Stock control for off-licences and pub bottle shops: when the EPOS is the right tool, the duty maths on packaged beer, and where hybrid venues leak." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Bottle shop stock control: the till is your count, right up until the bar raids the fridge",
+      "description": "Stock control for off-licences and pub bottle shops: when the EPOS is the right tool, the duty maths on packaged beer, and where hybrid venues leak.",
+      "datePublished": "2026-09-29",
+      "dateModified": "2026-09-29",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/off-licence-bottle-shop-stock-control-uk"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What's the best stock control software for an off-licence?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For a pure off-licence, probably your EPOS. Sealed units scanned in from the delivery and scanned out at the till give you a live theoretical stock; a shelf count against it is your shrinkage number. A stocktaking app built for open bottles and kegs is the wrong shape for that job. Where a pub-style tool earns its place is a hybrid venue, where the same stock serves the bar and the shelf."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much shrinkage is normal in a bottle shop?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "There's no published UK figure for specialist off-licence shrinkage, so be suspicious of anyone quoting one. What you can do is measure your own: till-based theoretical stock minus shelf count, weekly on spirits and anything dear, monthly on the rest, and watch the trend rather than chasing a benchmark that doesn't exist."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do cans and bottles get the draught duty discount?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Draught relief only applies to containers of 20 litres or more designed to connect to dispense equipment. Packaged beer pays the full rate, currently £22.58 per litre of pure alcohol against £19.45 for draught in the standard strength band, which is why the same beer carries more duty in the fridge than on the bar."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How often should a bottle shop count stock?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Little and often beats a monthly marathon. Spirits and high-value bottles weekly, because that's where the value walks; a rolling section count so the whole shop gets touched monthly; everything on the day the till or the delivery says something doesn't add up. A count that takes twenty minutes actually happens, which is the main thing."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Bottle shop stock control: the till is your count, right up until the bar raids the fridge",
+          "item": "https://stocktap.net/guides/off-licence-bottle-shop-stock-control-uk"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Tools &amp; software comparisons
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">Tools &amp; software comparisons</div>
+        <h1>Bottle shop stock control: the till is your count, right up until the bar raids the fridge</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-09-29">29 September 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>Every year more beer leaves in sealed containers. SIBA's 2026 report has 51% of independent breweries running their own shop, 57% selling online and 30% of sales going direct, and plenty of pubs have quietly added a takeaway fridge or a shelf of local cans. Then the first stocktake after the fridge arrives comes back odd, because retail stock and bar stock obey different rules, and most of us only know one set.</strong></p>
+
+<p>So let's do this straight, starting with the bit that costs me a sale.</p>
+
+<h2>For a pure off-licence, your EPOS is the tool</h2>
+
+<p>If you run a straight bottle shop, everything sealed, everything barcoded, nothing poured, then the right stock system is almost certainly the stock module in your EPOS, not a stocktaking app, and not mine. I make <a href="/guides/stocktaking-software-for-pubs">stocktaking software for pubs</a> and I'm telling you not to buy it for this job. Retail stock control is a line-of-sight problem: scan units in from the delivery note, scan units out at the till, and the system holds a live theoretical count for every barcode. Your job is a shelf count against that number, and the gap is your shrinkage, no yields, no part-bottles, no keg arithmetic. The retail EPOS trade has been solving exactly that problem for decades. Use it.</p>
+
+<p>What the on-trade brings that's worth stealing is the counting discipline. A theoretical stock number is only as good as the last time somebody checked it against the shelf, so: spirits and anything dear weekly, a rolling section each week so the whole shop gets counted monthly, and the whole lot the moment a delivery or a till report smells wrong. Weekly on the dear stuff matters more in retail than pub people expect, because in retail the loss mode isn't a heavy pour, it's a bottle in a coat. And note what your insurance thinks about that: standard stock policies cover theft with forced entry and explicitly exclude shoplifting, as we covered in the <a href="/guides/stock-loss-insurance-claim-pub-documentation">insurance guide</a>. Shelf shrinkage is uninsured by design. Counting is the only backstop you get.</p>
+
+<h2>The tax inside the can</h2>
+
+<p>Bottle shop margins are thinner than bar margins, and duty is a big reason why. Packaged beer pays £22.58 per litre of pure alcohol; draught in the same strength band pays £19.45, because draught relief only applies to containers of 20 litres or more built to connect to dispense gear. A can never qualifies, whatever's in it.</p>
+
+<p>Author's arithmetic on a £3.50 craft can, 500ml at 5%: VAT is 58p, duty is 56p, so £1.14 of the shelf price is tax before the beer, the brewery or you see anything. A 440ml can at 4.5% carries about 45p of duty. Knock those numbers around your own shelf and you'll see why a casual 10% discount on cans is a bigger giveaway than the same gesture on draught, and why sloppy shrinkage on the spirits shelf, where the duty is £33.99 a litre of alcohol, hurts most of all. The full rate card is in our <a href="/guides/alcohol-duty-2026-what-a-pub-pays-per-pint-keg-bottle">duty guide</a>.</p>
+
+<h2>Where it stops being retail: the hybrid venue</h2>
+
+<p>The interesting problems start when one stock serves two counters. A micropub with a fridge of takeaway cans. A taproom with a shelf. A pub that started doing growler fills on a Saturday. Now the clean retail model breaks in three specific places.</p>
+
+<p>First, the raid. The bar runs out of a guest can on a busy night and takes six off the shop shelf, or the shop sells the last two bottles the bar had promised to a tab. Nothing is stolen, but the shop's theoretical count and the bar's count are now both wrong, in opposite directions. The fix is boring and non-negotiable: the shelf and the bar are separate stock locations, and stock moves between them like a delivery, written down, both sides. StockTap does this with locations and a By Location report; whatever you use, the principle is the transfer sheet, the same discipline as the <a href="/guides/brewery-taproom-stock-management-uk">taproom cold store</a>.</p>
+
+<p>Second, growler and container fills. Draught beer sold to take away is retail money coming off a bar product, so the volume has to come out of your keg yield sums or your draught wastage number quietly inflates. Ring fills through their own till buttons, sized to the container, and treat them as draught sales in the count. If fills are becoming a real line, the <a href="/guides/keg-calibration-guide-pub-cellar">keg calibration guide</a> is where the yield arithmetic lives.</p>
+
+<p>Third, dates. Bar stock turns fast; shelf stock sits. Craft cans have best-before dates that arrive sooner than you think, and a shelf of out-of-date stock is <a href="/guides/dead-stock-pub-what-to-do">dead stock</a> you paid duty on. Rotate strictly, newest to the back, and let the count flag what isn't moving while it's still sellable, discounted, rather than binnable.</p>
+
+<h2>Which tool for which shop</h2>
+
+<table>
+<thead><tr><th>What you run</th><th>What fits</th></tr></thead>
+<tbody>
+<tr><td>Pure off-licence, everything sealed and barcoded</td><td>Your EPOS stock module, plus a weekly shelf-count habit</td></tr>
+<tr><td>Pub or micropub with a takeaway fridge or shelf</td><td>Pub-style count with the shop as its own location and a transfer sheet</td></tr>
+<tr><td>Brewery taproom with a shop</td><td>Brewery software for production and duty, pub discipline front of house: see the <a href="/guides/brewery-taproom-stock-management-uk">taproom guide</a></td></tr>
+<tr><td>Growler fills anywhere</td><td>Draught rules: own till buttons, volume counted against the keg</td></tr>
+</tbody>
+</table>
+
+<p>If your venue is in the middle rows, that's the shape StockTap was built for: weigh or tenth the open stock behind the bar, count the sealed stock by unit, keep the shelf as its own location, and read one report that doesn't care which counter the money crossed. If you're in the top row, spend the money on a better till and a counting habit instead. Either way, count. The shelf doesn't watch itself, and nobody refunds the duty on a bottle that walked.</p>
+
+<h2>Common questions</h2>
+
+<h3>What's the best stock control software for an off-licence?</h3>
+<p>For a pure off-licence, probably your EPOS. Sealed units scanned in from the delivery and scanned out at the till give you a live theoretical stock; a shelf count against it is your shrinkage number. A stocktaking app built for open bottles and kegs is the wrong shape for that job. Where a pub-style tool earns its place is a hybrid venue, where the same stock serves the bar and the shelf.</p>
+
+<h3>How much shrinkage is normal in a bottle shop?</h3>
+<p>There's no published UK figure for specialist off-licence shrinkage, so be suspicious of anyone quoting one. What you can do is measure your own: till-based theoretical stock minus shelf count, weekly on spirits and anything dear, monthly on the rest, and watch the trend rather than chasing a benchmark that doesn't exist.</p>
+
+<h3>Do cans and bottles get the draught duty discount?</h3>
+<p>No. Draught relief only applies to containers of 20 litres or more designed to connect to dispense equipment. Packaged beer pays the full rate, currently £22.58 per litre of pure alcohol against £19.45 for draught in the standard strength band, which is why the same beer carries more duty in the fridge than on the bar.</p>
+
+<h3>How often should a bottle shop count stock?</h3>
+<p>Little and often beats a monthly marathon. Spirits and high-value bottles weekly, because that's where the value walks; a rolling section count so the whole shop gets touched monthly; everything on the day the till or the delivery says something doesn't add up. A count that takes twenty minutes actually happens, which is the main thing.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>51% of independent breweries run an on-site shop, 57% sell via webshop, 30% of sales direct to consumer, 46% run a taproom: <a href="https://siba.co.uk/2026/04/13/independent-breweries-capitalise-on-local-roots-to-win-over-consumers-despite-tough-trading-conditions-according-to-new-report/" rel="noopener">SIBA Independent Beer Report 2026</a>.</li>
+<li>Duty rates (packaged beer £22.58 and draught £19.45 per litre of pure alcohol in the 3.5&ndash;8.4% band, spirits over 22% at £33.99; draught relief limited to containers of 20 litres or more designed to connect to dispense equipment): <a href="https://www.gov.uk/guidance/alcohol-duty-rates" rel="noopener">gov.uk alcohol duty rates</a>, worked through in our <a href="/guides/alcohol-duty-2026-what-a-pub-pays-per-pint-keg-bottle">duty guide</a>.</li>
+<li>Standard stock insurance covering theft only with forced entry and excluding shoplifting: AXA's published stock insurance wording, covered with sources in our <a href="/guides/stock-loss-insurance-claim-pub-documentation">insurance documentation guide</a>.</li>
+<li>The £1.14-in-a-£3.50-can sum and per-can duty figures are the author's arithmetic from the published rates, illustrative. No published UK shrinkage benchmark exists for specialist off-licences; treat any quoted figure with caution.</li>
+</ul>
+</div>
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Try it on your next stocktake</h2>
+        <p>Free trial, no card required. Cancel anytime.</p>
+        <a href="/auth?mode=signup" class="cta-btn">Start free trial</a>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/brewery-taproom-stock-management-uk">Taproom stock control: the pub discipline your brewery software doesn't do</a></li>
+          <li><a href="/guides/micropub-small-bar-stocktaking-software">Stocktaking for micropubs and small bars</a></li>
+          <li><a href="/guides/dead-stock-pub-what-to-do">Dead stock in a pub: find it, price it, move it</a></li>
+          <li><a href="/guides/stock-loss-insurance-claim-pub-documentation">Stock insurance claims: the documentation that gets you paid</a></li>
+          <li><a href="/guides/alcohol-duty-2026-what-a-pub-pays-per-pint-keg-bottle">Alcohol duty 2026: what a pub pays per pint, keg and bottle</a></li>
+          <li><a href="/guides/epos-integration-pub-stock-control">EPOS integration and pub stock control</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

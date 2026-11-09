@@ -70,3 +70,25 @@ describe("areaCounts", () => {
     expect(areaCounts(shifts)).toEqual({ bar: 2, kitchen: 1 });
   });
 });
+
+import { plannedShiftHours, plannedCost } from "./rota";
+describe("planned wage cost", () => {
+  const base = { staff_id: "a", shift_date: "2026-11-02", start_time: "17:00", end_time: "23:00", until_close: false };
+  it("counts a normal shift", () => { expect(plannedShiftHours(base)).toBe(6); });
+  it("handles a shift past midnight", () => { expect(plannedShiftHours({ ...base, start_time: "20:00:00", end_time: "01:00:00" })).toBe(5); });
+  it("uses the venue close time for until-close shifts (Mon 2 Nov 2026)", () => {
+    expect(plannedShiftHours({ ...base, end_time: null, until_close: true }, { mon: "23:30" })).toBe(6.5);
+    expect(plannedShiftHours({ ...base, end_time: null, until_close: true }, { fri: "00:30" })).toBeNull();
+  });
+  it("adds holiday pay and flags missing rates and close times", () => {
+    const r = plannedCost(
+      [base, { ...base, staff_id: "b" }, { ...base, staff_id: "a", end_time: null, until_close: true }],
+      new Map([["a", 10], ["b", null]]),
+      null,
+    );
+    expect(r.hours).toBe(6);
+    expect(r.cost).toBe(67.24); // 6 x £10 x 1.1207
+    expect(r.noRate).toBe(1);
+    expect(r.noEnd).toBe(1);
+  });
+});

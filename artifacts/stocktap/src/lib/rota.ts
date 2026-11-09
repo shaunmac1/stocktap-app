@@ -88,3 +88,64 @@ export function sortByStart(shifts: RotaShift[]): RotaShift[] {
 export function areaCounts(shifts: RotaShift[]): Record<RotaArea, number> {
   return { bar: shifts.filter((s) => s.area === "bar").length, kitchen: shifts.filter((s) => s.area === "kitchen").length };
 }
+
+// ---- Planned wage cost (what the rota will cost before the week happens) ----
+
+/** Holiday pay accrual for irregular hours (5.6 weeks / 46.4 weeks). */
+export const HOLIDAY_ACCRUAL = 0.1207;
+const ROTA_WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+
+function toMinutes(t: string | null | undefined): number | null {
+  if (!t) return null;
+  const [h, m] = t.split(":").map(Number);
+  if (!Number.isFinite(h)) return null;
+  return h * 60 + (Number.isFinite(m) ? m : 0);
+}
+
+/**
+ * Planned hours for a rota shift. "Until close" uses the venue's close time for that weekday
+ * (a close before 6am belongs to the next morning). Returns null if the end can't be known.
+ */
+export function plannedShiftHours(
+  shift: Pick<RotaShift, "shift_date" | "start_time" | "end_time" | "until_close">,
+  closeTimes?: Record<string, string> | null,
+): number | null {
+  const start = toMinutes(shift.start_time);
+  if (start === null) return null;
+  let end: number | null;
+  if (shift.until_close) {
+    const key = ROTA_WEEKDAY_KEYS[new Date(shift.shift_date + "T00:00:00Z").getUTCDay()];
+    end = toMinutes(closeTimes?.[key]);
+  } else {
+    end = toMinutes(shift.end_time);
+  }
+  if (end === null) return null;
+  if (end <= start) end += 24 * 60;
+  return (end - start) / 60;
+}
+
+export interface PlannedCost {
+  hours: number; // hours we could cost
+  cost: number; // pay + holiday pay, £
+  noRate: number; // shifts for staff with no hourly rate set
+  noEnd: number; // "until close" shifts with no close time set
+}
+
+/** Planned pay + holiday pay for a set of rota shifts. Employer NI and pension are not included. */
+export function plannedCost(
+  shifts: Array<Pick<RotaShift, "staff_id" | "shift_date" | "start_time" | "end_time" | "until_close">>,
+  rateByStaff: Map<string, number | null | undefined>,
+  closeTimes?: Record<string, string> | null,
+): PlannedCost {
+  const out: PlannedCost = { hours: 0, cost: 0, noRate: 0, noEnd: 0 };
+  for (const s of shifts) {
+    const h = plannedShiftHours(s, closeTimes);
+    if (h === null) { out.noEnd++; continue; }
+    const rate = rateByStaff.get(s.staff_id);
+    if (rate == null || !(rate > 0)) { out.noRate++; continue; }
+    out.hours += h;
+    out.cost += h * rate * (1 + HOLIDAY_ACCRUAL);
+  }
+  out.cost = Math.round(out.cost * 100) / 100;
+  return out;
+}
