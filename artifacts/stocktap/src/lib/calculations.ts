@@ -384,17 +384,17 @@ export function litreContainerMl(p: { container_l?: number | null; size_ml?: num
 export const PINTS_PER_GALLON = 8;
 
 /**
- * 144 pints -> { gallons: 18, pints: 0 }. Pints are rounded to 1dp first, because a
- * "50L" keg is 87.99 pints and nobody wants "17 gal 7.99 pt" for one keg + 56 pints.
+ * 144 pints -> { gallons: 18, pints: 0 }. Rounded to the nearest whole pint, as the
+ * Venners "Gallon 8 Pint" columns are: a "50L" keg is 87.99 pints and shows as 11 gal 0 pt.
  */
 export function pintsToGallonsAndPints(totalPints: number): { gallons: number; pints: number } {
-  const p = Math.max(0, Math.round(totalPints * 10) / 10);
-  const gallons = Math.floor(p / PINTS_PER_GALLON + 1e-9);
-  const pints = Math.round((p - gallons * PINTS_PER_GALLON) * 10) / 10;
+  const p = Math.max(0, Math.round(totalPints));
+  const gallons = Math.floor(p / PINTS_PER_GALLON);
+  const pints = p - gallons * PINTS_PER_GALLON;
   return { gallons, pints };
 }
 
-/** "18 gal 0 pt", "11 gal 1.75 pt" — how a stocktaker's sheet shows draught. */
+/** "18 gal 0 pt", "108 gal 7 pt" — how a stocktaker's sheet shows draught. */
 export function formatGallonsPints(totalPints: number): string {
   const { gallons, pints } = pintsToGallonsAndPints(totalPints);
   const pt = String(pints);

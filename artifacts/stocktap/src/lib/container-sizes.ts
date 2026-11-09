@@ -10,6 +10,7 @@ export const CONTAINER_PRESETS: Record<ContainerKind, ContainerPreset[]> = {
   keg: [
     { label: "20L", value: 20 },
     { label: "30L", value: 30 },
+    { label: "10 gal (45.5L)", value: 45.5 },
     { label: "50L (11 gal)", value: 50 },
     { label: "100L (22 gal)", value: 100 },
   ],

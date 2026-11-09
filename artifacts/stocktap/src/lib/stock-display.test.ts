@@ -26,7 +26,7 @@ const baseProduct = {
 describe("gallons and pints", () => {
   it("reads a stocktaker's figures", () => {
     expect(pintsToGallonsAndPints(144)).toEqual({ gallons: 18, pints: 0 });
-    expect(pintsToGallonsAndPints(89.747)).toEqual({ gallons: 11, pints: 1.7 });
+    expect(pintsToGallonsAndPints(89.747)).toEqual({ gallons: 11, pints: 2 }); // whole pints, like the Venners sheet
     expect(formatGallonsPints(143.99)).toBe("18 gal 0 pt");
     expect(formatGallonsPints(1152)).toBe("144 gal 0 pt");
     expect(formatGallonsPints(7.999)).toBe("1 gal 0 pt");

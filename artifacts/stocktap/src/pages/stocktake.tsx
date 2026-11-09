@@ -30,6 +30,8 @@ import {
 import { isLitreOnBottles } from "@/lib/library-hygiene";
 import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
+import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
+import { gaugeToPints, formatGauge } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
@@ -68,8 +70,8 @@ function howCounted(p: { category?: string | null; counting_method?: string | nu
   switch (m) {
     case "weigh": return p.empty_weight_g != null ? "Weigh the open bottle" : "Weigh a full one first, or count in tenths";
     case "tenths": case "photo_tap": return p.empty_weight_g != null ? "Tenths, or weigh it" : "Tenths: full is 10, half is 5";
-    case "keg_weight": return "Pints left in the open keg + full kegs";
-    case "dipstick": return p.dip_full_mm ? "Dip it (mm) + full casks" : "Pints on the dip rod + full casks";
+    case "keg_weight": return "Full kegs + part keg in gallons and pints";
+    case "dipstick": return p.dip_full_mm ? "Dip it (mm) + full casks" : "Full casks + part cask in gallons and pints";
     case "tenths_pints": return "Tenths left in the cask + full ones";
     case "dozen": return "Full cases + loose ones";
     case "litre": return p.category === "postmix" ? "Boxes or litres of drink" : "Litres left";
@@ -175,6 +177,9 @@ export default function Stocktake() {
   const entryScrollRef = React.useRef<HTMLDivElement>(null);
   const [entryGallonsStr, setEntryGallonsStr] = useState("0");
   const [entryPintsStr, setEntryPintsStr] = useState("0");
+  // Part keg/cask read off a keg gauge: gallons + pints (0–7), like the Venners sheet.
+  const [partGalStr, setPartGalStr] = useState("0");
+  const [partPtStr, setPartPtStr] = useState("0");
   const [newLocationInput, setNewLocationInput] = useState("");
   const [showNewLocationField, setShowNewLocationField] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
@@ -316,18 +321,21 @@ export default function Stocktake() {
   // Without a full depth, mm can't be turned into pints, so the dip rod's pints are the way in.
   const dipMode = dipModePref;
   const dipByPints = entryActiveMethod === "dipstick" && dipMode === "pints";
+  // Full kegs/casks + the open one read in gallons + pints off the gauge.
+  const usesGauge = dipByPints || (entryActiveMethod === "keg_weight" && kegMode === "kegs");
+  const gaugePints = gaugeToPints(parseFloat(partGalStr) || 0, parseFloat(partPtStr) || 0);
 
   const entryCategoryInput: CategoryReadingInput | null = useMemo(() => {
     if (!entryActiveMethod) return null;
     const fc = parseFloat(entryFullContainersStr) || 0;
     // Pints read off the dip rod work exactly like pints left in a keg.
-    if (dipByPints) return { method: "keg_weight", partialPints: parseFloat(entryNumStr) || 0, fullContainers: fc };
+    if (dipByPints) return { method: "keg_weight", partialPints: gaugePints, fullContainers: fc };
     switch (entryActiveMethod) {
       case "dipstick":    return { method: entryActiveMethod, dipMm: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "keg_weight":
         return kegMode === "gallons"
           ? { method: entryActiveMethod, totalPints: (parseFloat(entryGallonsStr) || 0) * 8 + (parseFloat(entryPintsStr) || 0) }
-          : { method: entryActiveMethod, partialPints: parseFloat(entryNumStr) || 0, fullContainers: fc };
+          : { method: entryActiveMethod, partialPints: gaugePints, fullContainers: fc };
       case "tenths_pints":return { method: entryActiveMethod, tenths: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "tenths":      return { method: entryActiveMethod, tenths: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "dozen":       return { method: entryActiveMethod, fullPacks: fc, partUnits: parseFloat(entryNumStr) || 0 };
@@ -342,7 +350,7 @@ export default function Stocktake() {
       case "photo_tap":   return { method: entryActiveMethod, tapY: photoTapY, fullContainers: fc };
       default: return null;
     }
-  }, [entryActiveMethod, entryNumStr, entryFullContainersStr, entryWeightStr, photoTapY, kegMode, entryGallonsStr, entryPintsStr, postmixMode, activeProduct, dipByPints]);
+  }, [entryActiveMethod, entryNumStr, entryFullContainersStr, entryWeightStr, photoTapY, kegMode, entryGallonsStr, entryPintsStr, postmixMode, activeProduct, dipByPints, gaugePints]);
 
   const entryMeasureMl = resolveMeasureMl(activeProduct?.measure_ml, venue?.measure_ml);
 
@@ -584,6 +592,7 @@ export default function Stocktake() {
   const resetEntryForm = () => {
     setEntryWeightStr("0"); setEntryNumStr("0"); setEntryFullContainersStr("0");
     setEntryGallonsStr("0"); setEntryPintsStr("0");
+    setPartGalStr("0"); setPartPtStr("0");
     setEntryLocationId(""); setEntryLocationName("");
     setEntryStep("location"); setShowAddEntry(false);
     setNewLocationInput(""); setShowNewLocationField(false);
@@ -703,7 +712,9 @@ export default function Stocktake() {
         ? parseFloat(entryWeightStr) || null
         : typedAsTotal
           ? Math.round((ml / ML_PER_PINT) * 1000) / 1000
-          : parseFloat(entryNumStr) || null;
+          : usesGauge
+            ? (gaugePints || null)
+            : parseFloat(entryNumStr) || null;
       const method: LocalLineEntry["method"] = (dipByPints ? "keg_weight" : entryActiveMethod ?? (
         activeProduct.unit === "count" ? "count" :
         activeProduct.empty_weight_g != null ? "weigh" : "tenths"
@@ -1173,7 +1184,7 @@ export default function Stocktake() {
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
                         {eq.short}
-                        {eq.kind === "draught" && entry.full_containers ? ` · ${entry.full_containers} full + ${(entry.part_value ?? 0).toFixed(1)} pt` : ""}
+                        {eq.kind === "draught" && entry.full_containers ? ` · ${entry.full_containers} full + ${formatGauge(entry.part_value ?? 0)}` : ""}
                         {eq.kind === "bottles" && ` · ${eq.detail}`}
                         {eq.value != null && ` · ${formatGBP(eq.value)}`}
                       </div>
@@ -1452,15 +1463,27 @@ export default function Stocktake() {
                               className={`h-10 rounded-lg text-sm font-semibold transition-colors ${kegMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
                               data-testid={`button-keg-mode-${m}`}
                             >
-                              {m === "kegs" ? "Kegs + pints" : "Gallons + pints"}
+                              {m === "kegs" ? "Full + part keg" : "Line total"}
                             </button>
                           ))}
                         </div>
                       )}
                       {entryActiveMethod === "keg_weight" && (
-                        <p className="text-xs text-muted-foreground text-center" data-testid="tip-keg">{kegMode === "kegs" ? "Pints left in the open keg (off a keg scale, or your best guess by lifting it), then the full ones not tapped yet." : "The total for this line, as a stocktaker's sheet writes it: 5 gal 4 pt."}</p>
+                        <p className="text-xs text-muted-foreground text-center" data-testid="tip-keg">{kegMode === "kegs" ? "Count the full kegs, then read the open one off your keg gauge in gallons and pints." : "The total for this line, as a stocktaker's sheet writes it: 5 gal 4 pt."}</p>
                       )}
-                      {entryActiveMethod === "keg_weight" && kegMode === "kegs" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Pints left in the open keg" allowDecimal />}
+                      {entryActiveMethod === "keg_weight" && kegMode === "kegs" && (activeProduct?.container_l ? (
+                        <DraughtGaugeEntry
+                          kind={dipByPints || activeProduct?.container_type === "cask" ? "cask" : "keg"}
+                          containerL={activeProduct?.container_l != null ? Number(activeProduct.container_l) : null}
+                          full={entryFullContainersStr} onFull={setEntryFullContainersStr}
+                          gallons={partGalStr} onGallons={setPartGalStr}
+                          pints={partPtStr} onPints={setPartPtStr}
+                        />
+                      ) : (
+                        <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm text-[#E0A343]" data-testid="warn-no-keg-size">
+                          Pick the keg size above first (tap Change next to Keg size), so full kegs add up right.
+                        </div>
+                      ))}
                       {entryActiveMethod === "keg_weight" && kegMode === "gallons" && (
                         <MultiFieldPad
                           testId="gallons-pad"
@@ -1477,15 +1500,21 @@ export default function Stocktake() {
                               onClick={() => { setDipMode(m); setEntryNumStr("0"); }}
                               className={`h-10 rounded-lg text-sm font-semibold transition-colors ${dipMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
                               data-testid={`button-dip-mode-${m}`}>
-                              {m === "pints" ? "Pints on the rod" : "Ruler (mm)"}
+                              {m === "pints" ? "Gallons + pints" : "Ruler (mm)"}
                             </button>
                           ))}
                         </div>
                       )}
                       {entryActiveMethod === "dipstick" && dipMode === "pints" && (
                         <>
-                          <p className="text-xs text-muted-foreground text-center" data-testid="tip-dip-pints">Dip the cask and read the pints off the rod, then the full casks not tapped yet.</p>
-                          <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Pints left in the open cask" allowDecimal />
+                          <p className="text-xs text-muted-foreground text-center" data-testid="tip-dip-pints">Count the full casks, then read the open one off your gauge or rod in gallons and pints.</p>
+                          <DraughtGaugeEntry
+                          kind={dipByPints || activeProduct?.container_type === "cask" ? "cask" : "keg"}
+                          containerL={activeProduct?.container_l != null ? Number(activeProduct.container_l) : null}
+                          full={entryFullContainersStr} onFull={setEntryFullContainersStr}
+                          gallons={partGalStr} onGallons={setPartGalStr}
+                          pints={partPtStr} onPints={setPartPtStr}
+                        />
                         </>
                       )}
                       {entryActiveMethod === "dipstick" && dipMode === "mm" && activeProduct?.dip_full_mm && (
@@ -1591,16 +1620,12 @@ export default function Stocktake() {
                         <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Tenths remaining (0–10)" allowDecimal />
                       )}
 
-                      {((entryActiveMethod === "keg_weight" && kegMode === "kegs") || (entryActiveMethod === "dipstick" && (dipMode === "pints" || !!activeProduct?.dip_full_mm)) || entryActiveMethod === "tenths_pints" || entryActiveMethod === "dozen" || entryActiveMethod === "weigh" || entryActiveMethod === "tenths") && (
-                        entryActiveMethod === "keg_weight" && !activeProduct?.container_l ? (
-                          <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm text-[#E0A343]">
-                            No keg size yet, so full kegs can't be added. Tap Change next to Keg size above and pick it.
-                          </div>
-                        ) : (
+                      {((entryActiveMethod === "dipstick" && dipMode === "mm" && !!activeProduct?.dip_full_mm) || entryActiveMethod === "tenths_pints" || entryActiveMethod === "dozen" || entryActiveMethod === "weigh" || entryActiveMethod === "tenths") && (
+                        (
                           <NumberPad
                             value={entryFullContainersStr}
                             onChange={setEntryFullContainersStr}
-                            label={entryActiveMethod === "dozen" ? "Full cases" : (entryActiveMethod === "weigh" || entryActiveMethod === "tenths") ? "Full sealed bottles" : entryActiveMethod === "keg_weight" ? "Full kegs (not tapped)" : activeProduct?.container_type === "keg" ? "Full kegs (not tapped)" : "Full casks (not tapped)"}
+                            label={entryActiveMethod === "dozen" ? "Full cases" : (entryActiveMethod === "weigh" || entryActiveMethod === "tenths") ? "Full sealed bottles" : activeProduct?.container_type === "keg" ? "Full kegs (not tapped)" : "Full casks (not tapped)"}
                           />
                         )
                       )}
@@ -1619,7 +1644,7 @@ export default function Stocktake() {
                                 </div>
                                 <div className="text-sm text-muted-foreground mt-1">
                                   {totalPints.toFixed(1)} pints
-                                  {activeProduct?.container_l ? ` · ${full} full ${entryActiveMethod === "dipstick" ? (full === 1 ? "cask" : "casks") : (full === 1 ? "keg" : "kegs")} + ${partPints.toFixed(1)} pt in the open one` : ""}
+                                  {activeProduct?.container_l ? ` · ${full} full ${entryActiveMethod === "dipstick" ? (full === 1 ? "cask" : "casks") : (full === 1 ? "keg" : "kegs")} + ${formatGauge(partPints)} in the open one` : ""}
                                 </div>
                                 {activeProduct?.cost_price && entryCategoryResult ? (
                                   <div className="text-sm text-muted-foreground">{formatGBP(entryCategoryResult.valueGbp)} stock value</div>
