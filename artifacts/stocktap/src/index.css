@@ -125,3 +125,7 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+/* iPhone Safari treats two quick taps as "double-tap to zoom" and drops the second tap,
+   so tapping + twice for 2 full kegs saved 1. Manipulation keeps pinch-zoom but stops that. */
+html, button, a, input, select, textarea, [role="button"], [role="radio"] { touch-action: manipulation; }

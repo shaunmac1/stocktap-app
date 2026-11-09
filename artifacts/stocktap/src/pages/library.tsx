@@ -64,6 +64,7 @@ import {
 } from "@/lib/library-hygiene";
 import { matchKnownBottles } from "@/hooks/useCatalogue";
 import { isHidden } from "@/lib/hidden-products";
+import { useQuickHide } from "@/hooks/useQuickHide";
 
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 type ProductType = "spirit" | "gin" | "vodka" | "whisky" | "rum" | "liqueur" | "wine" | "sparkling" | "vermouth" | "syrup" | "cordial" | "packaged";
@@ -3619,6 +3620,7 @@ export default function Library() {
     setAddOpen(true);
   };
 
+  const quickHide = useQuickHide(venue?.id);
   // Lines the pub no longer stocks: kept (with their past counts), just out of the way.
   const hiddenProducts = useMemo(() => (products ?? []).filter(p => isHidden(p as any)), [products]);
 
@@ -4372,6 +4374,16 @@ export default function Library() {
                             Weigh
                           </Button>
                         ) : null}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-9 px-2 text-xs font-semibold text-muted-foreground"
+                          onClick={() => quickHide(p)}
+                          aria-label={`Hide ${p.name}, we don't stock it`}
+                          data-testid={`button-quick-hide-${p.id}`}
+                        >
+                          Hide
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"

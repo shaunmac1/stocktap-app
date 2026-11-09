@@ -35,6 +35,7 @@ import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { isHidden } from "@/lib/hidden-products";
+import { useQuickHide } from "@/hooks/useQuickHide";
 import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
@@ -186,6 +187,7 @@ export default function Stocktake() {
   const [partGalStr, setPartGalStr] = useState("0");
   const [partPtStr, setPartPtStr] = useState("0");
   const [dupAsk, setDupAsk] = useState(false);
+  const quickHide = useQuickHide(venue?.id);
   // Editing a saved draught count: the gauge opens with its numbers, Save replaces it.
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [newLocationInput, setNewLocationInput] = useState("");
@@ -264,7 +266,7 @@ export default function Stocktake() {
   // Only categories you actually stock, with how many of each.
   const categoryCounts = useMemo(() => {
     const m = new Map<string, number>();
-    for (const p of products ?? []) if (p.category) m.set(p.category, (m.get(p.category) ?? 0) + 1);
+    for (const p of products ?? []) if (p.category && !isHidden(p as any)) m.set(p.category, (m.get(p.category) ?? 0) + 1);
     return m;
   }, [products]);
 
@@ -1042,7 +1044,7 @@ export default function Stocktake() {
                 className={`w-full h-11 rounded-xl border-2 text-sm font-bold ${allDraught ? "border-primary bg-primary text-primary-foreground" : "border-primary/40 text-primary"}`}
                 data-testid="button-select-all-draught"
               >
-                {allDraught ? `All ${draughtIds.length} draught lines ticked (tap to untick)` : `Tick all draught (${draughtIds.length} kegs & casks)`}
+                {allDraught ? `All ${draughtIds.length} draught ${draughtIds.length === 1 ? "line" : "lines"} ticked (tap to untick)` : `Tick all draught (${draughtIds.length} ${draughtIds.length === 1 ? "line" : "kegs & casks"})`}
               </button>
             );
           })()}
@@ -1071,8 +1073,9 @@ export default function Stocktake() {
           ) : pickableProducts.map(p => {
             const checked = selectedProductIds.includes(p.id);
             return (
-              <button key={p.id} onClick={() => toggleProductSel(p.id)} data-testid={`select-product-${p.id}`} className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-colors ${checked ? "border-primary bg-primary/5" : "border-border"}`}>
-                <div>
+              <div key={p.id} className={`flex items-stretch rounded-xl border transition-colors ${checked ? "border-primary bg-primary/5" : "border-border"}`}>
+              <button onClick={() => toggleProductSel(p.id)} data-testid={`select-product-${p.id}`} className="flex-1 min-w-0 flex items-center justify-between p-3 text-left">
+                <div className="min-w-0">
                   <div className="font-semibold text-sm">{p.name}</div>
                   <div className="text-xs text-muted-foreground">{p.category ? (CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category) : "—"}{productSizeLabel(p)} · {howCounted(p)}</div>
                 </div>
@@ -1080,6 +1083,14 @@ export default function Stocktake() {
                   {checked && <CheckCircle className="w-4 h-4 text-primary-foreground" />}
                 </div>
               </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedProductIds(ids => ids.filter(id => id !== p.id)); quickHide(p); }}
+                className="shrink-0 px-3 border-l border-border text-xs font-semibold text-muted-foreground"
+                aria-label={`Hide ${p.name}, we don't stock it`}
+                data-testid={`button-quick-hide-${p.id}`}
+              >Hide</button>
+              </div>
             );
           })}
         </div>
@@ -1840,7 +1851,16 @@ export default function Stocktake() {
                         );
                       })()}
                       <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={() => saveLineEntry()} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle || (entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm)} data-testid="button-save-entry">
-                        {savingEntry ? "Saving..." : editingEntryId ? "Save changes" : entryIsZero ? "Save: none left" : "Save"}
+                        {savingEntry ? "Saving..." : (() => {
+                          // Say exactly what's being saved, so a dropped tap is obvious before it goes in.
+                          const draughtSave = (entryActiveMethod === "keg_weight" || entryActiveMethod === "dipstick") && entryCategoryResult;
+                          const what = draughtSave
+                            ? `${entryCategoryResult!.fullContainers ?? 0} full + ${formatGauge(usesGauge ? gaugePints : 0)} = ${formatGauge(entryCategoryResult!.mlRemaining / ML_PER_PINT)}`
+                            : "";
+                          if (editingEntryId) return what ? `Save changes: ${what}` : "Save changes";
+                          if (entryIsZero) return "Save: none left";
+                          return what && usesGauge ? `Save ${what}` : "Save";
+                        })()}
                       </Button>
                     </>
                   )}
