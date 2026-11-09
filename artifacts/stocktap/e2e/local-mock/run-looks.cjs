@@ -31,7 +31,17 @@ const P = id => `aaaaaaaa-0000-4000-8000-00000000000${id}`;
     await p.locator('[data-testid="banner-looks-wrong"]').scrollIntoViewIfNeeded(); await p.screenshot({ path: `${SHOT}/lw1.png` });
     await tap(`looks-wrong-${A}`); await sleep(800);
     check('tapping the flag opens that line to recount', /Carlsberg/.test(await p.locator('body').innerText()) && await p.locator('[data-testid^="button-edit-entry-"]:visible').count() > 0);
-    check('Save & Close still allowed', true);
+    // Switch it off in Settings, then the flag is gone from review
+    await p.goto('http://localhost:5173/settings', { waitUntil: 'domcontentloaded' }); await sleep(2500);
+    await p.getByRole('tab', { name: 'Counting' }).click(); await sleep(600);
+    check('Settings shows the switch, on by default', (await p.locator('[data-testid="switch-looks-wrong"]').getAttribute('data-state')) === 'checked');
+    await tap('switch-looks-wrong'); await sleep(1200);
+    let lg = await (await fetch('http://localhost:8899/__log')).json();
+    check('switch saved as off', (await p.locator('[data-testid="switch-looks-wrong"]').getAttribute('data-state')) === 'unchecked');
+    await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(2500);
+    await p.locator('[data-testid^="button-open-stocktake-"]').first().click(); await sleep(1500);
+    await tap('button-review-stocktake'); await sleep(1500);
+    check('flag gone from review when switched off', await p.locator('[data-testid="banner-looks-wrong"]').count() === 0);
     check('no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
   } catch (e) { results.push('ERROR ' + e.message.split('\n')[0]); await p.screenshot({ path: `${SHOT}/lwX.png` }); }
   console.log(results.join('\n')); await b.close();

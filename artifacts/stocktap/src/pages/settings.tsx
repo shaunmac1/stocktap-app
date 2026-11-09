@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -232,6 +233,24 @@ export default function Settings() {
     }
   };
 
+  // Optional extras each pub can switch off. A missing key means on.
+  const features: Record<string, boolean> = ((venue as any)?.features ?? {}) as Record<string, boolean>;
+  const [savingFeature, setSavingFeature] = useState<string | null>(null);
+  const setFeature = async (key: string, on: boolean) => {
+    if (!venue?.id) return;
+    setSavingFeature(key);
+    try {
+      const { error } = await supabase.from("venues").update({ features: { ...features, [key]: on } } as any).eq("id", venue.id);
+      if (error) throw error;
+      await refreshVenue();
+      toast({ title: on ? "Switched on" : "Switched off" });
+    } catch (err: any) {
+      toast({ title: "Couldn't save that", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingFeature(null);
+    }
+  };
+
   const removeTeamMember = async (userId: string) => {
     if (!venue?.id) return;
     await supabase.from("venue_members").delete()
@@ -303,6 +322,23 @@ export default function Settings() {
 
         {/* COUNTING TAB */}
         <TabsContent value="counting" className="flex-1 overflow-auto p-4 space-y-4">
+          <div data-testid="settings-counting-checks">
+            <h2 className="text-sm font-semibold text-primary mb-1">Counting checks</h2>
+            <p className="text-xs text-muted-foreground mb-3">Extras that catch mistakes. Switch off any you don't want.</p>
+            <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+              <div className="min-w-0">
+                <Label htmlFor="feature-looks-wrong" className="text-sm font-semibold">Flag lines that look wrong</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Before you close a stocktake, highlight any line counted higher than last time plus deliveries. It never stops you closing.</p>
+              </div>
+              <Switch
+                id="feature-looks-wrong"
+                checked={features.looks_wrong !== false}
+                disabled={savingFeature === "looks_wrong"}
+                onCheckedChange={v => setFeature("looks_wrong", v)}
+                data-testid="switch-looks-wrong"
+              />
+            </div>
+          </div>
           <div>
             <h2 className="text-sm font-semibold text-primary mb-1">Counting locations</h2>
             <p className="text-xs text-muted-foreground mb-3">
