@@ -38,7 +38,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import { TenthsInput } from "@/components/TenthsInput";
 import { FullBottleSetup } from "@/components/FullBottleSetup";
-import { ArrowLeft, CheckCircle, Plus, Trash2, Cloud, CloudOff, MapPin, X, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Plus, Trash2, Cloud, CloudOff, MapPin, X, AlertCircle, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import type { Database } from "@/lib/database.types";
 import {
@@ -182,6 +182,8 @@ export default function Stocktake() {
   const [partGalStr, setPartGalStr] = useState("0");
   const [partPtStr, setPartPtStr] = useState("0");
   const [dupAsk, setDupAsk] = useState(false);
+  // Editing a saved draught count: the gauge opens with its numbers, Save replaces it.
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [newLocationInput, setNewLocationInput] = useState("");
   const [showNewLocationField, setShowNewLocationField] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
@@ -612,10 +614,21 @@ export default function Stocktake() {
   const resetEntryForm = () => {
     setEntryWeightStr("0"); setEntryNumStr("0"); setEntryFullContainersStr("0");
     setEntryGallonsStr("0"); setEntryPintsStr("0");
-    setPartGalStr("0"); setPartPtStr("0"); setDupAsk(false);
+    setPartGalStr("0"); setPartPtStr("0"); setDupAsk(false); setEditingEntryId(null);
     setEntryLocationId(""); setEntryLocationName("");
     setEntryStep("location"); setShowAddEntry(false);
     setNewLocationInput(""); setShowNewLocationField(false);
+  };
+
+  const editDraughtEntry = (entry: any) => {
+    const pints = Number(entry.part_value ?? 0);
+    setEntryFullContainersStr(String(entry.full_containers ?? 0));
+    setPartGalStr(String(Math.floor(pints / 8)));
+    setPartPtStr(String(Math.round(pints % 8) % 8));
+    if (activeProduct?.counting_method === "dipstick") setDipMode("pints"); else setKegMode("kegs");
+    setEntryLocationId(entry.count_location_id ?? ""); setEntryLocationName(entry.count_location_name ?? "Unspecified");
+    setEditingEntryId(entry.id); setDupAsk(false);
+    setShowAddEntry(true); setEntryStep("value");
   };
 
   const pickLocation = (id: string, name: string) => {
@@ -695,10 +708,11 @@ export default function Stocktake() {
 
     // Counting the same spot twice by mistake would silently double the line.
     // Ask: replace the earlier count, or add this as another keg/cask?
-    const sameSpot = (entriesByProduct.get(activeProduct.id) ?? []).filter((e: any) => (e.count_location_id ?? null) === (entryLocationId || null));
-    if (isDraughtProduct && sameSpot.length > 0 && !decision) { setDupAsk(true); return; }
+    const sameSpot = (entriesByProduct.get(activeProduct.id) ?? []).filter((e: any) => (e.count_location_id ?? null) === (entryLocationId || null) && e.id !== editingEntryId);
+    if (isDraughtProduct && sameSpot.length > 0 && !decision && !editingEntryId) { setDupAsk(true); return; }
     setDupAsk(false);
     if (decision === "replace") { for (const e of sameSpot) await deleteLineEntry((e as any).id); }
+    if (editingEntryId) { await deleteLineEntry(editingEntryId); setEditingEntryId(null); }
 
     // Bug 1: block save entirely for uncalibrated weigh products
     if (isUncalibratedWeigh || needsFullBottle) {
@@ -1242,6 +1256,11 @@ export default function Stocktake() {
                         {eq.value != null && ` · ${formatGBP(eq.value)}`}
                       </div>
                     </div>
+                    {eq.kind === "draught" && entry.full_containers != null && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground shrink-0" onClick={() => editDraughtEntry(entry)} aria-label="Edit this count" data-testid={`button-edit-entry-${entry.id}`}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0" onClick={() => removeEntry(entry.id)} data-testid={`button-delete-entry-${entry.id}`}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -1793,7 +1812,7 @@ export default function Stocktake() {
                         );
                       })()}
                       <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={() => saveLineEntry()} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle || (entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm)} data-testid="button-save-entry">
-                        {savingEntry ? "Saving..." : entryIsZero ? "Save: none left" : "Save"}
+                        {savingEntry ? "Saving..." : editingEntryId ? "Save changes" : entryIsZero ? "Save: none left" : "Save"}
                       </Button>
                     </>
                   )}

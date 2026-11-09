@@ -37,6 +37,8 @@ export function DraughtGaugeEntry({
   useEffect(() => {
     // The form was reset (after Save): clear the box too.
     if (gallons === "0" && pints === "0" && (parseFloat(galText) || 0) !== 0) setGalText("");
+    // Filled from outside (editing a saved count): show those gallons.
+    else if (Math.floor(parseFloat(galText) || 0) !== galN) setGalText(galN ? String(galN) : "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gallons, pints]);
 
