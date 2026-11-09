@@ -1031,6 +1031,21 @@ export default function Stocktake() {
               <button key={loc.id} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedLocationId === loc.id ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedLocationId(loc.id)} data-testid={`button-location-filter-${loc.id}`}>{loc.name}</button>
             ))}
           </div>
+          {(() => {
+            const draughtIds = (products ?? []).filter(p => !isHidden(p as any) && ((p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(p.counting_method ?? ""))).map(p => p.id);
+            if (draughtIds.length === 0) return null;
+            const allDraught = draughtIds.every(id => selectedProductIds.includes(id));
+            return (
+              <button
+                type="button"
+                onClick={() => setSelectedProductIds(ids => allDraught ? ids.filter(id => !draughtIds.includes(id)) : Array.from(new Set([...ids, ...draughtIds])))}
+                className={`w-full h-11 rounded-xl border-2 text-sm font-bold ${allDraught ? "border-primary bg-primary text-primary-foreground" : "border-primary/40 text-primary"}`}
+                data-testid="button-select-all-draught"
+              >
+                {allDraught ? `All ${draughtIds.length} draught lines ticked (tap to untick)` : `Tick all draught (${draughtIds.length} kegs & casks)`}
+              </button>
+            );
+          })()}
           <div className="flex gap-2 overflow-x-auto pb-1">
             <button className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${selectedCategory === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`} onClick={() => setSelectedCategory("all")} data-testid="button-category-filter-all">All categories</button>
             {(Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[]).filter(cat => categoryCounts.has(cat)).map(cat => (
