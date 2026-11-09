@@ -19,6 +19,7 @@ import { formatDistanceToNow } from "date-fns";
 import { TrendingDown, TrendingUp, Settings } from "lucide-react";
 import { StocktakeTasksCard } from "@/components/StocktakeTasksCard";
 import { venueTrial } from "@/hooks/useSubscription";
+import { NewPubWelcome } from "@/components/NewPubWelcome";
 
 export default function Home() {
   const { venue } = useAuth();
@@ -93,6 +94,11 @@ export default function Home() {
     }));
   }, [allReadings]);
 
+  // A pub that has never finished a count (and has no readings) gets the guided
+  // first screen instead of an empty value and a GP% from placeholder prices.
+  const isNewPub = !!products && !!stocktakes && !openStocktake && !hasClosedCount && Object.keys(latestByProduct).length === 0;
+  const draughtLines = (products ?? []).filter(p => (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes((p as any).counting_method ?? "")).length;
+
   return (
     <div className="flex flex-col h-full overflow-auto pb-20">
       <div className="p-4 bg-card border-b border-border sticky top-0 z-10 flex justify-between items-center">
@@ -104,6 +110,18 @@ export default function Home() {
         </Link>
       </div>
 
+      {isNewPub ? (
+        <div className="p-4 space-y-4">
+          {trial.active && trial.daysLeft <= 3 && (
+            <Link href="/settings" className="block">
+              <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm" data-testid="banner-trial-ending">
+                Your free trial ends in {trial.daysLeft} {trial.daysLeft === 1 ? "day" : "days"}. Pick a plan to keep spot checks, reports and unlimited products.
+              </div>
+            </Link>
+          )}
+          <NewPubWelcome draughtLines={draughtLines} totalLines={products?.length ?? 0} />
+        </div>
+      ) : (
       <div className="p-4 space-y-4">
         {/* Stock value hero */}
         <Card className="bg-primary text-primary-foreground border-none shadow-md">
@@ -263,6 +281,7 @@ export default function Home() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

@@ -589,6 +589,23 @@ export default function Stocktake() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stocktakes, products]);
 
+  // /stocktake?draught=1 (the new-pub "Count my draught" button) opens a new count
+  // with every draught line already ticked.
+  const draughtPreselected = React.useRef(false);
+  useEffect(() => {
+    if (draughtPreselected.current || !products || !stocktakes) return;
+    if (new URLSearchParams(window.location.search).get("draught") !== "1") return;
+    draughtPreselected.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+    const ids = products
+      .filter(p => (p.category ?? "").startsWith("draught_") || ["keg_weight", "dipstick", "tenths_pints"].includes(p.counting_method ?? ""))
+      .map(p => p.id);
+    if (ids.length === 0) return;
+    setSelectedProductIds(ids);
+    setStep("select");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, stocktakes]);
+
   const resetEntryForm = () => {
     setEntryWeightStr("0"); setEntryNumStr("0"); setEntryFullContainersStr("0");
     setEntryGallonsStr("0"); setEntryPintsStr("0");
