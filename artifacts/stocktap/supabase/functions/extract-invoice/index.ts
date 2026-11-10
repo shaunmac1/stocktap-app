@@ -97,7 +97,7 @@ Rules: money values are pounds as plain numbers (14.5 not "£14.50"). quantity i
       method: "POST",
       headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
-        model, max_tokens: 4000,
+        model, max_tokens: 8000,
         messages: [{ role: "user", content: [
           { type: "image", source: { type: "base64", media_type: mime, data: b64 } },
           { type: "text", text: prompt },
