@@ -39,6 +39,7 @@ const J2O = 'bbbbbbbb-0000-4000-8000-000000000001', PER = 'bbbbbbbb-0000-4000-80
     await openLine(J2O); await addAt('loc-cellar');
     check('first count asks how J2O comes in', await has('case-size-question'));
     check('suggests cases of 24 for a 275ml bottle', await has('button-case-suggested-24'));
+    check('Save is off until the question is answered', await T('button-save-entry').isDisabled());
     await p.screenshot({ path: `${SHOT}/p1-question.png` });
     await tap('button-case-suggested-24', 900);
     check('then shows FULL CASES (24) with + and −', /FULL CASES \(24\)/i.test(await txt('label-full-cases')), await txt('label-full-cases'));

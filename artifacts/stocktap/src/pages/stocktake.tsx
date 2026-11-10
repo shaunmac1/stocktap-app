@@ -36,7 +36,7 @@ import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { isHidden } from "@/lib/hidden-products";
 import { PackagedEntry } from "@/components/PackagedEntry";
-import { caseSizeOf, totalUnits, packagedBreakdown } from "@/lib/packaged";
+import { caseSizeOf, totalUnits, packagedBreakdown, needsCaseSizeAnswer } from "@/lib/packaged";
 import { useQuickHide } from "@/hooks/useQuickHide";
 import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
@@ -1873,7 +1873,7 @@ export default function Stocktake() {
                           </div>
                         );
                       })()}
-                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={() => saveLineEntry()} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle || (entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm)} data-testid="button-save-entry">
+                      <Button type="button" size="lg" className="w-full h-14 font-bold text-base mt-2" onClick={() => saveLineEntry()} disabled={savingEntry || isUncalibratedWeigh || needsFullBottle || (entryActiveMethod === "dipstick" && dipMode === "mm" && !activeProduct?.dip_full_mm) || (entryActiveMethod === "each" && !!activeProduct && needsCaseSizeAnswer({ ...(activeProduct as any), counting_method: "each" }))} data-testid="button-save-entry">
                         {savingEntry ? "Saving..." : (() => {
                           // Say exactly what's being saved, so a dropped tap is obvious before it goes in.
                           const draughtSave = (entryActiveMethod === "keg_weight" || entryActiveMethod === "dipstick") && entryCategoryResult;
