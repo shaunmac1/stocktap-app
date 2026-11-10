@@ -2,7 +2,7 @@ import { isVolumeCountingMethod } from "@/lib/inventory-reporting";
 import React, { useState, useMemo, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts, useAddProduct, useLocations, useProductReadingsMap, useDeleteProduct } from "@/hooks/api";
-import { calcCoverage } from "@/lib/coverage";
+import { useLineForecasts, useReadingHistory } from "@/hooks/useLineForecasts";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -3677,10 +3677,27 @@ export default function Library() {
   );
 
   const [unweighedOnly, setUnweighedOnly] = useState(false);
+  // Days left and what to order, on every line.
+  const forecasts = useLineForecasts(venue?.id, products as any);
+  // Counts from the server (phone copy when offline), the same source as the forecast, so
+  // "In stock" and "Lasts X days" always start from the same count, on any device.
+  const { data: readingHistory = [] } = useReadingHistory(venue?.id);
+  const historyByProduct = useMemo(() => {
+    const m = new Map<string, { ml_remaining: number; reading_at: string }[]>();
+    for (const r of readingHistory) { const a = m.get(r.product_id) ?? []; a.push(r); m.set(r.product_id, a); }
+    return m;
+  }, [readingHistory]);
+  const [toOrderOnly, setToOrderOnly] = useState(false);
+  const isToOrder = (id: string) => { const f = forecasts.get(id); return !!f && f.orderQty > 0; };
+  const toOrderCount = useMemo(() => (products ?? []).filter(p => !isHidden(p as any) && isToOrder(p.id)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [products, forecasts]);
   const filtered = useMemo(() => {
-    if (!unweighedOnly) return searchFiltered;
-    return searchFiltered.filter(needsWeigh);
-  }, [searchFiltered, unweighedOnly]);
+    let list = unweighedOnly ? searchFiltered.filter(needsWeigh) : searchFiltered;
+    if (toOrderOnly) list = list.filter(p => isToOrder(p.id)).sort((a, b) => (forecasts.get(a.id)?.daysLeft ?? 0) - (forecasts.get(b.id)?.daysLeft ?? 0));
+    return list;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchFiltered, unweighedOnly, toOrderOnly, forecasts]);
 
   // Bypass Dexie entirely — query Supabase directly so that direct SQL changes
   // (container_l set to NULL) are always reflected without a cache wipe.
@@ -3987,6 +4004,20 @@ export default function Library() {
           ))}
         </div>
 
+        {(toOrderCount > 0 || toOrderOnly) && (
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border ${
+                toOrderOnly ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"
+              }`}
+              onClick={() => setToOrderOnly(v => !v)}
+              data-testid="filter-chip-to-order"
+            >
+              To order ({toOrderCount})
+            </button>
+          </div>
+        )}
         {needsWeighingCount > 0 && (
           <div className="flex items-center gap-1.5">
             <button
@@ -4177,7 +4208,7 @@ export default function Library() {
           </div>
         ) : Object.keys(grouped).length === 0 && (products?.length ?? 0) > 0 ? (
           <div className="text-center py-10 text-sm text-muted-foreground" data-testid="library-no-results">
-            {unweighedOnly ? "Nothing left to weigh." : `Nothing in your library matches “${search.trim()}”.`}
+            {toOrderOnly ? "Nothing needs ordering right now." : unweighedOnly ? "Nothing left to weigh." : `Nothing in your library matches “${search.trim()}”.`}
           </div>
         ) : Object.keys(grouped).length === 0 ? (
           <div className="text-center py-16 space-y-4">
@@ -4207,18 +4238,10 @@ export default function Library() {
               )}
               <div className="space-y-2">
                 {prods.map(p => {
-                  const pReadings = readingsMap?.get(p.id) ?? [];
+                  const pReadings = [...(readingsMap?.get(p.id) ?? []), ...(historyByProduct.get(p.id) ?? [])];
                   const latestReading = pReadings.length > 0
                     ? pReadings.reduce((best, r) => new Date(r.reading_at) > new Date(best.reading_at) ? r : best)
                     : null;
-                  const coverage = isPro && pReadings.length >= 2 && latestReading
-                    ? calcCoverage(latestReading.ml_remaining, pReadings, orderCycleDays)
-                    : null;
-                  const coverageDays = coverage && isFinite(coverage.daysOfCover) ? Math.round(coverage.daysOfCover) : null;
-                  // Suppress "Order now" if current stock is at or above par level —
-                  // velocity-only orderFlag can fire even when shelves are full.
-                  const bottlesOnHand = latestReading && p.size_ml ? latestReading.ml_remaining / p.size_ml : null;
-                  const abovePar = p.par_level != null && bottlesOnHand != null && bottlesOnHand >= p.par_level;
                   const weighed = isWeighed(p);
                   return (
                     <div
@@ -4325,20 +4348,23 @@ export default function Library() {
                               {(p as any).bottle_shape_id ? "Shape set" : "Set shape"}
                             </button>
                           )}
-                          {coverage?.orderFlag && !abovePar && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                              Order now
-                            </span>
-                          )}
-                          {coverageDays !== null && !coverage?.orderFlag && (
-                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
-                              coverageDays >= orderCycleDays * 2
-                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                            }`}>
-                              {coverageDays}d cover
-                            </span>
-                          )}
+                          {(() => {
+                            // Days left and what to order, from the newest count, deliveries since and
+                            // the sales speed (own counts first, then stock audits). Never a guess.
+                            const fc = forecasts.get(p.id);
+                            if (!fc || fc.status === "unknown" && !fc.label) return null;
+                            const tone = fc.status === "out" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              : fc.status === "low" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                              : fc.status === "order" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                              : fc.status === "ok" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-muted text-muted-foreground";
+                            return (
+                              <span className="basis-full flex flex-col gap-0.5" data-testid={`line-forecast-${p.id}`}>
+                                <span className={`self-start text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${tone}`} data-testid={`line-forecast-label-${p.id}`}>{fc.label}</span>
+                                {fc.detail && <span className="text-[11px] text-muted-foreground" data-testid={`line-forecast-detail-${p.id}`}>{fc.detail}</span>}
+                              </span>
+                            );
+                          })()}
                           {litreOnBottleIds.has(p.id) ? (
                             <button
                               type="button"

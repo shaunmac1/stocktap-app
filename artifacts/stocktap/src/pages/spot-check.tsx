@@ -1,3 +1,5 @@
+import { useLineForecasts, useReadingHistory } from "@/hooks/useLineForecasts";
+import { suggestChecks } from "@/lib/check-picks";
 import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -178,6 +180,16 @@ export default function SpotCheck() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [products]);
 
+  // Today's check: lines worth counting today and why (running low, dearest lines not checked
+  // for a week, never checked). One tap ticks them; any can be added or removed by hand.
+  const forecasts = useLineForecasts(venue?.id, products as any);
+  const { data: readingHistory = [] } = useReadingHistory(venue?.id);
+  const todaysPicks = useMemo(() => {
+    const last = new Map<string, string>();
+    for (const r of readingHistory) { const c = last.get(r.product_id); if (!c || r.reading_at > c) last.set(r.product_id, r.reading_at); }
+    return suggestChecks((products ?? []) as any, forecasts, last);
+  }, [products, forecasts, readingHistory]);
+  const pickReason = useMemo(() => new Map(todaysPicks.map(x => [x.id, x.label])), [todaysPicks]);
   const pickableProducts = useMemo(() => {
     if (!products) return [];
     let list = products.filter(p => !isHidden(p as any));
@@ -185,12 +197,15 @@ export default function SpotCheck() {
     if (selectedVendor !== "all") list = list.filter(p => p.vendor === selectedVendor);
     const q = searchStr.trim().toLowerCase();
     if (q) list = list.filter(p => p.name.toLowerCase().includes(q));
-    return [...list].sort((a, b) => a.name.localeCompare(b.name));
-  }, [products, selectedCategory, selectedVendor, searchStr]);
+    // Today's suggested lines first, in their order; then everything else A–Z.
+    const rank = new Map(todaysPicks.map((x, i) => [x.id, i]));
+    return [...list].sort((a, b) => (rank.get(a.id) ?? 1e9) - (rank.get(b.id) ?? 1e9) || a.name.localeCompare(b.name));
+  }, [products, selectedCategory, selectedVendor, searchStr, todaysPicks]);
 
   const selectAllVisible = () =>
     setSelectedIds(ids => Array.from(new Set([...ids, ...pickableProducts.map(p => p.id)])));
   const clearSelection = () => setSelectedIds([]);
+  const pickTodays = () => setSelectedIds(ids => Array.from(new Set([...ids, ...todaysPicks.map(x => x.id)])));
 
   const selectedProducts = useMemo(() => {
     if (!products) return [];
@@ -636,6 +651,20 @@ export default function SpotCheck() {
               </div>
             </button>
           )}
+          {todaysPicks.length > 0 && (
+            <button
+              type="button"
+              className="w-full flex items-center justify-between gap-2 p-3 rounded-xl border-2 border-primary bg-primary/5 text-left"
+              onClick={pickTodays}
+              data-testid="button-todays-check"
+            >
+              <div>
+                <div className="text-sm font-bold text-primary">Today's check: tick {todaysPicks.length} {todaysPicks.length === 1 ? "line" : "lines"}</div>
+                <div className="text-xs text-muted-foreground">Running low, dearest lines not checked for a week, never checked</div>
+              </div>
+              <span className="text-xs font-semibold text-primary shrink-0">Tick them</span>
+            </button>
+          )}
           <Input
             placeholder="Search products…"
             value={searchStr}
@@ -701,6 +730,9 @@ export default function SpotCheck() {
                   <div className="text-xs text-muted-foreground">
                     {p.category ? (CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category) : "—"}{p.size_ml ? ` · ${p.size_ml}ml` : ""}
                   </div>
+                  {pickReason.has(p.id) && (
+                    <div className="text-xs font-semibold text-primary mt-0.5" data-testid={`pick-reason-${p.id}`}>{pickReason.get(p.id)}</div>
+                  )}
                 </div>
                 <div
                   className={`w-5 h-5 rounded-full border-2 ${

@@ -6,6 +6,8 @@ import { useProducts, useStocktakes } from "@/hooks/api";
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { useDeleteStockAudit, useSaveStockAudit, useStockAudits, useStocktakeReadingsFor, type StockAuditRow } from "@/hooks/useStockAudits";
 import { buildCountAudits } from "@/lib/count-audits";
+import { useReadingHistory } from "@/hooks/useLineForecasts";
+import { mlToAuditBase } from "@/lib/line-forecast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -96,11 +98,32 @@ export default function Orders() {
     return out;
   }, [deliveries, latest, productByKey]);
   const deliveredLines = [...deliveredOn.values()].filter(v => v.some(d => d.qty > 0)).length;
+  // A line counted in StockTap since the audit starts from that real count, not the audit's.
+  const { data: history = [] } = useReadingHistory(venue?.id);
+  const startFor = useMemo(() => {
+    const newest = new Map<string, { ml_remaining: number; reading_at: string }>();
+    for (const r of history) { const c = newest.get(r.product_id); if (!c || r.reading_at > c.reading_at) newest.set(r.product_id, r); }
+    const lineByKey = new Map((latest?.lines ?? []).map(l => [lineKey(l.name), l]));
+    return (key: string) => {
+      const p = productByKey.get(key); const line = lineByKey.get(key);
+      if (!p || !line || !latest) return null;
+      const r = newest.get(p.id);
+      if (!r || r.reading_at.slice(0, 10) <= latest.period_end) return null;
+      const at = Date.parse(r.reading_at);
+      return {
+        counted: mlToAuditBase(Number(r.ml_remaining), line.base, p as any),
+        sinceDays: Math.max(0, (Date.now() - at) / 864e5),
+        deliveredOn: deliveries.filter(d => d.product_id === p.id && Date.parse(d.delivered_at) > at)
+          .map(d => ({ day: (Date.parse(d.delivered_at) - at) / 864e5, qty: deliveredBase(d as any, line.base, p) })),
+      };
+    };
+  }, [history, latest, productByKey, deliveries]);
+  const recountedLines = useMemo(() => (latest?.lines ?? []).filter(l => startFor(lineKey(l.name))).length, [latest, startFor]);
 
   const basis: Basis = basisId === "latest" ? { kind: "latest" } : basisId === "average" ? { kind: "average" } : basisId === "busiest" ? { kind: "busiest" } : { kind: "period", auditId: basisId };
-  const result = useMemo(() => orderList(audits, { basis, busyPct: busy, coverDays: cover, sinceDays }, { deliveredOn, productFor: k => productByKey.get(k) ?? null }),
+  const result = useMemo(() => orderList(audits, { basis, busyPct: busy, coverDays: cover, sinceDays }, { deliveredOn, productFor: k => productByKey.get(k) ?? null, startFor }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [audits, basisId, busy, cover, sinceDays, deliveredOn, productByKey]);
+    [audits, basisId, busy, cover, sinceDays, deliveredOn, productByKey, startFor]);
 
   useEffect(() => { store("orders:cover", String(cover)); }, [cover]);
   useEffect(() => { store("orders:busy", String(busy)); }, [busy]);
@@ -256,7 +279,7 @@ export default function Orders() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground" data-testid="text-stock-basis">
-                Stock now = your {new Date(latest.period_end + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })} count, less {sinceDays} {sinceDays === 1 ? "day's" : "days'"} sales{deliveredLines ? `, plus ${deliveredLines} delivered ${deliveredLines === 1 ? "line" : "lines"} added since` : ""}. Delisted lines are left out.
+                Stock now = your {new Date(latest.period_end + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })} count, less {sinceDays} {sinceDays === 1 ? "day's" : "days'"} sales{deliveredLines ? `, plus ${deliveredLines} delivered ${deliveredLines === 1 ? "line" : "lines"} added since` : ""}.{recountedLines ? <span data-testid="text-recounted-lines"> {recountedLines} {recountedLines === 1 ? "line starts" : "lines start"} from your newer StockTap count instead.</span> : null} Delisted lines are left out.
               </p>
             </div>
 

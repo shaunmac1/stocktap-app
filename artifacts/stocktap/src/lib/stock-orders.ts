@@ -1,6 +1,7 @@
 import type { AuditLine, AuditBase, AuditSummary } from "./venners-audit";
 import { nameTokens, VARIANTS } from "./delivery-note";
 import { postmixDrinkLitresPerBox } from "./calculations";
+import { caseSizeOf } from "./packaged";
 
 /**
  * Order suggestions and busy-period patterns from Venners audits: how fast each line sells in
@@ -127,6 +128,9 @@ export function packFor(line: { name: string; base: AuditBase; unit: string; cat
       const n = product?.pack_size && product.pack_size > 1 && product.counting_method === "dozen" ? product.pack_size : 12;
       return { size: n, one: `case of ${n}`, many: `cases of ${n}` };
     }
+    // Bottles and cans counted each with a case size set: order in those cases.
+    const cs = product && (product.counting_method === "each" || product.counting_method === "count") ? caseSizeOf(product) : null;
+    if (cs) return { size: cs, one: `case of ${cs}`, many: `cases of ${cs}` };
     return { size: 1, one: "unit", many: "units" };
   }
   if (line.base === "ml") {
@@ -253,6 +257,11 @@ export function orderList(
     /** deliveries since the count with the day they came (days after the count), in base units */
     deliveredOn?: Map<string, Array<{ day: number; qty: number }>>;
     productFor?: (key: string) => OrderProductLike | null;
+    /**
+     * A newer real count of the line than the audit (in the line's base unit), with days since
+     * it and deliveries after it. Used instead of the audit's closing count when given.
+     */
+    startFor?: (key: string) => { counted: number; sinceDays: number; deliveredOn: Array<{ day: number; qty: number }> } | null;
   } = {},
 ): { rows: OrderRow[]; slow: Array<{ key: string; name: string; category: string; soldPerWeek: number; base: AuditBase }>; covered: CoveredRow[]; latest: StoredAudit | null; order: StoredAudit[] } {
   const { order, lines } = buildPatterns(audits);
@@ -270,12 +279,15 @@ export function orderList(
     if (rate <= 0) continue;
     const product = extras.productFor?.(key) ?? null;
     const pack = packFor(l, product);
-    const dated = extras.deliveredOn?.get(key);
+    const start = extras.startFor?.(key) ?? null;
+    const dated = start ? start.deliveredOn : extras.deliveredOn?.get(key);
     const delivered = dated ? dated.reduce((s, d) => s + d.qty, 0) : extras.delivered?.get(key) ?? 0;
     // Stock since the count goes down at the recent rate, whatever basis is chosen to order for.
     // It can't be sold while there's none, so a line that ran out before a delivery starts
     // again from what came in.
-    const now = stockNow(l.counted, recent, opts.sinceDays, dated ?? (delivered ? [{ day: 0, qty: delivered }] : []));
+    const now = start
+      ? stockNow(start.counted, recent, start.sinceDays, dated ?? [])
+      : stockNow(l.counted, recent, opts.sinceDays, dated ?? (delivered ? [{ day: 0, qty: delivered }] : []));
     if (rate * 30 < pack.size && now <= 0) { slow.push({ key, name: l.name, category: l.category, soldPerWeek: rate * 7, base: l.base }); continue; }
     const need = rate * opts.coverDays - Math.max(0, now);
     const daysLeft = Math.max(0, now) / rate;
