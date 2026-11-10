@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to run music bingo in a pub: the card maths, the law and the costs | StockTap</title>
+  <meta name="description" content="How to run music bingo: how many songs a full house takes (I simulated it), TheMusicLicence, why Spotify is out, the bingo rules, and the pints a night needs." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://stocktap.net/guides/how-to-run-music-bingo-pub" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How to run music bingo in a pub: the card maths, the law and the costs | StockTap" />
+  <meta property="og:description" content="How to run music bingo: how many songs a full house takes (I simulated it), TheMusicLicence, why Spotify is out, the bingo rules, and the pints a night needs." />
+  <meta property="og:url" content="https://stocktap.net/guides/how-to-run-music-bingo-pub" />
+  <meta property="og:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to run music bingo in a pub: the card maths, the law and the costs | StockTap" />
+  <meta name="twitter:description" content="How to run music bingo: how many songs a full house takes (I simulated it), TheMusicLicence, why Spotify is out, the bingo rules, and the pints a night needs." />
+  <meta name="twitter:image" content="https://stocktap.net/opengraph.jpg" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "How to run music bingo in a pub: playlist length, the card maths, the licence and gambling rules, and what a night costs",
+      "description": "How to run music bingo: how many songs a full house takes (I simulated it), TheMusicLicence, why Spotify is out, the bingo rules, and the pints a night needs.",
+      "datePublished": "2026-11-10",
+      "dateModified": "2026-11-10",
+      "author": {
+        "@type": "Person",
+        "name": "Shaun McManus",
+        "jobTitle": "Licensee",
+        "url": "https://stocktap.net/about"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "StockTap",
+        "url": "https://stocktap.net"
+      },
+      "mainEntityOfPage": "https://stocktap.net/guides/how-to-run-music-bingo-pub"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do you run music bingo in a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Build a playlist of about 50 songs a round, print cards with 25 song titles each, play 30 to 40 seconds of each song in random order, check winners against your played list, and give prizes for a line and a full house. Make sure your music licence covers it and follow the pub bingo rules."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many songs do you need for music bingo?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "On a 25-square card, a full house needs nearly the whole playlist. In my simulation, a 50-song list gave a full house at about song 45 (around 26 minutes at 35 seconds a song) and a 75-song list at about song 67 (around 39 minutes)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need a licence for music bingo in a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You need TheMusicLicence from PPL PRS to play recorded music to customers. Music bingo isn't named in the PRS pub tariff; on a reading of Tariff P, featured recorded music sessions are £14.64 plus VAT for up to 100 people. Tell PPL PRS before your first night."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use Spotify for music bingo in a pub?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Spotify's terms are for personal, non-commercial use and it says you can't play it publicly from a business such as a bar. Use a commercial streaming service, and you still need TheMusicLicence."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I charge entry for music bingo?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not for the game itself. Music bingo is bingo under the Gambling Commission's definition, so pub exempt gaming rules apply: no participation fee, stakes no more than £5 a person per game, all stakes paid back as prizes, and no more than £2,000 in stakes or prizes in seven days."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://stocktap.net"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://stocktap.net/guides"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "How to run music bingo in a pub: playlist length, the card maths, the licence and gambling rules, and what a night costs",
+          "item": "https://stocktap.net/guides/how-to-run-music-bingo-pub"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #111316;
+      color: #F3F1EC;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid #2A2E34; }
+    .container { max-width: 80rem; margin: 0 auto; padding: 0 1.5rem; }
+    .nav-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon {
+      width: 1.75rem; height: 1.75rem;
+      background: #E0A343;
+      border-radius: 0.375rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+    .nav-signin {
+      color: #F3F1EC; font-size: 0.875rem; font-weight: 500;
+      padding: 0.375rem 1rem;
+      border: 1px solid #2A2E34;
+      border-radius: 0.375rem;
+      transition: background 0.15s;
+    }
+    .nav-signin:hover { background: #1A1D21; }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────── */
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      padding: 1rem 0 0;
+    }
+    .breadcrumb a { color: #8A9099; }
+    .breadcrumb a:hover { color: #F3F1EC; }
+    .breadcrumb span { margin: 0 0.375rem; }
+
+    /* ── Article layout ──────────────────────────────────────────── */
+    main { flex: 1; }
+    .article-wrap { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .article-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid #2A2E34; }
+    .article-category {
+      display: inline-flex; align-items: center;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #E0A343;
+      background: rgba(224,163,67,.10);
+      border: 1px solid rgba(224,163,67,.25);
+      border-radius: 9999px;
+      padding: 0.2rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.625rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .article-meta {
+      font-size: 0.875rem;
+      color: #8A9099;
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .article-meta-author { color: #F3F1EC; font-weight: 500; }
+
+    /* ── Article body ─────────────────────────────────────────────*/
+    .article-body {
+      font-size: 1.0625rem;
+      line-height: 1.78;
+      color: #DDD9D3;
+    }
+    .article-body h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
+      color: #F3F1EC;
+      margin: 2.75rem 0 1rem;
+    }
+    .article-body h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F3F1EC;
+      margin: 1.75rem 0 0.5rem;
+    }
+    .article-body p { margin-bottom: 1.375rem; }
+    .article-body a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .article-body a:hover { color: #F3C26A; }
+    .article-body ul,
+    .article-body ol { padding-left: 1.5rem; margin-bottom: 1.375rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body strong { color: #F3F1EC; font-weight: 600; }
+
+    /* ── Data table ───────────────────────────────────────────────*/
+    .article-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 1.375rem;
+    }
+    .article-body caption {
+      font-size: 0.8125rem;
+      color: #8A9099;
+      text-align: left;
+      padding: 0 0 0.5rem;
+      line-height: 1.5;
+    }
+    .article-body th {
+      text-align: left;
+      font-weight: 600;
+      color: #F3F1EC;
+      border-bottom: 2px solid #2A2E34;
+      padding: 0.5rem 0.75rem;
+    }
+    .article-body td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2A2E34;
+      color: #DDD9D3;
+    }
+    .article-body tr:last-child td { border-bottom: none; }
+
+    /* ── Sources ──────────────────────────────────────────────────*/
+    .article-sources {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+      font-size: 0.8125rem;
+      color: #8A9099;
+      line-height: 1.65;
+    }
+    .article-sources h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8A9099;
+      margin-bottom: 0.75rem;
+    }
+    .article-sources ul { padding-left: 1.25rem; }
+    .article-sources li { margin-bottom: 0.4rem; }
+    .article-sources a { color: #8A9099; text-decoration: underline; }
+    .article-sources a:hover { color: #F3F1EC; }
+
+    /* ── Author box ───────────────────────────────────────────────*/
+    .author-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+    }
+    .author-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8A9099;
+      margin-bottom: 0.375rem;
+    }
+    .author-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.375rem; }
+    .author-bio { font-size: 0.9rem; color: #8A9099; line-height: 1.65; }
+
+    /* ── CTA ──────────────────────────────────────────────────────*/
+    .cta-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #1A1D21;
+      border: 1px solid #2A2E34;
+      border-radius: 0.75rem;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+    }
+    .cta-box p { font-size: 0.875rem; color: #8A9099; margin-bottom: 1.5rem; }
+    .cta-btn {
+      display: inline-block;
+      background: #E0A343;
+      color: #111316;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.875rem 2.25rem;
+      border-radius: 0.5rem;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #d49838; color: #111316; }
+
+    /* ── Related guides ───────────────────────────────────────────*/
+    .related-guides {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2E34;
+    }
+    .related-guides-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #8A9099; margin-bottom: 0.75rem;
+    }
+    .related-guides-list { list-style: none; padding: 0; }
+    .related-guides-list li { margin-bottom: 0.5rem; }
+    .related-guides-list a {
+      color: #E0A343;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      font-size: 0.9375rem;
+    }
+    .related-guides-list a:hover { color: #F3C26A; }
+
+    /* ── Footer ───────────────────────────────────────────────────*/
+    .site-footer { border-top: 1px solid #2A2E34; padding: 1.5rem 0; margin-top: auto; }
+    .footer-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.75rem;
+      font-size: 0.75rem; color: #8A9099;
+    }
+    .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links a { color: #8A9099; }
+    .footer-links a:hover { color: #F3F1EC; }
+
+    @media (max-width: 640px) {
+      .article-wrap { padding-top: 1.75rem; }
+      .article-body table { font-size: 0.875rem; }
+      .article-body th, .article-body td { padding: 0.4rem 0.5rem; }
+    }
+  </style>
+<style>.nav-links{display:flex;align-items:center;gap:1.1rem;font-size:0.875rem}.nav-links>a{color:#8A9099}.nav-links>a:hover{color:#F3F1EC}@media (max-width:380px){.nav-links{gap:0.8rem}}</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-inner">
+        <a href="/" class="logo" aria-label="StockTap home">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </div>
+          <span class="logo-text">StockTap</span>
+        </a>
+        <div class="nav-links"><a href="/guides">Guides</a><a href="/tools">Tools</a><a href="/videos">Videos</a><a href="/auth" class="nav-signin">Sign in</a></div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <article class="article-wrap">
+      <div class="breadcrumb" style="padding-left:0; padding-right:0;">
+        <a href="/guides">Guides</a><span aria-hidden="true"> / </span>Running the pub</div>
+
+      <header class="article-header">
+        <div class="article-category">Running the pub</div>
+        <h1>How to run music bingo in a pub: playlist length, the card maths, the licence and gambling rules, and what a night costs</h1>
+        <div class="article-meta">
+          <span class="article-meta-author">Shaun McManus</span>
+          <time datetime="2026-11-10">10 November 2026</time>
+        </div>
+      </header>
+
+      <div class="article-body" id="article-body">
+<p><strong>How to run music bingo in a pub, in short: build a playlist of 50 to 75 songs, print cards with 25 song titles each, play 30 to 40 seconds of each track in random order, and give prizes for a line and a full house. Make sure your TheMusicLicence covers it, play the music through a service licensed for business use, and run it under the pub bingo rules: no entry fee, stakes no more than £5 a person a game, every penny of stakes paid back as prizes.</strong></p>
+
+<p>That's the whole night in one paragraph. The part nobody tells you is the maths. Get the playlist length wrong and your full house either comes in ten minutes or drags past the hour, and both empty the room. I ran the numbers so you don't have to guess, and they're further down.</p>
+
+<h2>Why music bingo works on a quiet night</h2>
+
+<p>It's bingo, so everyone knows how to play. It's music, so the people who'd never sit through a quiz still join in. And it fills the gap that a pub quiz leaves, because nobody feels thick for not knowing a song.</p>
+
+<p>The best published example I've found is from Star Pubs, which featured a licensee running a singalong bingo night at a pub in Shepperton. Up to 60 people, sales up 20% on the night by the licensee's own account, and a DJ they pay £150. That's one pub's figure, not a promise, but it's the right shape: a midweek night that wasn't doing much, turned into one that does.</p>
+
+<h2>The card maths: how long a game takes</h2>
+
+<p>I simulated thousands of games on a computer to answer the question everyone asks: how many songs until someone shouts? Each card has 25 song titles drawn at random from the playlist. These are the middle results, so half of real games will be quicker and half slower.</p>
+
+<table>
+<thead><tr><th>Playlist length</th><th>Players</th><th>Songs to first line</th><th>Songs to first full house</th><th>Full house at 35 seconds a song</th></tr></thead>
+<tbody>
+<tr><td>50 songs</td><td>30</td><td>about 19</td><td>about 45</td><td>about 26 minutes</td></tr>
+<tr><td>75 songs</td><td>30</td><td>about 28</td><td>about 67</td><td>about 39 minutes</td></tr>
+<tr><td>90 songs</td><td>30</td><td>about 32</td><td>about 80</td><td>about 47 minutes</td></tr>
+<tr><td>75 songs</td><td>60</td><td>about 24</td><td>about 65</td><td>about 38 minutes</td></tr>
+</tbody>
+</table>
+
+<p><em>My own simulation, 1,500 games per row. Lines are one horizontal row of five.</em></p>
+
+<p>Two things jump out. First, a full house on a 25-square card needs nearly the whole playlist, whatever the crowd size. With 75 songs it comes at about song 67. Doubling the players barely moves it. Second, the line comes in under half that.</p>
+
+<p>So size the playlist to the time you've got. For a round of about half an hour, use 50 songs. For a longer round with a break, 75. I'd run three rounds of 50 with a short gap between each, because the gap is when people go to the bar.</p>
+
+<h2>How to run it, step by step</h2>
+
+<ol>
+<li><strong>Pick a theme for each round.</strong> Decades, number ones, film songs, one-hit wonders. Themes help people recognise songs, and a round that suits your regulars beats a clever one.</li>
+<li><strong>Build each playlist.</strong> 50 songs a round. Write the list down with the titles exactly as they'll appear on the cards, because arguments start when a card says one title and the song's known by another.</li>
+<li><strong>Make the cards.</strong> 25 different titles per card from that round's list, every card different. There are free and paid card generators online. Print one card per player per round, plus spares.</li>
+<li><strong>Shuffle the play order.</strong> Random order, and keep a printed list of what you've played, ticked as you go. That's how you check a winning card.</li>
+<li><strong>Play 30 to 40 seconds of each song.</strong> Enough to recognise, not so long it drags. If the room's slow, play the chorus.</li>
+<li><strong>Check winners against your played list.</strong> Every title they've marked has to be on it. Announce the win, then carry on to full house.</li>
+<li><strong>Give the prizes straight away.</strong> A drink or a bar tab handed over in front of the room sells the next round better than anything you'll say on the mic.</li>
+</ol>
+
+<h2>The law, in four parts</h2>
+
+<h3>1. TheMusicLicence</h3>
+
+<p>Playing recorded music to customers needs TheMusicLicence from PPL PRS, and PPL PRS lists music in quizzes among the things pubs usually need it for. Music bingo isn't named on its pub page or in the PRS pub tariff. On my reading of PRS's Tariff P from 1 October 2026, a night where music is the main event falls under its featured recorded music sessions, the same line as music quizzes, karaoke and discos: £14.64 a session plus VAT for a room of up to 100 people, and £3.70 for each extra 25. Ring PPL PRS before your first night and tell them what you're doing, so it's on your licence. If you start before you're licensed, the tariff charges the higher rate, standard plus 50%, for the first year.</p>
+
+<h3>2. Spotify isn't for pubs</h3>
+
+<p>Spotify's terms give personal, non-commercial use, and its own support page says you can't play it publicly from a business such as a bar. PPL PRS says the same: playing music in a business through streaming needs a commercial streaming service, and you still need TheMusicLicence on top. Use a service sold for business use, or music you've bought on a format licensed for it.</p>
+
+<h3>3. It's still bingo</h3>
+
+<p>The Gambling Commission defines bingo as "any version of that game, irrespective of by what name it is described". Songs instead of numbers doesn't change that. So pub music bingo runs under the same exempt gaming rules as the number version, which I've set out in full in my <a href="/guides/how-to-run-a-pub-bingo-night-rules-calls">pub bingo guide</a>:</p>
+
+<ul>
+<li>No participation fee. No ticket price for the night that includes the game.</li>
+<li>Stakes no more than £5 a person per game, all of it paid back as prizes.</li>
+<li>No more than £2,000 in stakes or prizes in any seven days.</li>
+<li>No under-18s playing for stakes, and no linking games with another pub.</li>
+</ul>
+
+<p>The trap is the ticketed night. "£5 on the door for music bingo and a prize" is a participation fee, and the Morning Advertiser's legal explainer on pub bingo makes the same point about ticketed events. Charge for the food or the drinks deal if you want. Keep the game free, or stake-only with every penny going back out. Free-to-play with a prize the pub puts up is the simplest version of all.</p>
+
+<p>The rules on free-entry prize nights aren't spelled out on the Commission pages I read, so if you're planning anything big, check with your licensing team first.</p>
+
+<h3>4. No entertainment licence needed in normal hours</h3>
+
+<p>Under the Live Music Act changes, playing recorded music in a pub with an alcohol licence isn't licensable entertainment between 8am and 11pm for an audience of up to 500. Most music bingo nights sit well inside that. Past 11pm, check your premises licence. TheMusicLicence is a separate thing and you need it either way.</p>
+
+<h2>What a night costs, and the pints that pay for it</h2>
+
+<table>
+<thead><tr><th>Cost</th><th>Run it yourself</th><th>With a paid host</th></tr></thead>
+<tbody>
+<tr><td>Host</td><td>&pound;0</td><td>&pound;150 (Star Pubs' published example)</td></tr>
+<tr><td>Extra staff, 3 hours at &pound;12.71</td><td>&pound;38.13</td><td>&pound;38.13</td></tr>
+<tr><td>Prizes: two &pound;20 bar tabs a round x 3 rounds, at stock cost</td><td>&pound;45.00</td><td>&pound;45.00</td></tr>
+<tr><td>Music licence session, if not already covered</td><td>&pound;14.64</td><td>&pound;14.64</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>&pound;97.77</strong></td><td><strong>&pound;247.77</strong></td></tr>
+<tr><td>Extra pints to cover it, at &pound;2.45 gross profit</td><td>40</td><td>102</td></tr>
+</tbody>
+</table>
+
+<p>A £20 bar tab costs you about £7.50 in stock, as I worked out in the bingo guide, so six tabs are £45. Pints are my arithmetic. Forty extra pints is twenty people having two drinks they wouldn't otherwise have had. A hired host has to bring in a crowd of fifty-plus to wash its face. That's why I'd run the first few yourself and only pay for a host once you know the night has legs.</p>
+
+<p>The question that decides it is the same as for any themed night: does it bring in people who weren't coming, or just give your regulars something to do with the drink they'd have bought anyway? Count your sales from 7pm to 10pm on music bingo nights against the same night a month earlier. My <a href="/guides/should-a-pub-close-on-quiet-nights">quiet nights guide</a> has the sum for what an empty night actually costs you.</p>
+
+<h2>The idea I'd add: the unmarked songs</h2>
+
+<p>Here's the bit nobody does. Collect the cards at the end of the night and look at which songs nobody marked. With 50 songs a round and 25 a card, every song is on about half the cards, so a song nobody recognised stands out straight away. Swap it out next week. After four or five weeks you've got a playlist built by your own crowd, and the nights get louder because every song lands.</p>
+
+<p>If you'd rather keep the TVs doing the work on other nights, <a href="/tv/">StockTap TV</a> runs number bingo on customers' phones, a raffle draw and a quiz on every screen every 20 minutes, for £34 a month for the whole pub. Music bingo itself is a night you run with a speaker and a stack of cards. My <a href="/guides/pub-entertainment-ideas">pub entertainment ideas guide</a> has the other nights worth trying, with their costs.</p>
+
+<p>This is a licensee's plain-English reading of the rules, not legal advice. PPL PRS and your licensing team have the final word on your own set-up.</p>
+
+<h2>Common questions</h2>
+<h3>How do you run music bingo in a pub?</h3>
+<p>Build a playlist of about 50 songs a round, print cards with 25 song titles each, play 30 to 40 seconds of each song in random order, check winners against your played list, and give prizes for a line and a full house. Make sure your music licence covers it and follow the pub bingo rules.</p>
+<h3>How many songs do you need for music bingo?</h3>
+<p>On a 25-square card, a full house needs nearly the whole playlist. In my simulation, a 50-song list gave a full house at about song 45 (around 26 minutes at 35 seconds a song) and a 75-song list at about song 67 (around 39 minutes).</p>
+<h3>Do I need a licence for music bingo in a pub?</h3>
+<p>You need TheMusicLicence from PPL PRS to play recorded music to customers. Music bingo isn&#x27;t named in the PRS pub tariff; on a reading of Tariff P, featured recorded music sessions are £14.64 plus VAT for up to 100 people. Tell PPL PRS before your first night.</p>
+<h3>Can I use Spotify for music bingo in a pub?</h3>
+<p>No. Spotify&#x27;s terms are for personal, non-commercial use and it says you can&#x27;t play it publicly from a business such as a bar. Use a commercial streaming service, and you still need TheMusicLicence.</p>
+<h3>Can I charge entry for music bingo?</h3>
+<p>Not for the game itself. Music bingo is bingo under the Gambling Commission&#x27;s definition, so pub exempt gaming rules apply: no participation fee, stakes no more than £5 a person per game, all stakes paid back as prizes, and no more than £2,000 in stakes or prizes in seven days.</p>
+
+<div class="article-sources">
+<h2>Sources</h2>
+<ul>
+<li>Music in quizzes covered by TheMusicLicence, recorded music in pubs: <a href="https://pplprs.co.uk/business/pubs-bars/" rel="noopener">PPL PRS, Pubs and bars</a>, checked 10 November 2026.</li>
+<li>Featured recorded music, music quizzes, karaoke and discos £14.64 per session for the first 100 capacity plus £3.70 per extra 25, higher rate (standard plus 50%) in the first year if unlicensed: <a href="https://pplprs.co.uk/wp-content/uploads/P-2026-10-Tariff.pdf" rel="noopener">PRS for Music Tariff P, from 1 October 2026</a>. Music bingo falling under that line is my reading.</li>
+<li>Spotify "personal, non-commercial use": <a href="https://www.spotify.com/us/legal/end-user-agreement/?nd=1" rel="noopener">Spotify Terms of Use</a>; "you can't broadcast or play Spotify publicly from a business, such as bars": <a href="https://support.spotify.com/us/account_payment_help/account_help/use-spotify-in-my-bar-restaurant-store-school-etc" rel="noopener">Spotify support</a>. Commercial streaming plus TheMusicLicence: <a href="https://pplprs.co.uk/background-music/streaming/" rel="noopener">PPL PRS, streaming</a>.</li>
+<li>Bingo definition "any version of that game, irrespective of by what name it is described": <a href="https://www.gamblingcommission.gov.uk/licensees-and-businesses/guide/how-bingo-is-defined" rel="noopener">Gambling Commission</a>. £5 stake, all stakes returned, £2,000 in seven days, no participation fees, no under-18s: <a href="https://www.gamblingcommission.gov.uk/licensees-and-businesses/guide/page/exempt-gaming-in-pubs" rel="noopener">Gambling Commission, exempt gaming in pubs</a>.</li>
+<li>Ticketed events as a participation fee: <a href="https://www.morningadvertiser.co.uk/Article/2025/03/03/can-i-host-bingo-games-at-my-pub/" rel="noopener">Morning Advertiser, 3 March 2025</a>.</li>
+<li>Recorded music not licensable 8am to 11pm for up to 500 in alcohol-licensed premises: <a href="https://www.gov.uk/guidance/entertainment-licensing-changes-under-the-live-music-act" rel="noopener">gov.uk, entertainment licensing changes</a>.</li>
+<li>Up to 60 people, sales up 20%, £150 DJ: <a href="https://www.starpubs.co.uk/news/my-star-news-february-2026" rel="noopener">Star Pubs, My Star News, February 2026</a>.</li>
+<li>£20 bar tab at £7.50 stock cost and £2.45 gross profit on a £5.34 pint: my <a href="/guides/how-to-run-a-pub-bingo-night-rules-calls">pub bingo guide</a>. Staff at £12.71: gov.uk 2026 rates. The card simulation, run times, cost table and unmarked-songs idea are mine.</li>
+</ul>
+</div>
+
+      </div><!-- /article-body -->
+
+      <!-- Author box -->
+      <aside class="author-box">
+        <div class="author-label">About the author</div>
+        <div class="author-name"><a href="/about" style="color:inherit; text-decoration:none;">Shaun McManus</a></div>
+        <p class="author-bio">Shaun McManus is a licensee in Washington, Tyne and Wear, and a Personal Licence holder. He built StockTap after five liquor audits in eight months, and writes for <a href="https://professionalsecurity.co.uk/news/interviews/martyns-law-from-behind-the-bar/" rel="noopener" style="color:inherit;text-decoration:underline">Professional Security</a> and <a href="https://pubsocial.co.uk/pub-tvs-two-week-test/" rel="noopener" style="color:inherit;text-decoration:underline">Pub Social</a>. <a href="/about" style="color:inherit;text-decoration:underline">More about Shaun</a>.</p>
+      </aside>
+
+      <!-- CTA -->
+      <div class="cta-box">
+        <h2>Just had a stocktake? Send me the sheets</h2>
+        <p>Any stocktaker&#x2019;s report, your own spreadsheet or a till export. I&#x2019;ll set your whole bar up in StockTap for you, with your products and prices in and your closing stock as the starting point, so your first count shows a real variance. Free, completely confidential, used for nothing else, and deleted once you&#x2019;re set up.</p>
+        <a href="mailto:trainingforchatbots@gmail.com?subject=Set%20up%20my%20bar%20in%20StockTap&amp;body=Hi%20Shaun%2C%20my%20stocktake%20sheets%20are%20attached.%20Pub%20name%3A%20" class="cta-btn">Email me your sheets</a>
+        <p style="margin:1rem 0 0;">Rather do it yourself? <a href="/auth?mode=signup">Start the free trial</a>, no card needed.</p>
+      </div>
+
+      <!-- Related guides -->
+      <nav class="related-guides" aria-label="More guides">
+        <div class="related-guides-label">More guides</div>
+        <ul class="related-guides-list">
+          <li><a href="/guides/how-to-run-a-pub-bingo-night-rules-calls">How to run a pub bingo night</a></li>
+          <li><a href="/guides/pub-music-licence-cost-2026">Pub music licence cost</a></li>
+          <li><a href="/guides/pub-karaoke-night-licence-cost">Pub karaoke night: licence and cost</a></li>
+          <li><a href="/guides/pub-quiz-night-make-money-break-even">Does a quiz night make money?</a></li>
+          <li><a href="/guides/pub-entertainment-ideas">Pub entertainment ideas</a></li>
+          <li><a href="/guides">All guides</a></li>
+        </ul>
+      </nav>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/help">Help &amp; FAQ</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/guides">Guides</a>
+          <a href="/about">About</a>
+        </div>
+        <div>StockTap &middot; Built for UK pubs, bars and restaurants</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
