@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   AlertCircle,
   ArrowLeft,
@@ -14,7 +14,10 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProducts } from "@/hooks/api";
+import { useProducts, useUpdateProduct } from "@/hooks/api";
+import { prepareImage } from "@/lib/image";
+import { isDraughtProduct, formatGauge } from "@/lib/draught-gauge";
+import { containerSizeLabel } from "@/lib/container-sizes";
 import {
   useCommitDeliveryDocument,
   useDeliveryDocumentLines,
@@ -62,9 +65,9 @@ function humanStatus(status: DeliveryDocumentRow["status"]): string {
   return {
     uploaded: "Ready to scan",
     extracting: "Scanning",
-    review: "Needs review",
+    review: "To check",
     committing: "Saving",
-    committed: "Committed",
+    committed: "Added to stock",
     failed: "Scan failed",
   }[status];
 }
@@ -76,107 +79,149 @@ function confidenceText(confidence: number | null): string {
   return `${Math.round(confidence * 100)}% weak match`;
 }
 
+type ScanProduct = { id: string; name: string; category?: string | null; counting_method?: string | null; container_l?: number | null; container_type?: string | null; pour_price?: number | null; hidden_at?: string | null };
+
+/** "3 × 50L · 11 gal keg = 33 gal 0 pt" for draught, "24 × Coke 330ml" for the rest. */
+function deliveredText(product: ScanProduct | undefined, qty: number): string {
+  if (!product) return `${qty} delivered`;
+  if (isDraughtProduct(product) && product.container_l) {
+    const word = product.container_type === "cask" || product.counting_method === "dipstick" ? "cask" : "keg";
+    const pints = (qty * Number(product.container_l) * 1000) / 568.261;
+    return `${qty} × ${containerSizeLabel(Number(product.container_l), word)} = ${formatGauge(pints)}`;
+  }
+  return `${qty} delivered`;
+}
+
 function InvoiceLineEditor({
   line,
   products,
+  venueId,
+  locked,
 }: {
   line: DeliveryDocumentLineRow;
-  products: Array<{ id: string; name: string }>;
+  products: ScanProduct[];
+  venueId: string;
+  locked: boolean;
 }) {
   const updateLine = useUpdateDeliveryDocumentLine();
+  const updateProduct = useUpdateProduct();
   const { toast } = useToast();
   const [productId, setProductId] = React.useState(line.matched_product_id ?? "none");
   const [quantity, setQuantity] = React.useState(String(line.purchase_quantity));
   const [unitCost, setUnitCost] = React.useState(penceToPoundsInput(line.unit_cost_pence));
-  const [lineTotal, setLineTotal] = React.useState(penceToPoundsInput(line.line_total_pence));
+  const product = products.find((p) => p.id === productId);
+  const [sellPrice, setSellPrice] = React.useState(product?.pour_price != null ? String(product.pour_price) : "");
+  const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     setProductId(line.matched_product_id ?? "none");
     setQuantity(String(line.purchase_quantity));
     setUnitCost(penceToPoundsInput(line.unit_cost_pence));
-    setLineTotal(penceToPoundsInput(line.line_total_pence));
-  }, [line.id, line.matched_product_id, line.purchase_quantity, line.unit_cost_pence, line.line_total_pence]);
+  }, [line.id, line.matched_product_id, line.purchase_quantity, line.unit_cost_pence]);
+  React.useEffect(() => {
+    setSellPrice(product?.pour_price != null ? String(product.pour_price) : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, product?.pour_price]);
 
-  const save = async (nextStatus = line.review_status) => {
+  const draught = !!product && isDraughtProduct(product);
+  const unitWord = draught ? (product?.container_type === "cask" || product?.counting_method === "dipstick" ? "cask" : "keg") : "unit";
+  const needsProduct = line.review_status === "unmatched";
+  const showForm = !locked && line.review_status !== "ignored" && (open || needsProduct);
+
+  const save = async (nextStatus: DeliveryDocumentLineRow["review_status"]) => {
     const parsedQuantity = Number(quantity);
-    const costPence = poundsInputToPence(unitCost);
-    const totalPence = poundsInputToPence(lineTotal);
-    if (!Number.isFinite(parsedQuantity) || parsedQuantity <= 0) {
-      toast({ title: "Quantity required", description: "Enter a quantity greater than zero.", variant: "destructive" });
+    if (nextStatus !== "ignored" && (!Number.isFinite(parsedQuantity) || parsedQuantity <= 0)) {
+      toast({ title: "How many came?", description: "Enter a quantity greater than zero.", variant: "destructive" });
       return;
     }
-    if (nextStatus === "accepted" && (productId === "none" || costPence == null)) {
-      toast({ title: "Product and cost required", description: "Accepted lines need a matched product and unit cost.", variant: "destructive" });
+    if (nextStatus === "accepted" && productId === "none") {
+      toast({ title: "Pick the product", description: "Choose which of your products this line is, or skip it.", variant: "destructive" });
       return;
     }
     try {
+      // No price on the note is fine: the delivery still goes onto stock, valued at £0 until a cost is added.
+      const costPence = poundsInputToPence(unitCost) ?? (nextStatus === "accepted" ? 0 : null);
       await updateLine.mutateAsync({
         id: line.id,
         documentId: line.document_id,
         matched_product_id: productId === "none" ? null : productId,
-        purchase_quantity: parsedQuantity,
+        purchase_quantity: Number.isFinite(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : line.purchase_quantity,
         unit_cost_pence: costPence,
-        line_total_pence: totalPence,
+        line_total_pence: null,
         review_status: nextStatus,
       });
-      toast({ title: nextStatus === "ignored" ? "Line ignored" : nextStatus === "accepted" ? "Line accepted" : "Line updated" });
+      const sell = sellPrice.trim() === "" ? null : Number(sellPrice);
+      if (nextStatus === "accepted" && product && sell != null && Number.isFinite(sell) && sell >= 0 && sell !== Number(product.pour_price ?? NaN)) {
+        await updateProduct.mutateAsync({ id: product.id, venue_id: venueId, pour_price: sell, pour_price_estimated: false } as any);
+      }
+      setOpen(false);
     } catch (error: any) {
-      toast({ title: "Could not update line", description: error.message, variant: "destructive" });
+      toast({ title: "Could not save that line", description: error.message, variant: "destructive" });
     }
   };
+
+  const pillClass = line.review_status === "accepted" ? "bg-green-100 text-green-800" : line.review_status === "ignored" ? "bg-muted text-muted-foreground" : "bg-amber-100 text-amber-800";
+  const pillText = line.review_status === "accepted" ? (locked ? "Added" : "Accepted") : line.review_status === "ignored" ? "Skipped" : "Pick product";
 
   return (
     <Card className={line.review_status === "ignored" ? "opacity-60" : ""} data-testid={`invoice-line-${line.id}`}>
       <CardContent className="p-3 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-sm font-semibold">{line.raw_description}</div>
-            <div className="text-xs text-muted-foreground mt-1">Line {line.line_number} · {confidenceText(line.match_confidence)}</div>
+            <div className="text-sm font-semibold">{product?.name ?? line.raw_description}</div>
+            <div className="text-xs text-muted-foreground mt-0.5" data-testid={`invoice-line-qty-${line.id}`}>
+              {deliveredText(product, Number(line.purchase_quantity))}
+              {line.unit_cost_pence ? ` · ${formatGBP(line.unit_cost_pence / 100)} each` : line.review_status === "accepted" ? " · no price yet" : ""}
+            </div>
+            {product && <div className="text-[11px] text-muted-foreground mt-0.5 truncate">On the note: {line.raw_description}</div>}
           </div>
-          <Badge className={line.review_status === "accepted" ? "bg-green-100 text-green-800" : line.review_status === "ignored" ? "bg-muted text-muted-foreground" : "bg-amber-100 text-amber-800"}>
-            {line.review_status === "accepted" ? "Accepted" : line.review_status === "ignored" ? "Ignored" : "To check"}
-          </Badge>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <Badge className={pillClass}>{pillText}</Badge>
+            {!locked && !needsProduct && (
+              <button type="button" className="text-xs font-semibold text-primary underline" onClick={() => (line.review_status === "ignored" ? save("unmatched") : setOpen((v) => !v))} data-testid={`button-edit-line-${line.id}`}>
+                {line.review_status === "ignored" ? "Bring back" : open ? "Close" : "Change / prices"}
+              </button>
+            )}
+          </div>
         </div>
 
-        {line.review_status !== "ignored" && (
+        {showForm && (
           <div className="space-y-3">
             <div>
-              <Label className="text-xs">Match to venue product</Label>
+              <Label className="text-xs">Which of your products is this?</Label>
               <Select value={productId} onValueChange={setProductId}>
                 <SelectTrigger className="mt-1" data-testid={`select-invoice-product-${line.id}`}><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No product selected</SelectItem>
-                  {products.map((product) => <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>)}
+                  <SelectItem value="none">Not picked yet</SelectItem>
+                  {products.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label className="text-xs">Quantity</Label>
-                <Input type="number" min="0.01" step="0.01" value={quantity} onChange={(event) => setQuantity(event.target.value)} className="mt-1 tabular-nums" />
+                <Label className="text-xs">How many</Label>
+                <Input type="number" inputMode="decimal" min="0.01" step="0.01" value={quantity} onChange={(event) => setQuantity(event.target.value)} className="mt-1 tabular-nums" data-testid={`input-line-qty-${line.id}`} />
               </div>
               <div>
-                <Label className="text-xs">Unit cost £</Label>
-                <Input type="number" min="0" step="0.01" value={unitCost} onChange={(event) => setUnitCost(event.target.value)} className="mt-1 tabular-nums" />
+                <Label className="text-xs">Cost £ per {unitWord}</Label>
+                <Input type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00" value={unitCost} onChange={(event) => setUnitCost(event.target.value)} className="mt-1 tabular-nums" data-testid={`input-line-cost-${line.id}`} />
               </div>
               <div>
-                <Label className="text-xs">Line total £</Label>
-                <Input type="number" min="0" step="0.01" value={lineTotal} onChange={(event) => setLineTotal(event.target.value)} className="mt-1 tabular-nums" />
+                <Label className="text-xs">Sell £ per {draught ? "pint" : "serve"}</Label>
+                <Input type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00" value={sellPrice} onChange={(event) => setSellPrice(event.target.value)} className="mt-1 tabular-nums" disabled={!product} data-testid={`input-line-sell-${line.id}`} />
               </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">Cost and sell price are saved on the product for next time. Special prices (happy hour, offers) are set in <Link href="/settings" className="underline">Settings › Special offers</Link>.</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => save("ignored")} disabled={updateLine.isPending} data-testid={`button-skip-line-${line.id}`}>
+                <XCircle className="w-3.5 h-3.5 mr-1" /> Skip this line
+              </Button>
+              <Button size="sm" onClick={() => save("accepted")} disabled={updateLine.isPending} data-testid={`button-accept-line-${line.id}`}>
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> {needsProduct ? "Accept" : "Save"}
+              </Button>
             </div>
           </div>
         )}
-
-        <div className="grid grid-cols-3 gap-2">
-          <Button variant="outline" size="sm" onClick={() => save("unmatched")} disabled={updateLine.isPending}>Save</Button>
-          <Button variant="outline" size="sm" onClick={() => save("ignored")} disabled={updateLine.isPending}>
-            <XCircle className="w-3.5 h-3.5 mr-1" /> Ignore
-          </Button>
-          <Button size="sm" onClick={() => save("accepted")} disabled={updateLine.isPending}>
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Accept
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
@@ -189,7 +234,7 @@ function InvoiceReviewPanel({
 }: {
   document: DeliveryDocumentRow;
   venueId: string;
-  products: Array<{ id: string; name: string }>;
+  products: ScanProduct[];
 }) {
   const { data: lines = [], isLoading } = useDeliveryDocumentLines(document.id);
   const updateDocument = useUpdateDeliveryDocument();
@@ -228,7 +273,7 @@ function InvoiceReviewPanel({
       const result = await extractDocument.mutateAsync({ venueId, documentId: document.id });
       toast({
         title: result.reused ? "Existing review reopened" : "Delivery note scanned",
-        description: `${result.line_count} line${result.line_count === 1 ? "" : "s"} extracted · review every row before committing.`,
+        description: `${result.line_count} line${result.line_count === 1 ? "" : "s"} read.`,
       });
     } catch (error: any) {
       toast({ title: "Scan failed", description: error.message, variant: "destructive" });
@@ -240,11 +285,11 @@ function InvoiceReviewPanel({
       await saveHeader();
       const result = await commitDocument.mutateAsync({ venueId, documentId: document.id });
       toast({
-        title: "Invoice committed",
-        description: `${result.delivery_count} purchase row${result.delivery_count === 1 ? "" : "s"} · ${formatGBP(result.total_pence / 100)} recorded.`,
+        title: `${result.delivery_count} line${result.delivery_count === 1 ? "" : "s"} added to stock`,
+        description: result.total_pence > 0 ? `${formatGBP(result.total_pence / 100)} of stock recorded.` : "They now show in stock on every screen.",
       });
     } catch (error: any) {
-      toast({ title: "Invoice not committed", description: error.message, variant: "destructive" });
+      toast({ title: "Not added to stock", description: error.message, variant: "destructive" });
     }
   };
 
@@ -255,12 +300,12 @@ function InvoiceReviewPanel({
           {document.status === "failed" ? <AlertCircle className="w-10 h-10 mx-auto text-destructive" /> : <FileSearch className="w-10 h-10 mx-auto text-primary" />}
           <div>
             <div className="font-semibold">{document.status === "failed" ? "The previous scan failed" : "Ready to scan"}</div>
-            <p className="text-sm text-muted-foreground mt-1">AI creates a draft only. No stock or financial record is saved until a manager reviews and commits it.</p>
+            <p className="text-sm text-muted-foreground mt-1">StockTap reads the note and matches each line to your products.</p>
           </div>
           {document.extraction_error && <p className="text-xs text-destructive rounded-lg bg-destructive/10 p-3">{document.extraction_error}</p>}
           <Button className="w-full" onClick={extract} disabled={extractDocument.isPending}>
             {extractDocument.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSearch className="w-4 h-4 mr-2" />}
-            {document.status === "failed" ? "Try scan again" : "Extract invoice draft"}
+            {document.status === "failed" ? "Try the scan again" : "Read this note"}
           </Button>
         </CardContent>
       </Card>
@@ -269,7 +314,7 @@ function InvoiceReviewPanel({
 
   if (document.status === "extracting" || document.status === "committing") {
     return (
-      <Card><CardContent className="p-10 text-center space-y-3"><Loader2 className="w-9 h-9 mx-auto animate-spin text-primary" /><div className="font-medium">{document.status === "extracting" ? "Reading delivery note…" : "Committing approved rows…"}</div></CardContent></Card>
+      <Card><CardContent className="p-10 text-center space-y-3"><Loader2 className="w-9 h-9 mx-auto animate-spin text-primary" /><div className="font-medium">{document.status === "extracting" ? "Reading delivery note…" : "Adding to stock…"}</div></CardContent></Card>
     );
   }
 
@@ -279,79 +324,70 @@ function InvoiceReviewPanel({
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="font-semibold">Invoice details</div>
-              <p className="text-xs text-muted-foreground mt-1">Check these against the original document.</p>
+              <div className="font-semibold">{document.supplier || "Delivery note"}</div>
+              
             </div>
             <Badge className={documentStatusClasses(document.status)}>{humanStatus(document.status)}</Badge>
           </div>
+          <p className="text-xs text-muted-foreground" data-testid="text-scan-header">{[invoiceRef && `No. ${invoiceRef}`, invoiceDate && new Date(invoiceDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), document.total_pence != null && formatGBP(document.total_pence / 100)].filter(Boolean).join(" · ") || "No number or date read from the photo"}</p>
+          {document.status !== "committed" && (
+            <details>
+              <summary className="text-xs font-semibold text-primary underline cursor-pointer">Change supplier, number or date</summary>
+              <div className="mt-3 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div><Label>Supplier</Label><Input className="mt-1" value={supplier} onChange={(event) => setSupplier(event.target.value)} disabled={document.status === "committed"} /></div>
-            <div><Label>Invoice reference</Label><Input className="mt-1" value={invoiceRef} onChange={(event) => setInvoiceRef(event.target.value)} disabled={document.status === "committed"} /></div>
-            <div><Label>Invoice date</Label><Input type="date" className="mt-1" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} disabled={document.status === "committed"} /></div>
-          </div>
-          {document.status !== "committed" && <Button variant="outline" className="w-full" onClick={saveHeader} disabled={updateDocument.isPending}>Save invoice details</Button>}
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-lg bg-muted/40 p-2"><div className="text-xs text-muted-foreground">Subtotal</div><div className="font-semibold tabular-nums">{document.subtotal_pence == null ? "—" : formatGBP(document.subtotal_pence / 100)}</div></div>
-            <div className="rounded-lg bg-muted/40 p-2"><div className="text-xs text-muted-foreground">VAT</div><div className="font-semibold tabular-nums">{document.vat_pence == null ? "—" : formatGBP(document.vat_pence / 100)}</div></div>
-            <div className="rounded-lg bg-muted/40 p-2"><div className="text-xs text-muted-foreground">Document total</div><div className="font-semibold tabular-nums">{document.total_pence == null ? "—" : formatGBP(document.total_pence / 100)}</div></div>
-          </div>
+                <div><Label>Supplier</Label><Input className="mt-1" value={supplier} onChange={(event) => setSupplier(event.target.value)} /></div>
+                <div><Label>Note or invoice number</Label><Input className="mt-1" value={invoiceRef} onChange={(event) => setInvoiceRef(event.target.value)} /></div>
+                <div><Label>Date</Label><Input type="date" className="mt-1" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} /></div>
+              </div>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-lg bg-muted/40 p-2"><div className="text-xs text-muted-foreground">Subtotal</div><div className="font-semibold tabular-nums">{document.subtotal_pence == null ? "—" : formatGBP(document.subtotal_pence / 100)}</div></div>
+                <div className="rounded-lg bg-muted/40 p-2"><div className="text-xs text-muted-foreground">VAT</div><div className="font-semibold tabular-nums">{document.vat_pence == null ? "—" : formatGBP(document.vat_pence / 100)}</div></div>
+                <div className="rounded-lg bg-muted/40 p-2"><div className="text-xs text-muted-foreground">Document total</div><div className="font-semibold tabular-nums">{document.total_pence == null ? "—" : formatGBP(document.total_pence / 100)}</div></div>
+              </div>
+              </div>
+            </details>
+          )}
         </CardContent>
       </Card>
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-semibold">Extracted lines</h2>
-          <p className="text-xs text-muted-foreground">{progress.accepted} accepted · {progress.unresolved} unresolved · {progress.ignored} ignored</p>
+          <h2 className="font-semibold">{document.status === "committed" ? "Added to stock" : "What came in"}</h2>
+          <p className="text-xs text-muted-foreground" data-testid="text-scan-progress">{progress.accepted} accepted{progress.unresolved ? ` · ${progress.unresolved} to pick` : ""}{progress.ignored ? ` · ${progress.ignored} skipped` : ""}</p>
         </div>
-        <div className="font-bold tabular-nums">{formatGBP(progress.totalPence / 100)}</div>
+        {progress.totalPence > 0 && <div className="font-bold tabular-nums">{formatGBP(progress.totalPence / 100)}</div>}
       </div>
 
       {isLoading ? (
-        <div className="space-y-2">{[1, 2, 3].map((index) => <div key={index} className="h-32 rounded-xl bg-muted animate-pulse" />)}</div>
+        <div className="space-y-2">{[1, 2, 3].map((index) => <div key={index} className="h-20 rounded-xl bg-muted animate-pulse" />)}</div>
       ) : lines.length === 0 ? (
-        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No line items were extracted. Try a clearer photo.</CardContent></Card>
+        <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">No lines were read. Try a clearer, straight-on photo.</CardContent></Card>
       ) : (
-        <div className="space-y-3">
-          {lines.map((line) => <InvoiceLineEditor key={line.id} line={line} products={products} />)}
+        <div className="space-y-2">
+          {[...lines].sort((a, b) => Number(b.review_status === "unmatched") - Number(a.review_status === "unmatched") || a.line_number - b.line_number)
+            .map((line) => <InvoiceLineEditor key={line.id} line={line} products={products} venueId={venueId} locked={document.status === "committed"} />)}
         </div>
       )}
 
-      {document.status !== "committed" && (
-        <Card className={progress.canCommit ? "border-green-500/40" : "border-amber-500/40"}>
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-start gap-2">
-              <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <div className="font-semibold text-sm">Manager approval required</div>
-                <p className="text-xs text-muted-foreground mt-1">Committing creates purchase and stock-movement records only for accepted rows.</p>
-              </div>
-            </div>
-            {progress.commitErrors.length > 0 && (
-              <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
-                {progress.commitErrors.map((message) => <li key={message}>• {message}</li>)}
-              </ul>
-            )}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="w-full h-12 font-bold" disabled={!progress.canCommit || commitDocument.isPending} data-testid="button-commit-invoice">
-                  Commit {progress.accepted} approved line{progress.accepted === 1 ? "" : "s"} · {formatGBP(progress.totalPence / 100)}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Commit this reviewed invoice?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This creates {progress.accepted} purchase and stock-movement record{progress.accepted === 1 ? "" : "s"}. Ignored and unresolved rows will not be posted.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Review again</AlertDialogCancel>
-                  <AlertDialogAction onClick={commit}>Commit approved rows</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+      {document.status === "committed" ? (
+        <Card className="border-green-500/40">
+          <CardContent className="p-4 text-sm" data-testid="scan-committed">
+            <div className="font-semibold text-green-700 dark:text-green-400 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> This delivery is on your stock.</div>
+            <p className="text-muted-foreground mt-1">It shows as "In stock" in the Library and is included in the Morning line check.</p>
           </CardContent>
         </Card>
+      ) : (
+        <div className="sticky bottom-20 z-10 rounded-2xl border border-border bg-card p-3 shadow-lg space-y-2">
+          {progress.unresolved > 0 && (
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-300" data-testid="text-scan-unresolved">
+              {progress.unresolved} line{progress.unresolved === 1 ? "" : "s"} not matched yet. Pick the product or skip {progress.unresolved === 1 ? "it" : "them"}; anything left is not added.
+            </p>
+          )}
+          <Button className="w-full h-12 font-bold" disabled={progress.accepted === 0 || commitDocument.isPending} onClick={commit} data-testid="button-commit-invoice">
+            {commitDocument.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+            {progress.accepted === 0 ? "Accept a line to add it" : `Add ${progress.accepted} line${progress.accepted === 1 ? "" : "s"} to stock`}
+          </Button>
+        </div>
       )}
     </div>
   );
@@ -362,11 +398,15 @@ export default function InvoiceScan() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const libraryRef = React.useRef<HTMLInputElement>(null);
   const { data: products = [] } = useProducts(venue?.id);
   const { data: documents = [], isLoading, refetch } = useDeliveryDocuments(venue?.id);
   const uploadDocument = useUploadDeliveryDocument();
   const extractDocument = useExtractDeliveryDocument();
+  const commitDocument = useCommitDeliveryDocument();
   const [selectedDocumentId, setSelectedDocumentId] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState<string | null>(null);
+  const autoAdd = ((venue as any)?.features ?? {}).auto_add_deliveries === true;
 
   React.useEffect(() => {
     if (selectedDocumentId && documents.some((document) => document.id === selectedDocumentId)) return;
@@ -375,25 +415,47 @@ export default function InvoiceScan() {
 
   const selectedDocument = documents.find((document) => document.id === selectedDocumentId) ?? null;
 
-  const handleFile = async (file: File | undefined) => {
-    if (!file || !venue?.id || !user?.id) return;
+  const handleFiles = async (list: FileList | null) => {
+    const files = list ? Array.from(list) : [];
+    if (!files.length || !venue?.id || !user?.id) return;
+    let added = 0, toCheck = 0;
     try {
-      const created = await uploadDocument.mutateAsync({ venueId: venue.id, userId: user.id, file });
-      setSelectedDocumentId(created.document_id);
-      toast({
-        title: created.duplicate ? "This document was already uploaded" : "Document uploaded privately",
-        description: created.duplicate ? "The existing draft has been opened instead of creating a duplicate." : "Starting secure extraction now.",
-      });
-      if (!created.duplicate || created.status === "uploaded" || created.status === "failed") {
-        await extractDocument.mutateAsync({ venueId: venue.id, documentId: created.document_id });
+      for (let i = 0; i < files.length; i++) {
+        const page = files.length > 1 ? ` (photo ${i + 1} of ${files.length})` : "";
+        setBusy(`Getting the photo ready${page}…`);
+        const file = await prepareImage(files[i]);
+        setBusy(`Sending${page}…`);
+        const created = await uploadDocument.mutateAsync({ venueId: venue.id, userId: user.id, file });
+        setSelectedDocumentId(created.document_id);
+        if (created.duplicate && created.status === "committed") {
+          toast({ title: "That note is already on your stock", description: "It was scanned before, so nothing was added twice." });
+          continue;
+        }
+        if (!created.duplicate || created.status === "uploaded" || created.status === "failed") {
+          setBusy(`Reading the note${page}…`);
+          const result = await extractDocument.mutateAsync({ venueId: venue.id, documentId: created.document_id });
+          const allClear = result.line_count > 0 && (result as any).accepted_count === result.line_count;
+          if (autoAdd && allClear) {
+            setBusy(`Adding to stock${page}…`);
+            const done = await commitDocument.mutateAsync({ venueId: venue.id, documentId: created.document_id });
+            added += done.delivery_count;
+          } else toCheck++;
+        } else toCheck++;
       }
       await refetch();
+      if (added > 0) toast({ title: `${added} line${added === 1 ? "" : "s"} added to stock`, description: toCheck ? "One photo has lines to check below." : "Scanned and accepted. They now show in stock." });
+      else if (toCheck > 0) toast({ title: "Delivery note read", description: "Check the list, then tap Add to stock." });
     } catch (error: any) {
-      toast({ title: "Could not process document", description: error.message, variant: "destructive" });
+      toast({ title: "Could not read that photo", description: error.message, variant: "destructive" });
+      await refetch();
     } finally {
+      setBusy(null);
       if (fileRef.current) fileRef.current.value = "";
+      if (libraryRef.current) libraryRef.current.value = "";
     }
   };
+
+  const scanProducts = React.useMemo(() => (products as unknown as ScanProduct[]).filter((p) => (p as any).is_template !== true).sort((a, b) => a.name.localeCompare(b.name)), [products]);
 
   if (!venue?.id || !user?.id) return null;
 
@@ -402,8 +464,8 @@ export default function InvoiceScan() {
       <div className="p-4 border-b border-border bg-card sticky top-0 z-10 flex items-center gap-3">
         <button onClick={() => setLocation("/ledger")} className="text-muted-foreground" aria-label="Back to stock movements"><ArrowLeft className="w-5 h-5" /></button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-primary">Scan Delivery Note</h1>
-          <p className="text-xs text-muted-foreground">Private upload · AI draft · human approval</p>
+          <h1 className="text-xl font-bold text-primary">Scan a delivery</h1>
+          <p className="text-xs text-muted-foreground">Photo in, stock up. Costs and sell prices in the same place.</p>
         </div>
         <Button variant="ghost" size="icon" onClick={() => refetch()}><RefreshCw className="w-4 h-4" /></Button>
       </div>
@@ -414,21 +476,18 @@ export default function InvoiceScan() {
             <div className="flex items-start gap-3">
               <ReceiptText className="w-6 h-6 text-primary shrink-0" />
               <div>
-                <div className="font-semibold">Photograph or upload a supplier document</div>
-                <p className="text-xs text-muted-foreground mt-1">JPG, PNG or WebP up to 10MB. StockTap detects duplicates before creating another draft.</p>
+                <div className="font-semibold">Photograph the delivery note</div>
+                <p className="text-xs text-muted-foreground mt-1">One photo per page, straight on. {autoAdd ? "Lines StockTap is sure of go straight onto stock." : "You get one list to check, then one tap adds it to stock."}</p>
               </div>
             </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              capture="environment"
-              className="hidden"
-              onChange={(event) => handleFile(event.target.files?.[0])}
-            />
-            <Button className="w-full h-12 font-bold" onClick={() => fileRef.current?.click()} disabled={uploadDocument.isPending || extractDocument.isPending} data-testid="button-upload-invoice">
-              {uploadDocument.isPending || extractDocument.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Camera className="w-4 h-4 mr-2" />}
-              {uploadDocument.isPending ? "Uploading privately…" : extractDocument.isPending ? "Reading document…" : "Take photo or upload"}
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => handleFiles(event.target.files)} data-testid="input-scan-camera" />
+            <input ref={libraryRef} type="file" accept="image/*" multiple className="hidden" onChange={(event) => handleFiles(event.target.files)} data-testid="input-scan-library" />
+            <Button className="w-full h-12 font-bold" onClick={() => fileRef.current?.click()} disabled={!!busy} data-testid="button-upload-invoice">
+              {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Camera className="w-4 h-4 mr-2" />}
+              {busy ?? "Take a photo"}
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => libraryRef.current?.click()} disabled={!!busy} data-testid="button-upload-library">
+              <Upload className="w-4 h-4 mr-2" /> Pick photos already on this phone
             </Button>
           </CardContent>
         </Card>
@@ -441,7 +500,7 @@ export default function InvoiceScan() {
               <SelectContent>
                 {documents.map((document) => (
                   <SelectItem key={document.id} value={document.id}>
-                    {document.supplier || document.original_filename} · {humanStatus(document.status)}
+                    {document.supplier || "Delivery note"}{document.invoice_date ? ` · ${new Date(document.invoice_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""} · {humanStatus(document.status)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -452,9 +511,9 @@ export default function InvoiceScan() {
         {isLoading ? (
           <div className="h-40 rounded-xl bg-muted animate-pulse" />
         ) : selectedDocument ? (
-          <InvoiceReviewPanel document={selectedDocument} venueId={venue.id} products={products.map((product) => ({ id: product.id, name: product.name }))} />
+          <InvoiceReviewPanel document={selectedDocument} venueId={venue.id} products={scanProducts} />
         ) : (
-          <Card><CardContent className="p-10 text-center space-y-3"><Upload className="w-10 h-10 mx-auto text-muted-foreground/40" /><div className="text-sm text-muted-foreground">Upload your first delivery note to create a review draft.</div></CardContent></Card>
+          <Card><CardContent className="p-10 text-center space-y-3"><Upload className="w-10 h-10 mx-auto text-muted-foreground/40" /><div className="text-sm text-muted-foreground">Photograph your first delivery note and it goes onto your stock.</div></CardContent></Card>
         )}
       </div>
     </div>

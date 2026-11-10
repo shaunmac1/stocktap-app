@@ -47,6 +47,7 @@ http.createServer((req, res) => {
     if (u.pathname.startsWith('/__log')) return send(200, { log, products: db.products });
     if (u.pathname === '/auth/v1/user') return send(200, { id: U, email: 'owner@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: now });
     if (u.pathname.startsWith('/auth/v1/')) return send(200, {});
+    if (require('./scan-handlers.cjs')(req, u, body, send, db, log)) return;
     if (u.pathname.startsWith('/functions/v1/')) return send(200, {});
     const rpc = /^\/rest\/v1\/rpc\/(.+)$/.exec(u.pathname);
     if (rpc) {

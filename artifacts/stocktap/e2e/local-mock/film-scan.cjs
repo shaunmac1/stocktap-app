@@ -1,0 +1,47 @@
+// Phone-size film: till figures from a photo, then a delivery note from a photo.
+const { chromium } = require('playwright');
+const fs = require('fs'); const sleep = ms => new Promise(r => setTimeout(r, ms));
+const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const U = '11111111-1111-4111-8111-111111111111'; const exp = Math.floor(Date.now() / 1000) + 86400;
+const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: U, role: 'authenticated', aud: 'authenticated', exp, email: 'owner@example.test' })}.sig`;
+const session = { access_token: jwt, refresh_token: 'r', token_type: 'bearer', expires_in: 86400, expires_at: exp, user: { id: U, email: 'owner@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } };
+const A = 'aaaaaaaa-0000-4000-8000-00000000000a';
+(async () => {
+  fs.rmSync('/tmp/film-scan', { recursive: true, force: true });
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: 'block', recordVideo: { dir: '/tmp/film-scan', size: { width: 780, height: 1688 } } });
+  await ctx.addInitScript(s => { try { localStorage.setItem('sb-localhost-auth-token', s); } catch {} }, JSON.stringify(session));
+  await ctx.addInitScript(() => { // show where the finger taps
+    addEventListener('DOMContentLoaded', () => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;z-index:99999;width:44px;height:44px;border-radius:50%;background:rgba(15,115,55,.35);border:2px solid #0f7337;pointer-events:none;opacity:0;transition:opacity .25s;transform:translate(-50%,-50%)'; document.body.appendChild(d); addEventListener('pointerdown', e => { d.style.left = e.clientX + 'px'; d.style.top = e.clientY + 'px'; d.style.opacity = '1'; setTimeout(() => d.style.opacity = '0', 500); }, true); });
+  });
+  const p = await ctx.newPage();
+  const T = tid => p.locator(`[data-testid="${tid}"]`).first();
+  const tap = async (tid, w = 900) => { await T(tid).scrollIntoViewIfNeeded(); await sleep(400); await T(tid).click(); await sleep(w); };
+  const type = async (tid, v) => { await T(tid).scrollIntoViewIfNeeded(); await T(tid).click(); await T(tid).pressSequentially(String(v), { delay: 220 }); await sleep(600); };
+  await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(3500);
+  await tap('card-line-check', 2500);
+  await T('card-till-photo').scrollIntoViewIfNeeded(); await sleep(1800);
+  await T('input-till-library').setInputFiles('/tmp/uitest/pic0.png'); await sleep(3500);
+  await sleep(2500);
+  await T(`line-${A}`).scrollIntoViewIfNeeded(); await sleep(1500);
+  await type(`full-${A}`, 5); await type(`gal-${A}`, 4);
+  await T(`result-${A}`).scrollIntoViewIfNeeded(); await sleep(3500);
+  await tap('button-save-line-check', 3000);
+  await p.evaluate(() => document.querySelector('[data-testid="line-check-result"]')?.scrollIntoView({ block: 'center' })); await sleep(3500);
+  await p.goto('http://localhost:5173/delivery', { waitUntil: 'domcontentloaded' }); await sleep(2500);
+  await tap('button-delivery-photo', 2200);
+  await T('input-scan-library').setInputFiles('/tmp/uitest/pic1.png'); await sleep(5500);
+  await p.evaluate(() => document.querySelector('[data-testid="text-scan-progress"]')?.scrollIntoView({ block: 'start' })); await sleep(3500);
+  const lines = await (await fetch('http://localhost:8899/rest/v1/delivery_document_lines?select=*')).json();
+  const lc = lines.find(l => /CARLSBERG/.test(l.raw_description)), lm = lines.find(l => /MYSTERY/.test(l.raw_description));
+  await tap(`button-skip-line-${lm.id}`, 1500);
+  await tap(`button-edit-line-${lc.id}`, 1200);
+  await T(`input-line-cost-${lc.id}`).fill(''); await type(`input-line-cost-${lc.id}`, 125);
+  await T(`input-line-sell-${lc.id}`).fill(''); await type(`input-line-sell-${lc.id}`, '4.50');
+  await tap(`button-accept-line-${lc.id}`, 2000);
+  await tap('button-commit-invoice', 3500);
+  await p.evaluate(() => document.querySelector('[data-testid="scan-committed"]')?.scrollIntoView({ block: 'center' })); await sleep(3000);
+  await p.goto('http://localhost:5173/line-check', { waitUntil: 'domcontentloaded' }); await sleep(2500);
+  await T(`line-${A}`).scrollIntoViewIfNeeded(); await sleep(3500);
+  const v = await p.video().path(); await ctx.close(); await b.close(); console.log(v);
+})();

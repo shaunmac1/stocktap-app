@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Camera, Images, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts, useLatestReadingsByProduct, useAddReading, addTillEntry } from "@/hooks/api";
 import { useDeliveries } from "@/hooks/useDeliveries";
@@ -13,6 +13,9 @@ import { isDraughtProduct, gaugeToPints, formatGauge, draughtAmount } from "@/li
 import { containerSizeLabel } from "@/lib/container-sizes";
 import { lineCheck, shortPattern } from "@/lib/line-check";
 import { CATEGORY_LABELS, formatGBP } from "@/lib/calculations";
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
+import { fileToBase64, prepareImage } from "@/lib/image";
+import { mergeTillPhotoRows, tillPhotoToPints, type TillPhotoRow } from "@/lib/till-photo";
 
 const P = 568.261;
 type Draft = { full: string; gal: string; pt: number; till: string; waste: string };
@@ -38,10 +41,60 @@ export default function LineCheck() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState<LineCheckRow[] | null>(null);
   const [cleanAll, setCleanAll] = useState("");
+  // Till figures read from a photo of the till's product report.
+  const [photoSets, setPhotoSets] = useState<TillPhotoRow[][]>([]);
+  const [photoBusy, setPhotoBusy] = useState<string | null>(null);
+  const [photoInfo, setPhotoInfo] = useState<{ filled: number; unmatched: TillPhotoRow[]; ignored: number; used: Record<string, TillPhotoRow[]> } | null>(null);
+  const camRef = React.useRef<HTMLInputElement>(null);
+  const libRef = React.useRef<HTMLInputElement>(null);
 
   const lines = useMemo(() => (products ?? [])
     .filter(p => isDraughtProduct(p) && !isHidden(p as any) && p.container_l)
     .sort((a, b) => (ORDER.indexOf(a.category ?? "") - ORDER.indexOf(b.category ?? "")) || a.name.localeCompare(b.name)), [products]);
+
+  const readTillPhotos = async (list: FileList | null) => {
+    const files = list ? Array.from(list) : [];
+    if (!files.length || !venue?.id) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      toast({ title: "No signal", description: "Reading a till photo needs a connection. Type the till pints in for now, or try again when you're back online.", variant: "destructive" });
+      return;
+    }
+    try {
+      const sets = [...photoSets];
+      for (let i = 0; i < files.length; i++) {
+        setPhotoBusy(files.length > 1 ? `Reading photo ${i + 1} of ${files.length}…` : "Reading the till report…");
+        const img = await prepareImage(files[i]);
+        const token = (await supabase.auth.getSession()).data.session?.access_token ?? "";
+        const resp = await fetch(`${SUPABASE_URL}/functions/v1/read-till-photo`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ venue_id: venue.id, image_base64: await fileToBase64(img), media_type: "image/jpeg" }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(data?.error || "Couldn't read that photo. Try a clearer, straight-on photo.");
+        sets.push(Array.isArray(data.rows) ? data.rows : []);
+      }
+      const res = tillPhotoToPints(mergeTillPhotoRows(sets), lines.map(p => ({ id: p.id, name: p.name })));
+      setPhotoSets(sets);
+      setDrafts(d => { const n = { ...d }; for (const [id, pints] of Object.entries(res.pints)) n[id] = { ...(n[id] ?? blank), till: String(pints) }; return n; });
+      const filled = Object.keys(res.pints).length;
+      setPhotoInfo({ filled, unmatched: res.unmatched, ignored: res.ignored, used: res.used });
+      toast(filled
+        ? { title: `Till pints filled in for ${filled} ${filled === 1 ? "line" : "lines"}`, description: "Check them against the report, then count each line." }
+        : { title: "No keg or cask lines found on that report", description: "It needs to be the report that lists each product and how many were sold.", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Couldn't read the till photo", description: e?.message ?? "Try again.", variant: "destructive" });
+    } finally {
+      setPhotoBusy(null);
+      if (camRef.current) camRef.current.value = "";
+      if (libRef.current) libRef.current.value = "";
+    }
+  };
+  const clearTillPhoto = () => {
+    const ids = Object.keys(photoInfo?.used ?? {});
+    setDrafts(d => { const n = { ...d }; for (const id of ids) if (n[id]) n[id] = { ...n[id], till: "" }; return n; });
+    setPhotoSets([]); setPhotoInfo(null);
+  };
 
   const set = (id: string, patch: Partial<Draft>) => setDrafts(d => ({ ...d, [id]: { ...(d[id] ?? blank), ...patch } }));
   const touched = (d?: Draft) => !!d && (d.full !== "" || d.gal !== "" || d.pt > 0);
@@ -147,6 +200,32 @@ export default function LineCheck() {
       <div className="p-4 space-y-3">
         {done && <Result rows={done} />}
 
+        <div className="rounded-xl border border-border bg-card p-3 space-y-2 text-sm" data-testid="card-till-photo">
+          <div className="font-semibold">Till sales from a photo</div>
+          <p className="text-xs text-muted-foreground">Print the till's product sales report (X or Z read) covering sales since your last check, and photograph it. Long roll? Take a few photos, top to bottom.</p>
+          <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => readTillPhotos(e.target.files)} data-testid="input-till-camera" />
+          <input ref={libRef} type="file" accept="image/*" multiple className="hidden" onChange={e => readTillPhotos(e.target.files)} data-testid="input-till-library" />
+          <div className="grid grid-cols-2 gap-2">
+            <Button className="h-11 font-bold" disabled={!!photoBusy} onClick={() => camRef.current?.click()} data-testid="button-till-photo">
+              {photoBusy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Camera className="w-4 h-4 mr-2" />}{photoBusy ? "Reading…" : photoInfo ? "Add another photo" : "Take a photo"}
+            </Button>
+            <Button variant="outline" className="h-11" disabled={!!photoBusy} onClick={() => libRef.current?.click()} data-testid="button-till-library"><Images className="w-4 h-4 mr-2" /> Pick photos</Button>
+          </div>
+          {photoBusy && <p className="text-xs font-semibold text-primary" data-testid="text-till-busy">{photoBusy}</p>}
+          {photoInfo && (
+            <div className="rounded-lg border border-border bg-background p-2 space-y-1" data-testid="till-photo-summary">
+              <div className="font-semibold">{photoInfo.filled} {photoInfo.filled === 1 ? "line" : "lines"} filled in from {photoSets.length} {photoSets.length === 1 ? "photo" : "photos"}</div>
+              {photoInfo.unmatched.length > 0 && (
+                <div className="text-xs font-semibold text-[#B26A00]" data-testid="till-photo-unmatched">
+                  Not sure which line these are, so type them in by hand: {photoInfo.unmatched.map(r => `${r.name} × ${r.qty}`).join(", ")}
+                </div>
+              )}
+              {photoInfo.ignored > 0 && <div className="text-xs text-muted-foreground">{photoInfo.ignored} other rows (spirits, bottles, food) left alone.</div>}
+              <button type="button" className="text-xs font-semibold text-primary underline" onClick={clearTillPhoto} data-testid="button-till-clear">Clear the photo figures</button>
+            </div>
+          )}
+        </div>
+
         <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-2 text-sm">
           <span className="flex-1">Cleaned the lines since the last check? Pints poured away per line:</span>
           <input type="number" inputMode="decimal" min={0} placeholder="0" value={cleanAll} onChange={e => setCleanAll(e.target.value)} aria-label="Cleaning pints per line" className="h-10 w-16 rounded-lg border border-border bg-background text-center font-bold" data-testid="input-clean-all" />
@@ -189,6 +268,13 @@ export default function LineCheck() {
                     </div>
                   </div>
                 </div>
+                {photoInfo?.used[p.id] && (
+                  <div className="text-xs rounded-lg bg-primary/10 px-2 py-1.5" data-testid={`till-photo-${p.id}`}>
+                    <span className="font-bold">Till photo: {c.d.till || 0} pints sold</span>
+                    <span className="text-muted-foreground"> ({photoInfo.used[p.id].map(r => `${r.name} × ${r.qty}`).join(", ")})</span>
+                    {!isTouched && <span className="text-muted-foreground">. Count this line to see what's missing.</span>}
+                  </div>
+                )}
                 {isTouched && (
                   <>
                     <div className="flex items-center gap-2 text-sm">

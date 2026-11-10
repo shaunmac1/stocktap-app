@@ -7,20 +7,22 @@ export type ContainerKind = "keg" | "cask" | "bag_in_box" | "postmix";
 
 export interface ContainerPreset { label: string; value: number }
 
+// Sizes named in gallons are stored to the hundredth of a litre (firkin 40.91, not 40.9) so
+// 20 full firkins come to exactly 180 gallons, the figure a Venners sheet shows.
 export const CONTAINER_PRESETS: Record<ContainerKind, ContainerPreset[]> = {
   keg: [
     { label: "20L", value: 20 },
     { label: "30L", value: 30 },
-    { label: "10 gal (45.5L)", value: 45.5 },
+    { label: "10 gal (45.5L)", value: 45.46 },
     { label: "50L (11 gal)", value: 50 },
     { label: "100L (22 gal)", value: 100 },
   ],
   cask: [
-    { label: "Pin 4.5 gal (20.5L)", value: 20.5 },
-    { label: "Firkin 9 gal (40.9L)", value: 40.9 },
-    { label: "Kilderkin 18 gal (81.8L)", value: 81.8 },
-    { label: "Barrel 36 gal (163.7L)", value: 163.7 },
-    { label: "Hogshead 54 gal (245.5L)", value: 245.5 },
+    { label: "Pin 4.5 gal (20.5L)", value: 20.46 },
+    { label: "Firkin 9 gal (40.9L)", value: 40.91 },
+    { label: "Kilderkin 18 gal (81.8L)", value: 81.83 },
+    { label: "Barrel 36 gal (163.7L)", value: 163.66 },
+    { label: "Hogshead 54 gal (245.5L)", value: 245.49 },
   ],
   bag_in_box: [
     { label: "10L", value: 10 },
@@ -60,12 +62,12 @@ export function containerSizeFromName(name: string): { litres: number; type?: "k
       // 11 and 22 gallon kegs are sold as 50L and 100L.
       if (g === 11) return { litres: 50, type: "keg" };
       if (g === 22) return { litres: 100, type: "keg" };
-      return { litres: Math.round(g * LITRES_PER_GALLON * 10) / 10 };
+      return { litres: Math.round(g * LITRES_PER_GALLON * 100) / 100 };
     }
   }
-  if (/\bpin\b/.test(n)) return { litres: 20.5, type: "cask" };
-  if (/\bfirkin\b/.test(n)) return { litres: 40.9, type: "cask" };
-  if (/\bkilderkin\b/.test(n)) return { litres: 81.8, type: "cask" };
+  if (/\bpin\b/.test(n)) return { litres: 20.46, type: "cask" };
+  if (/\bfirkin\b/.test(n)) return { litres: 40.91, type: "cask" };
+  if (/\bkilderkin\b/.test(n)) return { litres: 81.83, type: "cask" };
   return null;
 }
 

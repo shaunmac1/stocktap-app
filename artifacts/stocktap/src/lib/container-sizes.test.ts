@@ -8,7 +8,7 @@ describe("container size from the name", () => {
     expect(containerSizeFromName("Cider Inch's Riversider 30L Keg")).toEqual({ litres: 30, type: undefined });
     expect(containerSizeFromName("Cider Old Mout FlavourWave 30L Keg")?.litres).toBe(30);
     expect(containerSizeFromName("Lager 11 gal")).toEqual({ litres: 50, type: "keg" });
-    expect(containerSizeFromName("Ale Pedigree Firkin")).toEqual({ litres: 40.9, type: "cask" });
+    expect(containerSizeFromName("Ale Pedigree Firkin")).toEqual({ litres: 40.91, type: "cask" });
     expect(containerSizeFromName("Cider Thatchers 20L BIB")).toEqual({ litres: 20, type: "bag_in_box" });
     expect(containerSizeFromName("Postmix Pepsi 12 litre")?.litres).toBe(12);
   });

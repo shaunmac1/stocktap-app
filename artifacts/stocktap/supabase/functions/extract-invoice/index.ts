@@ -15,8 +15,11 @@ const STOP = new Set(["x","case","of","bottle","bottles","btl","btls","can","can
 function norm(s: string) { return (s || "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
 function tokens(s: string) { return new Set(norm(s).split(" ").filter((t) => t.length > 1 && !STOP.has(t))); }
 function sizeOf(s: string): number | null {
-  const m = norm(s).match(/(\d+(?:\.\d+)?)\s*(cl|ml|l)\b/); if (!m) return null;
-  const v = parseFloat(m[1]); return m[2] === "cl" ? v * 10 : m[2] === "l" ? v * 1000 : v;
+  const m = norm(s).match(/(\d+(?:\.\d+)?)\s*(cl|ml|ltr|litres?|l|gal|g)\b/); if (!m) return null;
+  const v = parseFloat(m[1]);
+  // Kegs and casks are often listed in gallons: 11g = 50L, 9g = 40.9L.
+  if (m[2] === "g" || m[2] === "gal") return v >= 4 && v <= 36 ? Math.round(v * 4546.09) : null;
+  return m[2] === "cl" ? v * 10 : m[2] === "ml" ? v : v * 1000;
 }
 function similarity(desc: string, p: { name: string; size_ml: number | null; container_l: number | null }) {
   const A = tokens(desc), B = tokens(p.name);
@@ -81,7 +84,7 @@ Deno.serve(async (req) => {
     const b64 = btoa(bin);
     const mime = ["image/jpeg", "image/png", "image/webp"].includes(doc.mime_type) ? doc.mime_type : "image/jpeg";
 
-    const { data: products, error: prodErr } = await admin.from("products").select("id,name,size_ml,container_l,is_template").eq("venue_id", doc.venue_id).limit(1000);
+    const { data: products, error: prodErr } = await admin.from("products").select("id,name,size_ml,container_l,is_template,cost_price,counting_method,hidden_at").eq("venue_id", doc.venue_id).limit(1000);
     if (prodErr) console.error("products load failed", prodErr.message);
     const prods = (products || []).filter((p) => !p.is_template);
 
@@ -124,15 +127,24 @@ Rules: money values are pounds as plain numbers (14.5 not "£14.50"). quantity i
         if (unitCost != null && Number.isFinite(Number(unitCost))) unitCost = Number(unitCost) / pack;
       }
       const matched = bestScore >= 0.45;
+      // A scanned line that clearly is one of the pub's products is accepted as delivered.
+      // Weak matches wait for the landlord to pick the product.
+      const strong = matched && bestScore >= 0.6;
+      let costPence = toPence(unitCost); let note: string | null = null;
+      if (matched && costPence == null) {
+        // Delivery notes often carry no prices: value it at the product's current cost.
+        costPence = best.counting_method === "dozen" || best.cost_price == null ? 0 : Math.round(Number(best.cost_price) * 100);
+        note = "No price on the note";
+      }
       return {
         document_id: documentId, line_number: i + 1,
         raw_description: String(l.description || "").slice(0, 300),
         purchase_quantity: Number.isFinite(qty) && qty > 0 ? qty : 1,
         unit_label: l.unit ? String(l.unit).slice(0, 60) : null,
-        unit_cost_pence: toPence(unitCost), line_total_pence: toPence(l.line_total),
+        unit_cost_pence: costPence, line_total_pence: toPence(l.line_total), notes: note,
         matched_product_id: matched ? best.id : null,
         match_confidence: matched ? Math.round(bestScore * 100) / 100 : null,
-        review_status: "unmatched",
+        review_status: strong ? "accepted" : "unmatched",
       };
     });
     const { error: insErr } = await admin.from("delivery_document_lines").insert(rows);
@@ -148,7 +160,7 @@ Rules: money values are pounds as plain numbers (14.5 not "£14.50"). quantity i
     }).eq("id", documentId);
     if (upErr) return await fail(`Could not update document: ${upErr.message}`);
 
-    return json({ document_id: documentId, status: "review", lines: rows.length, matched: rows.filter((r) => r.matched_product_id).length });
+    return json({ document_id: documentId, status: "review", line_count: rows.length, matched_count: rows.filter((r) => r.matched_product_id).length, accepted_count: rows.filter((r) => r.review_status === "accepted").length });
   } catch (e) {
     return await fail((e as Error)?.message || "Extraction failed");
   }

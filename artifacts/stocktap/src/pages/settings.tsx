@@ -352,6 +352,22 @@ export default function Settings() {
               />
             </div>
           </div>
+          <div data-testid="settings-deliveries">
+            <h2 className="text-sm font-semibold text-primary mb-1">Deliveries</h2>
+            <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+              <div className="min-w-0">
+                <Label htmlFor="feature-auto-add" className="text-sm font-semibold">Scanned deliveries go straight onto stock</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">When every line on a scanned note clearly matches one of your products, it is added to stock without asking. Anything StockTap isn't sure of still waits for you. Off: you always get one list to check first.</p>
+              </div>
+              <Switch
+                id="feature-auto-add"
+                checked={features.auto_add_deliveries === true}
+                disabled={savingFeature === "auto_add_deliveries"}
+                onCheckedChange={v => setFeature("auto_add_deliveries", v)}
+                data-testid="switch-auto-add-deliveries"
+              />
+            </div>
+          </div>
           <div>
             <h2 className="text-sm font-semibold text-primary mb-1">Counting locations</h2>
             <p className="text-xs text-muted-foreground mb-3">

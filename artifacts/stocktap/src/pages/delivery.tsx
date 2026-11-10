@@ -226,6 +226,10 @@ export default function Delivery() {
       <div className="flex flex-col h-full">
         {header}
         <div className="flex-1 overflow-auto p-4 pb-24 space-y-4">
+          <Link href="/invoice-scan" className="block">
+            <Button className="w-full h-14 text-base font-bold" data-testid="button-delivery-photo"><Camera className="w-5 h-5 mr-2" /> Photograph the delivery note</Button>
+          </Link>
+          <p className="text-xs text-center text-muted-foreground">or</p>
           <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
             <div className="flex items-center gap-2 font-semibold"><ClipboardPaste className="w-5 h-5 text-primary" /> Paste the delivery email</div>
             <p className="text-sm text-muted-foreground">{SAMPLE_HINT} StockTap reads the products and quantities and matches them to your library. You check it before anything is saved.</p>
@@ -240,9 +244,6 @@ export default function Delivery() {
               <Truck className="w-5 h-5 mr-2" /> Read delivery
             </Button>
           </div>
-          <Link href="/invoice-scan" className="block">
-            <Button variant="outline" className="w-full" data-testid="button-delivery-photo"><Camera className="w-4 h-4 mr-2" /> Paper note? Take a photo instead</Button>
-          </Link>
         </div>
       </div>
     );
