@@ -32,6 +32,8 @@ export function DraughtGaugeEntry({
   const over = capGal != null && galN + ptN / 8 > capGal + 0.01;
   const word = kind === "cask" ? "cask" : "keg";
   const scale = gaugeScaleFor(containerL);
+  // Gallons you can tap: 0 up to just under a full one (0-10 for an 11 gallon keg).
+  const maxGal = capGal != null ? Math.max(1, Math.min(35, Math.ceil(capGal - 0.05) - 1)) : 10;
   // What's typed in the gallons box, kept as text so "10." survives until the 5 goes in.
   const [galText, setGalText] = useState(galN ? String(galN) : "");
   useEffect(() => {
@@ -87,7 +89,7 @@ export function DraughtGaugeEntry({
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Part {word}</div>
-            <div className="text-xs text-muted-foreground">Gallons on the gauge{scale ? ` (${scale} side)` : ""}</div>
+            <div className="text-xs text-muted-foreground">Tap the gallons on the gauge{scale ? ` (${scale} side)` : ""}</div>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -114,8 +116,21 @@ export function DraughtGaugeEntry({
             <span className="text-sm font-semibold text-muted-foreground">gal</span>
           </div>
         </div>
+        <div className="grid grid-cols-6 gap-1" role="radiogroup" aria-label="Gallons on the gauge" data-testid="gallon-chips">
+          {Array.from({ length: maxGal + 1 }, (_, n) => n).map(n => (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={galN === n && (galN > 0 || ptN > 0 || galText !== "")}
+              onClick={() => { setGalText(String(n)); onGallons(String(n)); }}
+              className={`h-12 rounded-lg border text-lg font-bold tabular-nums ${galN === n && (galN > 0 || galText !== "") ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"}`}
+              data-testid={`button-part-gallons-${n}`}
+            >{n}</button>
+          ))}
+        </div>
         <div>
-          <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pints</div>
+          <div className="mb-1 text-xs font-semibold text-muted-foreground">Plus odd pints, only if the needle is between two gallons</div>
           <div className="grid grid-cols-8 gap-1" role="radiogroup" aria-label="Pints">
             {[0, 1, 2, 3, 4, 5, 6, 7].map(n => (
               <button
@@ -124,12 +139,20 @@ export function DraughtGaugeEntry({
                 role="radio"
                 aria-checked={ptN === n}
                 onClick={() => onPints(String(n))}
-                className={`h-10 rounded-lg border text-base font-bold tabular-nums ${ptN === n ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"}`}
+                className={`h-9 rounded-lg border text-sm font-bold tabular-nums ${ptN === n && n > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"}`}
                 data-testid={`button-part-pints-${n}`}
               >{n}</button>
             ))}
           </div>
         </div>
+        {galN === 0 && ptN > 0 && (
+          <div className="rounded-lg border border-[#E0A343]/50 bg-[#E0A343]/10 p-2 text-sm" data-testid="warn-pints-only">
+            <div className="font-semibold">Only {ptN} {ptN === 1 ? "pint" : "pints"} left in the open {word}?</div>
+            <button type="button" className="mt-1 h-10 w-full rounded-lg bg-primary text-primary-foreground font-bold" onClick={() => { setGalText(String(ptN)); onGallons(String(ptN)); onPints("0"); }} data-testid="button-pints-to-gallons">
+              No, the gauge said {ptN} {ptN === 1 ? "gallon" : "gallons"}
+            </button>
+          </div>
+        )}
         {over && (
           <p className="text-sm font-semibold text-destructive" data-testid="warn-part-over">
             That's more than a full {word} ({Math.round((capGal ?? 0) * 10) / 10} gal). Check the gauge.

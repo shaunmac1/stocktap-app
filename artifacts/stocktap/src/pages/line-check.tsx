@@ -260,7 +260,7 @@ export default function LineCheck() {
                     <input type="number" inputMode="numeric" min={0} placeholder="0" value={c.d.gal} onChange={e => set(p.id, { gal: e.target.value.replace(/[^0-9]/g, "") })} className="mt-1 block h-11 w-16 rounded-lg border border-border bg-background text-center text-xl font-bold" data-testid={`gal-${p.id}`} />
                   </label>
                   <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Pints</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">+ odd pints</div>
                     <div className="grid grid-cols-8 gap-0.5" role="radiogroup" aria-label={`Pints for ${p.name}`}>
                       {[0, 1, 2, 3, 4, 5, 6, 7].map(n => (
                         <button key={n} type="button" role="radio" aria-checked={c.d.pt === n} onClick={() => set(p.id, { pt: n })} className={`h-11 rounded-md border text-sm font-bold ${c.d.pt === n && isTouched ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"}`} data-testid={`pt-${p.id}-${n}`}>{n}</button>
@@ -268,6 +268,14 @@ export default function LineCheck() {
                     </div>
                   </div>
                 </div>
+                {c.d.gal === "" && c.d.pt > 0 && (
+                  <div className="rounded-lg border border-[#E0A343]/50 bg-[#E0A343]/10 p-2 text-sm" data-testid={`warn-pints-only-${p.id}`}>
+                    <div className="font-semibold">Only {c.d.pt} {c.d.pt === 1 ? "pint" : "pints"} left in the open {word}?</div>
+                    <button type="button" className="mt-1 h-10 w-full rounded-lg bg-primary text-primary-foreground font-bold" onClick={() => set(p.id, { gal: String(c.d.pt), pt: 0 })} data-testid={`button-pints-to-gallons-${p.id}`}>
+                      No, the gauge said {c.d.pt} {c.d.pt === 1 ? "gallon" : "gallons"}
+                    </button>
+                  </div>
+                )}
                 {photoInfo?.used[p.id] && (
                   <div className="text-xs rounded-lg bg-primary/10 px-2 py-1.5" data-testid={`till-photo-${p.id}`}>
                     <span className="font-bold">Till photo: {c.d.till || 0} pints sold</span>
