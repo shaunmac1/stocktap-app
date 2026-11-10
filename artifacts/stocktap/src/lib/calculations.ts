@@ -543,8 +543,14 @@ export function computeCategoryReading(
       // (1 unit = 1 storage unit) so valueGbp = (count/1)*costPrice = count*costPrice.
       const unitMl = product.sizeMl || 1;
       capacityMl = unitMl;
-      partialMl = (input.count ?? 0) * unitMl;
-      break;
+      // Full cases + loose: pack_size is the case size (1 or unset = singles only). The
+      // total is still single units, so cost_price stays per item everywhere.
+      const caseSize = product.packSize != null && product.packSize > 1 ? Math.round(product.packSize) : 0;
+      const cases = caseSize ? Math.max(0, Math.floor(input.fullContainers ?? 0)) : 0;
+      partialMl = (cases * caseSize + (input.count ?? 0)) * unitMl;
+      // Return here: the shared ending adds "spare full containers" on top, which would
+      // count every case twice.
+      return finishReading(product, partialMl, partialMl, capacityMl, caseSize ? cases : 0, measureMl);
     }
     case "litre": {
       // Litres are the whole count for the line (no separate full containers).

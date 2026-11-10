@@ -5,7 +5,7 @@ import {
   useCreateStocktake, useCloseStocktake, useAddReading,
   useCountLocations, useLineEntries, addLineEntry, deleteLineEntry,
   useAddCountLocation, useBottleShapes, useUpdateProduct, recomputeOpenEntriesForProduct,
-  useLatestReadingsByProduct,
+  useLatestReadingsByProduct, useSetCaseSize,
   type BottleShape,
 } from "@/hooks/api";
 import { useDeliveries } from "@/hooks/useDeliveries";
@@ -35,6 +35,8 @@ import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { isHidden } from "@/lib/hidden-products";
+import { PackagedEntry } from "@/components/PackagedEntry";
+import { caseSizeOf, totalUnits, packagedBreakdown } from "@/lib/packaged";
 import { useQuickHide } from "@/hooks/useQuickHide";
 import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
@@ -102,6 +104,7 @@ export default function Stocktake() {
   const addCountLocation = useAddCountLocation();
   const { toast } = useToast();
   const updateProductForSize = useUpdateProduct();
+  const setCaseSize = useSetCaseSize();
   const [showTypedTenths, setShowTypedTenths] = useState(false);
 
   // Core navigation
@@ -349,7 +352,7 @@ export default function Stocktake() {
       case "tenths_pints":return { method: entryActiveMethod, tenths: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "tenths":      return { method: entryActiveMethod, tenths: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "dozen":       return { method: entryActiveMethod, fullPacks: fc, partUnits: parseFloat(entryNumStr) || 0 };
-      case "each":        return { method: entryActiveMethod, count: parseFloat(entryNumStr) || 0 };
+      case "each":        return { method: entryActiveMethod, count: parseFloat(entryNumStr) || 0, fullContainers: fc };
       case "litre":       return {
         method: entryActiveMethod,
         litres: activeProduct?.category === "postmix" && postmixMode === "boxes"
@@ -770,7 +773,11 @@ export default function Stocktake() {
           ? Math.round((ml / ML_PER_PINT) * 1000) / 1000
           : usesGauge
             ? (gaugePints || null)
-            : parseFloat(entryNumStr) || null;
+            : entryActiveMethod === "each"
+              // Counted each: always saved as the total single units (cases × size + loose),
+              // so reports, GP and till checks read it exactly as before.
+              ? (totalUnits(parseFloat(entryFullContainersStr) || 0, parseFloat(entryNumStr) || 0, caseSizeOf(activeProduct as any)) || null)
+              : parseFloat(entryNumStr) || null;
       const method: LocalLineEntry["method"] = (dipByPints ? "keg_weight" : entryActiveMethod ?? (
         activeProduct.unit === "count" ? "count" :
         activeProduct.empty_weight_g != null ? "weigh" : "tenths"
@@ -1289,7 +1296,7 @@ export default function Stocktake() {
                           : <Cloud className="w-3 h-3 text-[#3FAE74] shrink-0" />}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {eq.short}
+                        {eq.kind === "units" && eq.detail ? eq.detail : eq.short}
                         {eq.kind === "draught" && entry.full_containers ? ` · ${entry.full_containers} full + ${formatGauge(entry.part_value ?? 0)}` : ""}
                         {eq.kind === "bottles" && ` · ${eq.detail}`}
                         {eq.value != null && ` · ${formatGBP(eq.value)}`}
@@ -1651,7 +1658,16 @@ export default function Stocktake() {
                       )}
                       {entryActiveMethod === "dozen" && <p className="text-xs text-muted-foreground text-center" data-testid="tip-dozen">Loose ones first, then full cases underneath. {activeProduct?.pack_size ?? 12} to a case.</p>}
                       {entryActiveMethod === "dozen" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Loose ones (not in a full case)" allowDecimal />}
-                      {entryActiveMethod === "each" && <NumberPad value={entryNumStr} onChange={setEntryNumStr} label="Units" allowDecimal />}
+                      {entryActiveMethod === "each" && activeProduct && (
+                        <PackagedEntry
+                          product={{ ...(activeProduct as any), counting_method: "each" }}
+                          cases={entryFullContainersStr}
+                          onCases={setEntryFullContainersStr}
+                          loose={entryNumStr}
+                          onLoose={setEntryNumStr}
+                          onSetCaseSize={size => { if (venue?.id) setCaseSize.mutate({ id: activeProduct.id, venue_id: venue.id, size }); }}
+                        />
+                      )}
                       {entryActiveMethod === "litre" && activeProduct?.category === "postmix" && (
                         <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1" role="radiogroup" aria-label="How to enter postmix">
                           {(["boxes", "litres"] as const).map(m => (
@@ -1797,16 +1813,23 @@ export default function Stocktake() {
                           })() : entryActiveMethod === "each" ? (
                             // Bug 2: count-unit products — show a unit count, not a clamped tenths figure
                             <>
-                              <div className="text-3xl font-bold text-primary font-mono tabular-nums">
-                                {Math.round(parseFloat(entryNumStr) || 0)}
-                                <span className="text-base font-normal text-muted-foreground ml-1">units</span>
-                              </div>
-                              <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
-                                {activeProduct?.size_ml && <div>{activeProduct.size_ml}ml each</div>}
-                                {activeProduct?.cost_price && (
-                                  <div>{formatGBP((parseFloat(entryNumStr) || 0) * activeProduct.cost_price)} stock value</div>
-                                )}
-                              </div>
+                              {(() => {
+                                const units = totalUnits(parseFloat(entryFullContainersStr) || 0, parseFloat(entryNumStr) || 0, caseSizeOf(activeProduct as any));
+                                return (
+                                  <>
+                                    <div className="text-3xl font-bold text-primary font-mono tabular-nums" data-testid="text-units-result">
+                                      {units}
+                                      <span className="text-base font-normal text-muted-foreground ml-1">{units === 1 ? "unit" : "units"}</span>
+                                    </div>
+                                    <div className="text-sm font-semibold mt-1" data-testid="text-units-breakdown">{packagedBreakdown(units, activeProduct as any)}</div>
+                                    <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
+                                      {activeProduct?.cost_price ? (
+                                        <div>{formatGBP(units * activeProduct.cost_price)} stock value</div>
+                                      ) : null}
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </>
                           ) : (
                             <>

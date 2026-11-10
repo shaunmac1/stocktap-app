@@ -1,3 +1,4 @@
+import { packagedBreakdown } from "./packaged";
 import { draughtBreakdown } from "./draught-gauge";
 import {
   ML_PER_PINT,
@@ -12,6 +13,7 @@ import {
  */
 
 export interface DisplayProduct {
+  name?: string | null;
   counting_method?: string | null;
   category?: string | null;
   size_ml?: number | null;
@@ -110,7 +112,10 @@ export function describeQuantity(product: DisplayProduct, entries: DisplayEntry[
       main: u,
       unit: units === 1 ? "unit" : "units",
       short: `${u} ${units === 1 ? "unit" : "units"}`,
-      detail: product.size_ml ? `${product.size_ml}ml each` : "",
+      // Counted each: "79 bottles · 6 doz 7 · 3 cases + 7", like the draught lines.
+      detail: !isDozen && (method === "each" || method === "count")
+        ? packagedBreakdown(units, product)
+        : product.size_ml ? `${product.size_ml}ml each` : "",
       value,
     };
   }

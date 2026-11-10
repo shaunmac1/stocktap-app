@@ -106,7 +106,7 @@ describe("describeQuantity", () => {
       [{ method: "each", full_containers: 0, part_value: 21, ml_remaining: 21 * 330 }],
     );
     expect(d.short).toBe("21 units");
-    expect(d.detail).toBe("330ml each");
+    expect(d.detail).toBe("21 bottles · 1 doz 9");
     expect(d.value).toBeCloseTo(16.8, 6);
   });
 

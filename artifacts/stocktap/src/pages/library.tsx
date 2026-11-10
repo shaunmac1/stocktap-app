@@ -3220,6 +3220,9 @@ function EditProductSheet({ open, onClose, product, venueId }: {
   const isDraughtLine = !!product && (isDraughtCategory(product.category) || ["keg_weight", "dipstick", "tenths_pints"].includes(product.counting_method));
   const isBoxLine = !!product && !isDraughtLine && (product.category === "postmix" || (product.counting_method === "litre" && product.container_l != null));
   const isDozenLine = !!product && product.counting_method === "dozen";
+  // Bottles and cans counted each can have a case size too (cases + loose on the count screen).
+  const isEachLine = !!product && product.counting_method === "each";
+  const showsCaseSize = isDozenLine || isEachLine;
 
   React.useEffect(() => {
     if (open && product) {
@@ -3296,11 +3299,11 @@ function EditProductSheet({ open, onClose, product, venueId }: {
         ...(!isDraughtLine && !isBoxLine ? { size_ml: unitSize !== "" ? parseFloat(unitSize) : null } : {}),
         ...(isBoxLine ? { container_l: boxL !== "" ? parseFloat(boxL) : null, container_type: "bag_in_box" as any } : {}),
         ...(product.category === "postmix" ? { pack_size: yieldL !== "" ? parseFloat(yieldL) : null } : {}),
-        ...(isDozenLine ? { pack_size: packSizeStr !== "" ? parseFloat(packSizeStr) : null } : {}),
+        ...(showsCaseSize ? { pack_size: packSizeStr !== "" ? parseFloat(packSizeStr) : null } : {}),
       } as any);
       // A corrected can/bottle or pack size also fixes this line in any count still open.
       const newSize = !isDraughtLine && !isBoxLine ? (unitSize !== "" ? parseFloat(unitSize) : null) : product.size_ml;
-      const newPack = isDozenLine ? (packSizeStr !== "" ? parseFloat(packSizeStr) : null) : product.pack_size;
+      const newPack = showsCaseSize ? (packSizeStr !== "" ? parseFloat(packSizeStr) : null) : product.pack_size;
       let fixed = 0;
       const newContainer = isDraughtLine ? containerLitres : product.container_l ?? null;
       const containerChanged = isDraughtLine && newContainer !== (product.container_l != null ? Number(product.container_l) : null);
@@ -3388,15 +3391,15 @@ function EditProductSheet({ open, onClose, product, venueId }: {
             <Input id="ep-notes" value={notes} onChange={e => setNotes(e.target.value)} className="mt-1" placeholder="e.g. Check date on delivery" />
           </div>
           {!isDraughtLine && !isBoxLine && (
-            <div className={isDozenLine ? "grid grid-cols-2 gap-3" : ""}>
+            <div className={showsCaseSize ? "grid grid-cols-2 gap-3" : ""}>
               <div>
                 <Label htmlFor="ep-size">{product?.unit === "weigh" ? "Bottle size (ml)" : "Can / bottle size (ml)"}</Label>
                 <Input id="ep-size" type="number" value={unitSize} onChange={e => setUnitSize(e.target.value)} className="mt-1" placeholder="e.g. 330" data-testid="input-edit-size" />
               </div>
-              {isDozenLine && (
+              {showsCaseSize && (
                 <div>
-                  <Label htmlFor="ep-pack">Units per case</Label>
-                  <Input id="ep-pack" type="number" value={packSizeStr} onChange={e => setPackSizeStr(e.target.value)} className="mt-1" placeholder="12" data-testid="input-edit-pack" />
+                  <Label htmlFor="ep-pack">{isEachLine ? "Case size (1 = singles only)" : "Units per case"}</Label>
+                  <Input id="ep-pack" type="number" value={packSizeStr} onChange={e => setPackSizeStr(e.target.value)} className="mt-1" placeholder={isEachLine ? "24" : "12"} data-testid="input-edit-pack" />
                 </div>
               )}
             </div>
