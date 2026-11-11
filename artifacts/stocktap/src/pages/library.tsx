@@ -3,6 +3,9 @@ import React, { useState, useMemo, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts, useAddProduct, useLocations, useProductReadingsMap, useDeleteProduct } from "@/hooks/api";
 import { useLineForecasts, useReadingHistory } from "@/hooks/useLineForecasts";
+import { caseSizePlan } from "@/lib/packaged";
+import { CaseSizesDialog } from "@/components/CaseSizesDialog";
+import { useSetCaseSizes } from "@/hooks/api";
 import { isWholeLineCount } from "@/lib/line-forecast";
 import { costPerMl } from "@/lib/check-picks";
 import { Input } from "@/components/ui/input";
@@ -3681,6 +3684,10 @@ export default function Library() {
   const [unweighedOnly, setUnweighedOnly] = useState(false);
   // Days left and what to order, on every line.
   const forecasts = useLineForecasts(venue?.id, products as any);
+  // Bottle, can and bag lines never told how they come in: set on one screen.
+  const caseRows = useMemo(() => caseSizePlan((products ?? []) as any), [products]);
+  const [caseSizesOpen, setCaseSizesOpen] = useState(false);
+  const setCaseSizes = useSetCaseSizes();
   // Counts from the server (phone copy when offline), the same source as the forecast, so
   // "In stock" and "Lasts X days" always start from the same count, on any device.
   const { data: readingHistory = [] } = useReadingHistory(venue?.id);
@@ -4124,6 +4131,38 @@ export default function Library() {
             <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">{fixingMethods ? "Fixing…" : "Count each"}</span>
           </button>
         )}
+
+        {caseRows.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setCaseSizesOpen(true)}
+            className="w-full flex items-start gap-3 rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-left"
+            data-testid="banner-set-case-sizes"
+          >
+            <AlertCircle className="w-4 h-4 text-[#E0A343] shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-[#E0A343]">
+                {caseRows.length} bottle and can {caseRows.length === 1 ? "line has" : "lines have"} no case size
+              </span>
+              <span className="text-xs text-[#E0A343]/80 block">
+                Set them all on one screen, so you count full cases + loose and orders read in cases, not single bottles.
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-[#E0A343] shrink-0 self-center">Set sizes</span>
+          </button>
+        )}
+        <CaseSizesDialog
+          open={caseSizesOpen}
+          onOpenChange={setCaseSizesOpen}
+          rows={caseRows as any}
+          saving={setCaseSizes.isPending}
+          onSave={items => {
+            if (!venue?.id) return;
+            setCaseSizes.mutate({ venue_id: venue.id, items }, {
+              onSuccess: r => { setCaseSizesOpen(false); toast({ title: `Case sizes set on ${r.total} ${r.total === 1 ? "line" : "lines"}`, description: r.synced < r.total ? "Saved on this phone. They'll send when you have signal." : undefined }); },
+            });
+          }}
+        />
 
         {wrongSizeWines.length > 0 && (
           <button

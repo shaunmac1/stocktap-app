@@ -119,3 +119,16 @@ export function applyPendingCaseSizes<T extends { id: string; pack_size?: number
   if (Object.keys(p).length === 0) return list;
   return list.map(x => (x.id in p ? { ...x, pack_size: p[x.id] } : x));
 }
+
+/**
+ * Every bottle, can and bag line that has never been told how it comes, with the usual size
+ * as a starting point, for setting them all on one screen instead of one count at a time.
+ */
+export function caseSizePlan<T extends PackagedProductLike & { id: string; hidden_at?: string | null }>(
+  products: T[],
+): Array<{ product: T; suggested: number | null }> {
+  return products
+    .filter(p => !p.hidden_at && needsCaseSizeAnswer(p))
+    .map(p => ({ product: p, suggested: suggestedCaseSize(p) }))
+    .sort((a, b) => (b.suggested ?? 0) - (a.suggested ?? 0) || (a.product.name ?? "").localeCompare(b.product.name ?? ""));
+}

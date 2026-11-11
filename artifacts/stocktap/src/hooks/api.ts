@@ -104,6 +104,37 @@ export function useSetCaseSize() {
   });
 }
 
+/** Set many case sizes at once (the Library's "Set case sizes" screen). Offline-safe like the single one. */
+export function useSetCaseSizes() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    networkMode: "always",
+    onMutate: ({ venue_id, items }: { venue_id: string; items: { id: string; size: number }[] }) => {
+      const by = new Map(items.map(i => [i.id, i.size]));
+      queryClient.setQueryData<Product[]>(["products", venue_id], old => old?.map(p => (by.has(p.id) ? ({ ...p, pack_size: by.get(p.id) } as any) : p)));
+    },
+    mutationFn: async ({ venue_id, items }: { venue_id: string; items: { id: string; size: number }[] }) => {
+      for (const i of items) {
+        queueCaseSize(i.id, i.size);
+        try { await db.products.update(i.id, { pack_size: i.size } as any); } catch { /* not cached yet */ }
+      }
+      let synced = 0;
+      if (typeof navigator === "undefined" || navigator.onLine) {
+        const bySize = new Map<number, string[]>();
+        for (const i of items) bySize.set(i.size, [...(bySize.get(i.size) ?? []), i.id]);
+        for (const [size, ids] of bySize) {
+          try {
+            const { error } = await supabase.from("products").update({ pack_size: size } as any).in("id", ids);
+            if (!error) { ids.forEach(clearPendingCaseSize); synced += ids.length; }
+          } catch { /* no signal: stays queued */ }
+        }
+      }
+      return { venue_id, synced, total: items.length };
+    },
+    onSettled: (_r, _e, v) => { queryClient.invalidateQueries({ queryKey: ["products", v.venue_id] }); },
+  });
+}
+
 /** Send any hides/shows saved while offline. Safe to call any time. */
 async function flushPendingHidden() {
   const pending = readPendingHidden();

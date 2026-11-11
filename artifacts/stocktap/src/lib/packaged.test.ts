@@ -97,3 +97,19 @@ describe("saved count is the total units, priced per bottle", () => {
     expect(Math.round((q.value ?? 0) * 100) / 100).toBe(48.98);
   });
 });
+
+import { caseSizePlan } from "./packaged";
+describe("set every case size on one screen", () => {
+  it("lists only visible lines never asked, biggest suggested size first, snacks with no guess last", () => {
+    const rows = caseSizePlan([
+      { id: "a", ...each("Soft J2O Apple & Mango 275ml", 275) },
+      { id: "b", ...each("PPC Old Mout Berries 500ml", 500) },
+      { id: "c", ...each("Crisps McCoys Salted 45g", null) },
+      { id: "d", ...each("PPL Peroni 330ml", 330, 24) },                       // already set
+      { id: "e", ...each("Soft Red Bull 250ml", 250, 1) },                      // singles: already answered
+      { id: "f", ...each("PPS WKD Blue 275ml", 275), hidden_at: "2026-11-01" }, // hidden
+      { id: "g", name: "Gin Gordons 70cl", category: "spirits", counting_method: "tenths", size_ml: 700, pack_size: null },
+    ]);
+    expect(rows.map(r => [r.product.id, r.suggested])).toEqual([["a", 24], ["b", 12], ["c", null]]);
+  });
+});
