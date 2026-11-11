@@ -647,10 +647,10 @@ export default function Auth() {
       <div className="flex-1 flex flex-col items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-center text-primary">Your first count, in twenty minutes</CardTitle>
+            <CardTitle className="text-xl font-bold text-center text-primary">Your first number, in 2 minutes</CardTitle>
             <p className="text-center text-sm text-muted-foreground mt-1">
-              Pick your 20 biggest sellers, put each open bottle on the scale, and you'll have your first real
-              number. Prices and the rest of the range can come after.
+              Tap 5 bottles on your back bar and say how full each one is. No scale, no setting up. You'll see
+              what they're worth on the shelf and over the bar. Everything else can come after.
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -662,7 +662,7 @@ export default function Auth() {
               }}
               data-testid="button-onboarding-first-count"
             >
-              Pick my 20 biggest sellers and count them
+              Count 5 bottles now
             </Button>
             <Button
               variant="outline"

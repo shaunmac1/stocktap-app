@@ -36,6 +36,7 @@ import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { isHidden } from "@/lib/hidden-products";
 import { bottleBreakdown } from "@/lib/stock-display";
+import { isQuickCount, setQuickCount, overTheBar } from "@/lib/quick-count";
 import { PackagedEntry } from "@/components/PackagedEntry";
 import { caseSizeOf, totalUnits, packagedBreakdown, needsCaseSizeAnswer } from "@/lib/packaged";
 import { useQuickHide } from "@/hooks/useQuickHide";
@@ -203,6 +204,7 @@ export default function Stocktake() {
 
   // Per-product Weigh/Tenths choice for this count (see bottleMethodChoice below)
   const [bottleMethodOverride, setBottleMethodOverride] = useState<Record<string, "weigh" | "tenths">>({});
+  const [quickCount] = useState(() => isQuickCount());
 
   // Legacy readings for closed stocktakes opened from list
   const [legacyReadings, setLegacyReadings] = useState<LegacyReading[]>([]);
@@ -305,7 +307,8 @@ export default function Stocktake() {
   const bottleMethodChoice: "weigh" | "tenths" | null =
     isBottleLine && activeProduct
       ? (bottleMethodOverride[activeProduct.id] ??
-          (entryResolvedMethod === "tenths" ? "tenths" : entryResolvedMethod === "weigh" ? "weigh" : null))
+          // The two-minute first count: tenths by eye unless they pick Weigh on the switch.
+          (quickCount ? "tenths" : entryResolvedMethod === "tenths" ? "tenths" : entryResolvedMethod === "weigh" ? "weigh" : null))
       : null;
   // Weigh chosen but no bottle weights yet: ask for one full sealed bottle (FullBottleSetup)
   // instead of falling back to tenths. "Tenths" on the switch is always one tap away.
@@ -895,6 +898,7 @@ export default function Stocktake() {
           : `Total value: ${formatGBP(totalValue)}`,
         variant: pendingSyncProducts.length > 0 ? "default" : undefined,
       });
+      setQuickCount(false);
       setStep("list");
       setActiveStocktakeId(null); setLegacyReadings([]);
       setSelectedProductIds([]); setCountingView("products"); setActiveProductId(null);
@@ -1950,6 +1954,20 @@ export default function Stocktake() {
             <CardContent className="p-4">
               <div className="text-sm text-primary-foreground/80">Total Stock Value</div>
               <div className="text-4xl font-bold font-mono tabular-nums">{formatGBP(totalSummaryValue)}</div>
+              {(() => {
+                // What this stock takes over the bar at the pub's own sell prices. Unpriced lines
+                // are left out and said so; nothing is guessed.
+                const bar = overTheBar(summaryLines.map(l => ({ prod: l.prod as any, mlRemaining: l.mlRemaining, count: (l as any).count ?? null })), venue?.measure_ml);
+                return bar.priced > 0 && bar.value > 0 ? (
+                  <div className="mt-2 rounded-lg bg-primary-foreground/10 px-3 py-2" data-testid="text-bar-value">
+                    <div className="text-sm text-primary-foreground/80">Sold over the bar, that's about</div>
+                    <div className="text-2xl font-bold font-mono tabular-nums">{formatGBP(bar.value)}</div>
+                    <div className="text-xs text-primary-foreground/70">
+                      At your sell prices{summaryLines.some(l => (l.prod as any).pour_price_estimated) ? " (some are estimates: fix them in the Library)" : ""}{bar.unpriced > 0 ? `. ${bar.unpriced} ${bar.unpriced === 1 ? "line has" : "lines have"} no sell price and ${bar.unpriced === 1 ? "is" : "are"} left out` : ""}.
+                    </div>
+                  </div>
+                ) : null;
+              })()}
               <div className="text-sm text-primary-foreground/70 mt-0.5">{summaryLines.length} {summaryLines.length === 1 ? "line" : "lines"} counted{isViewingClosed ? "" : ". Nothing's final until you close."}</div>
             </CardContent>
           </Card>

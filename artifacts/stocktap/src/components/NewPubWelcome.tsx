@@ -23,6 +23,16 @@ export function NewPubWelcome({ draughtLines, totalLines }: { draughtLines: numb
 
   return (
     <div className="space-y-4 pb-16" data-testid="new-pub-welcome">
+      <Link
+        href="/first-count"
+        className="block rounded-2xl border-2 border-primary bg-primary/5 p-4 text-center"
+        data-testid="button-quick-five"
+      >
+        <span className="block text-lg font-bold text-primary">Want a number in 2 minutes?</span>
+        <span className="block text-sm text-muted-foreground mt-0.5">Tap 5 bottles on your back bar and say how full they are. No scale, no setting up.</span>
+        <span className="mt-3 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground">Count 5 bottles now</span>
+      </Link>
+      <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">Or do the full job</p>
       <section className="rounded-2xl border border-border bg-card p-5 flex flex-col items-center text-center gap-3">
         <svg width="88" height="88" viewBox="0 0 96 96" fill="none" aria-hidden="true" className="text-primary">
           <circle cx="48" cy="48" r="46" className="fill-primary/10" />
@@ -30,7 +40,7 @@ export function NewPubWelcome({ draughtLines, totalLines }: { draughtLines: numb
           <path d="M30 40h36M30 58h36" stroke="currentColor" strokeWidth="3" />
           <path d="M42 33h12M42 65h12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
         </svg>
-        <h2 className="text-xl font-bold leading-tight">Your first number is 20 minutes away</h2>
+        <h2 className="text-xl font-bold leading-tight">The full job takes about 20 minutes</h2>
         <p className="text-sm text-muted-foreground max-w-xs">
           Count your draught first. Your stock value, GP% and what's going missing all start from that count.
         </p>

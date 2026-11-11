@@ -7,6 +7,10 @@
 // within a couple of minutes. Prices and the rest of the range can come after
 // the first "you have £X on the shelf".
 
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { rankCatalogueResults } from "@/lib/catalogue-picker";
+import { QUICK_TARGET, QUICK_PICK_NAMES, setQuickCount } from "@/lib/quick-count";
 import React, { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Check, Plus, Scale, Search } from "lucide-react";
 
-const TARGET = 20;
+const TARGET = QUICK_TARGET;
 
 // Shown before the landlord types anything: the lines that are the biggest
 // sellers in most UK pubs, so the first taps are obvious.
@@ -40,6 +44,41 @@ export default function FirstCount() {
   const addItems = useAddCatalogueItems();
   const createStocktake = useCreateStocktake();
   const [picked, setPicked] = useState<string[]>([]); // venue product ids, in the order picked
+  // One-tap picks: the top catalogue match for each of the usual back-bar bottles, so the first
+  // count needs no typing at all. Typing a brand still works for anything not shown.
+  const { data: quickPicks = [] } = useQuery({
+    queryKey: ["quick-picks", venue?.id],
+    enabled: !!venue?.id,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const hits = await Promise.all(QUICK_PICK_NAMES.map(async name => {
+        try {
+          const { data } = await supabase.rpc("search_catalogue_items" as never, { p_venue_id: venue!.id, p_query: name, p_limit: 8 } as never);
+          const ranked = rankCatalogueResults((data ?? []) as unknown as SafeCatalogueItem[], name);
+          // The standard 70cl bottle if there is one, else the best match.
+          return ranked.find(i => i.size_ml === 700) ?? ranked[0] ?? null;
+        } catch { return null; }
+      }));
+      const seen = new Set<string>();
+      return hits.filter((i): i is SafeCatalogueItem => !!i && !seen.has(i.id) && !!seen.add(i.id));
+    },
+  });
+  const [catToProduct, setCatToProduct] = useState<Record<string, string>>({});
+  const [tapping, setTapping] = useState<string | null>(null);
+  const tapQuickPick = async (item: SafeCatalogueItem) => {
+    if (!venue?.id || tapping) return;
+    const have = catToProduct[item.id];
+    if (have && picked.includes(have)) { setPicked(prev => prev.filter(x => x !== have)); return; }
+    if (have) { setPicked(prev => [...prev, have]); return; }
+    setTapping(item.id);
+    try {
+      const rows = await addItems.mutateAsync({ venueId: venue.id, catalogueIds: [item.id], locationId: null });
+      const row = rows[0];
+      if (row) { setCatToProduct(m => ({ ...m, [item.id]: row.product_id })); setPicked(prev => (prev.includes(row.product_id) ? prev : [...prev, row.product_id])); }
+    } catch (err: any) {
+      toast({ title: "Couldn't add that one", description: err.message, variant: "destructive" });
+    } finally { setTapping(null); }
+  };
   const [starting, setStarting] = useState(false);
 
   const openStocktake = (stocktakes ?? []).find(s => s.status === "open");
@@ -80,6 +119,8 @@ export default function FirstCount() {
     if (!venue?.id || picked.length === 0) return;
     setStarting(true);
     try {
+      // Bottles in tenths by default for this count: no scale needed to get the first number.
+      setQuickCount(true);
       await createStocktake.mutateAsync({
         venue_id: venue.id,
         location_id: null,
@@ -104,20 +145,19 @@ export default function FirstCount() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-primary">Your first count</h1>
+            <h1 className="text-xl font-bold text-primary">Your first number, in 2 minutes</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Pick your {TARGET} biggest sellers. Weights are on file for most of them, so you can start weighing straight away.
+              Tap {TARGET} bottles you can see from where you're standing. No scale, no prices to type. You'll say how full each one is by eye.
             </p>
           </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Type a brand — Smirnoff, Gordons, Peroni…"
+            placeholder="Not shown below? Type a brand"
             className="pl-9"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            autoFocus
             data-testid="input-first-count-search"
           />
         </div>
@@ -125,7 +165,7 @@ export default function FirstCount() {
           <span className="font-semibold">
             {picked.length} of {TARGET} picked
           </span>
-          <span className="text-muted-foreground">{picked.length >= TARGET ? "That's plenty — start counting" : "Twenty is a guide, not a rule"}</span>
+          <span className="text-muted-foreground">{picked.length >= TARGET ? "That's plenty. Start counting" : picked.length > 0 ? "Fewer is fine. Start when you like" : "Five is a guide, not a rule"}</span>
         </div>
         <div className="h-1.5 rounded-full bg-muted overflow-hidden">
           <div className="h-full bg-primary transition-all" style={{ width: `${Math.min(100, (picked.length / TARGET) * 100)}%` }} />
@@ -192,7 +232,34 @@ export default function FirstCount() {
           </div>
         ) : (
           <>
-            {picked.length === 0 && (
+            {quickPicks.length > 0 && (
+              <div className="space-y-2" data-testid="quick-picks">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tap what's on your back bar</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {quickPicks.map(item => {
+                    const pid = catToProduct[item.id];
+                    const on = !!pid && picked.includes(pid);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => tapQuickPick(item)}
+                        disabled={tapping === item.id}
+                        aria-pressed={on}
+                        className={`min-h-[3.5rem] rounded-xl border-2 px-3 py-2 text-left text-sm font-semibold leading-snug disabled:opacity-60 ${on ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"}`}
+                        data-testid={`quick-pick-${item.id}`}
+                      >
+                        <span className="flex items-start gap-1.5">
+                          {on ? <Check className="w-4 h-4 shrink-0 mt-0.5" /> : <Plus className="w-4 h-4 shrink-0 mt-0.5 text-muted-foreground" />}
+                          <span className="break-words">{item.canonical_name}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {quickPicks.length === 0 && picked.length === 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Most pubs start with</p>
                 <div className="flex flex-wrap gap-2">
@@ -246,7 +313,7 @@ export default function FirstCount() {
             {starting ? "Starting…" : `Start counting ${picked.length} line${picked.length === 1 ? "" : "s"}`}
           </Button>
           <p className="text-[11px] text-muted-foreground text-center">
-            {unweighed > 0 ? `${unweighed} without bottle weights can be counted in tenths today.` : "Prices are estimated for now — fix them after the count."}
+            No scale needed: you'll tap how full each bottle is. Want it exact? You can weigh any bottle as you go.
           </p>
         </div>
       )}
