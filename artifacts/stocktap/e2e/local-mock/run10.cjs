@@ -42,7 +42,7 @@ const SHOT = '/tmp/uitest/shots10';
     const vids = await p.evaluate(() => [...document.querySelectorAll('video')].map(v => v.getAttribute('src')));
     const missing = [];
     for (const s of vids) { const st = await p.evaluate(async s => (await fetch(s, { method: 'HEAD' })).status, s); if (st !== 200) missing.push(s); }
-    check(`${label}: videos page has 43 videos and the new ones load`, vids.length === 43 && missing.length === 0, missing.join(','));
+    check(`${label}: videos page has 48 videos and the new ones load`, vids.length === 48 && missing.length === 0, missing.join(','));
     check(`${label}: no page errors`, errs.length === 0, errs.join(' | '));
     await ctx.close();
   }

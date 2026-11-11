@@ -5,6 +5,7 @@
 export interface HelpVideo { id: string; title: string; blurb: string; group: string }
 
 export const HELP_VIDEOS: HelpVideo[] = [
+  { id: "first-number-in-2-minutes", group: "Getting started", title: "Your first number in 2 minutes", blurb: "Brand new? Tap 5 bottles, say how full they are, and see what they're worth. No scale, no setting up." },
   { id: "first-count", group: "Getting started", title: "Your first count", blurb: "Pick your biggest sellers from the catalogue and start counting in minutes." },
   { id: "home-tour", group: "Getting started", title: "Your home screen", blurb: "Stock value and GP at a glance, and where everything starts." },
   { id: "library-add-from-catalogue", group: "Getting started", title: "Add lines from the catalogue", blurb: "Search the UK pub catalogue and add the lines you sell in one go." },
@@ -62,7 +63,7 @@ export const HELP_VIDEOS: HelpVideo[] = [
 const BY_ROUTE: Array<[string, string[]]> = [
   ["/library", ["days-left-and-orders", "case-sizes-one-screen", "library-add-from-catalogue", "library-add-product", "library-weigh-bottle", "library-prices-and-pars"]],
   ["/stocktake", ["stocktake-start", "stocktake-weigh-setup", "spirits-tenths", "stocktake-casks", "draught-gallons", "stocktake-spots", "keg-box-sizes", "stocktake-postmix", "stocktake-count-units", "cases-and-loose", "tenths-and-measures", "stocktake-review-close", "weighing-spot-check"]],
-  ["/first-count", ["first-count", "weighing-spot-check", "spirits-tenths"]],
+  ["/first-count", ["first-number-in-2-minutes", "first-count", "weighing-spot-check", "spirits-tenths"]],
   ["/spot-check", ["weighing-spot-check", "days-left-and-orders"]],
   ["/delivery", ["paste-delivery", "invoice-scan"]],
   ["/invoice-scan", ["invoice-scan"]],
@@ -76,7 +77,7 @@ const BY_ROUTE: Array<[string, string[]]> = [
   ["/suggestions", ["suggestions"]],
   ["/rota", ["rota"]],
   ["/settings", ["settings-locations", "settings-counting", "settings-offers", "settings-plan"]],
-  ["/", ["home-tour", "first-count", "library-add-from-catalogue", "weighing-spot-check"]],
+  ["/", ["first-number-in-2-minutes", "home-tour", "first-count", "library-add-from-catalogue", "weighing-spot-check"]],
 ];
 
 export function videosForRoute(path: string): HelpVideo[] {
