@@ -35,6 +35,7 @@ import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { isHidden } from "@/lib/hidden-products";
+import { bottleBreakdown } from "@/lib/stock-display";
 import { PackagedEntry } from "@/components/PackagedEntry";
 import { caseSizeOf, totalUnits, packagedBreakdown, needsCaseSizeAnswer } from "@/lib/packaged";
 import { useQuickHide } from "@/hooks/useQuickHide";
@@ -1283,7 +1284,7 @@ export default function Stocktake() {
                 <p className="text-xs">Got some behind the bar and some in the cellar? Add a count for each spot and they're added up.</p>
               </div>
             ) : productEntries.map(entry => {
-              const eq = describeQuantity(activeProduct as any, [entry as any]);
+              const eq = describeQuantity(activeProduct as any, [entry as any], venue?.measure_ml);
               return (
                 <Card key={entry.id} data-testid={`entry-card-${entry.id}`}>
                   <CardContent className="p-3 flex items-center justify-between gap-2">
@@ -1320,7 +1321,7 @@ export default function Stocktake() {
               <div className="rounded-xl bg-accent p-4 text-center mt-2">
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Total across all spots</div>
                 {(() => {
-                  const tq = describeQuantity(activeProduct as any, productEntries as any);
+                  const tq = describeQuantity(activeProduct as any, productEntries as any, venue?.measure_ml);
                   return (
                     <>
                       <div className="text-3xl font-bold text-primary font-mono tabular-nums" data-testid="text-product-total">
@@ -1833,16 +1834,43 @@ export default function Stocktake() {
                             </>
                           ) : (
                             <>
-                              <div className="text-3xl font-bold text-primary font-mono tabular-nums">
-                                {(entryCategoryResult?.tenths ?? entryTenths ?? 0).toFixed(1)}
-                                <span className="text-base font-normal text-muted-foreground ml-1">tenths</span>
-                              </div>
+                              {(() => {
+                                // Three figures, each labelled: bottles for the stock sheet, full + tenths
+                                // the way the stocktaker writes it, and measures (or glasses) left to sell.
+                                const bb = bottleBreakdown(entryCategoryResult?.mlRemaining ?? entryMl ?? 0, activeProduct as any, venue?.measure_ml);
+                                return (
+                                  <>
+                                    <div className="text-3xl font-bold text-primary font-mono tabular-nums" data-testid="text-bottles-result">
+                                      {bb.bottles}
+                                      <span className="text-base font-normal text-muted-foreground ml-1">{bb.bottles === "1.0" ? "bottle" : "bottles"}</span>
+                                    </div>
+                                    {activeProduct?.unit !== "count" && (
+                                      <div className="mt-2 grid grid-cols-2 gap-2 text-left">
+                                        <div className="rounded-lg bg-background/60 border border-border p-2">
+                                          <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Tenths (stock sheet)</div>
+                                          <div className="text-sm font-bold" data-testid="text-tenths-result">{bb.tenthsText}</div>
+                                        </div>
+                                        <div className="rounded-lg bg-background/60 border border-border p-2">
+                                          <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Left to sell</div>
+                                          <div className="text-sm font-bold" data-testid="text-measures-result">{bb.measuresText}</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {entryActiveMethod === "tenths" && activeProduct && (
+                                      <button
+                                        type="button"
+                                        className="mt-2 w-full rounded-lg border border-dashed border-primary/50 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary"
+                                        onClick={() => { setBottleMethodOverride(prev => ({ ...prev, [activeProduct.id]: "weigh" })); setEntryNumStr("0"); }}
+                                        data-testid="button-want-exact"
+                                      >
+                                        Tenths is by eye. Want it exact? Weigh the bottle
+                                      </button>
+                                    )}
+                                  </>
+                                );
+                              })()}
                               {activeProduct?.unit !== "count" && (
-                                <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
-                                  <div>{Math.round(entryCategoryResult?.mlRemaining ?? entryMl ?? 0)}ml remaining</div>
-                                  {entryMeasureMl > 0 && (
-                                    <div>{entryCategoryResult?.measuresRemaining ?? calcMeasuresLeft(entryMl ?? 0, entryMeasureMl)} × {entryMeasureMl}ml measures</div>
-                                  )}
+                                <div className="text-sm text-muted-foreground mt-2 space-y-0.5">
                                   {activeProduct.cost_price && (
                                     <div>{formatGBP(entryCategoryResult
                                       ? entryCategoryResult.valueGbp

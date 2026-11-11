@@ -16,6 +16,7 @@ export interface DisplayProduct {
   name?: string | null;
   counting_method?: string | null;
   category?: string | null;
+  measure_ml?: number | null;
   size_ml?: number | null;
   pack_size?: number | null;
   container_l?: number | null;
@@ -79,7 +80,7 @@ function trim(n: number, dp = 2): string {
  * Describe the quantity held in a set of entries (one entry, or every entry for a
  * product). The method comes from the saved entries, falling back to the product.
  */
-export function describeQuantity(product: DisplayProduct, entries: DisplayEntry[]): QuantityDisplay {
+export function describeQuantity(product: DisplayProduct, entries: DisplayEntry[], venueMeasureMl?: number | null): QuantityDisplay {
   const method = entries[0]?.method ?? product.counting_method ?? null;
   const kind = quantityKind(method, product.category);
   const totalMl = entries.reduce((s, e) => s + (e.ml_remaining ?? 0), 0);
@@ -141,15 +142,57 @@ export function describeQuantity(product: DisplayProduct, entries: DisplayEntry[
   // Bottles counted by tenths / weight / photo. Shown as bottles to one decimal place —
   // 1.3 btl is "1 and 3 tenths", and 33 bottles reads as 33.0 btl, not "330 tenths".
   const size = product.size_ml ?? 700;
-  const tenths = calcTenths(totalMl, size);
-  const bottles = (tenths / 10).toFixed(1);
+  const b = bottleBreakdown(totalMl, product, venueMeasureMl);
   return {
     kind,
-    main: bottles,
-    unit: bottles === "1.0" ? "bottle" : "bottles",
-    short: `${bottles} btl`,
-    detail: `${tenths.toFixed(1)} tenths · ${Math.round(totalMl)}ml`,
+    main: b.bottles,
+    unit: b.bottles === "1.0" ? "bottle" : "bottles",
+    short: `${b.bottles} btl`,
+    // The stocktaker's figure (full + tenths) and what's left to sell, side by side.
+    detail: `${b.tenthsText} · ${b.measuresText}`,
     value: cost != null && size > 0 ? (totalMl / size) * cost : null,
+  };
+}
+
+export interface BottleBreakdown {
+  /** "2.7" — the figure a stock sheet takes ("2.75" when a half tenth was counted) */
+  bottles: string;
+  whole: number;
+  tenths: number;
+  /** "2 full + 7 tenths" */
+  tenthsText: string;
+  measures: number;
+  measureMl: number;
+  /** "75 measures of 25ml" / "10 glasses of 175ml" */
+  measuresText: string;
+}
+
+/** Wine is sold by the glass; everything else by the pub's spirit measure. */
+export function measureFor(product: DisplayProduct, venueMeasureMl?: number | null): { ml: number; one: string; many: string } {
+  const isWine = product.category === "wines" || product.category === "wine" || product.category === "sparkling";
+  if (product.measure_ml && product.measure_ml > 0) return { ml: product.measure_ml, one: isWine ? "glass" : "measure", many: isWine ? "glasses" : "measures" };
+  if (isWine) return { ml: 175, one: "glass", many: "glasses" };
+  return { ml: venueMeasureMl && venueMeasureMl > 0 ? venueMeasureMl : 25, one: "measure", many: "measures" };
+}
+
+/**
+ * A spirit or wine line three ways: bottles for the stock sheet ("2.7"), full + tenths the way
+ * a stocktaker writes it, and whole measures (or glasses) left to sell.
+ */
+export function bottleBreakdown(totalMl: number, product: DisplayProduct, venueMeasureMl?: number | null): BottleBreakdown {
+  const size = product.size_ml && product.size_ml > 0 ? product.size_ml : 700;
+  // To the nearest half tenth: the count screen's ¼ ½ ¾ buttons give 2½, 5 and 7½.
+  const t = Math.round(calcTenths(Math.max(0, totalMl), size) * 2) / 2;
+  const whole = Math.floor(t / 10), tenths = t - whole * 10;
+  const tenthsWord = Number.isInteger(tenths) ? String(tenths) : `${Math.floor(tenths) || ""}½`;
+  const m = measureFor(product, venueMeasureMl);
+  // A hair under a whole measure (rounding in the weigh maths) still counts as that measure.
+  const measures = Math.floor(Math.max(0, totalMl) / m.ml + 1e-6);
+  return {
+    bottles: (t / 10).toFixed(Number.isInteger(t) ? 1 : 2), whole, tenths,
+    tenthsText: `${whole} full + ${tenthsWord} ${tenths === 1 ? "tenth" : "tenths"}`,
+    measures, measureMl: m.ml,
+    measuresText: `${measures} ${measures === 1 ? m.one : m.many} of ${m.ml}ml`,
   };
 }
 

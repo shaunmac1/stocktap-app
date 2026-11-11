@@ -144,7 +144,7 @@ describe("describeQuantity", () => {
       [{ method: "tenths", full_containers: 1, part_value: 3, ml_remaining: 910 }],
     );
     expect(d.short).toBe("1.3 btl");
-    expect(d.detail).toBe("13.0 tenths · 910ml");
+    expect(d.detail).toBe("1 full + 3 tenths · 36 measures of 25ml");
     expect(d.value).toBeCloseTo(1.3 * 17, 6);
   });
 
@@ -220,5 +220,48 @@ describe("cartridges", () => {
   it("a 250ml cartridge counted by the litre reads as a count", () => {
     expect(describeMovedMl({ counting_method: "litre", size_ml: 250 }, 250)).toBe("1 × 250ml");
     expect(describeMovedMl({ counting_method: "litre", size_ml: 1000 }, 12000)).toBe("12 L");
+  });
+});
+
+import { bottleBreakdown, measureFor, describeQuantity as dq } from "./stock-display";
+describe("spirits and wine: bottles, full + tenths, and measures left", () => {
+  const gin = { name: "Gin Gordons 70cl", category: "spirits", counting_method: "tenths", unit: "weigh", size_ml: 700, cost_price: 15 };
+  const wine = { name: "Wine Pinot G. Colverde 75cl", category: "wines", counting_method: "tenths", unit: "weigh", size_ml: 750, cost_price: 6 };
+  it("2 full + 7 tenths of gin = 2.7 bottles, 75 measures of 25ml", () => {
+    const b = bottleBreakdown(2.7 * 700, gin, 25);
+    expect(b.bottles).toBe("2.7");
+    expect(b.tenthsText).toBe("2 full + 7 tenths");
+    expect(b.measuresText).toBe("75 measures of 25ml");
+  });
+  it("a 35ml pub gets 35ml measures; a product's own measure wins", () => {
+    expect(bottleBreakdown(700, gin, 35).measuresText).toBe("20 measures of 35ml");
+    expect(bottleBreakdown(700, { ...gin, measure_ml: 50 }, 25).measuresText).toBe("14 measures of 50ml");
+  });
+  it("wine is glasses of 175ml, never 25ml measures", () => {
+    expect(measureFor(wine, 25)).toEqual({ ml: 175, one: "glass", many: "glasses" });
+    expect(bottleBreakdown(8.9 * 750, wine, 25).measuresText).toBe("38 glasses of 175ml");
+    expect(bottleBreakdown(8.9 * 750, wine, 25).tenthsText).toBe("8 full + 9 tenths");
+    expect(bottleBreakdown(175, wine, 25).measuresText).toBe("1 glass of 175ml");
+  });
+  it("singular tenth, empty, and a full bottle exactly", () => {
+    expect(bottleBreakdown(70, gin, 25).tenthsText).toBe("0 full + 1 tenth");
+    expect(bottleBreakdown(0, gin, 25).measuresText).toBe("0 measures of 25ml");
+    expect(bottleBreakdown(700, gin, 25)).toMatchObject({ bottles: "1.0", whole: 1, tenths: 0, measures: 28 });
+  });
+  it("every tenth from 0 to 12 bottles reads back the same", () => {
+    for (let t = 0; t <= 120; t++) {
+      const b = bottleBreakdown((t / 10) * 700, gin, 25);
+      expect(b.whole * 10 + b.tenths).toBe(t);
+      expect(b.bottles).toBe((t / 10).toFixed(1));
+    }
+  });
+  it("half tenths from the ¼ ½ ¾ buttons are kept, not rounded away", () => {
+    expect(bottleBreakdown(2.75 * 700, gin, 25)).toMatchObject({ bottles: "2.75", tenthsText: "2 full + 7½ tenths" });
+    expect(bottleBreakdown(0.05 * 700, gin, 25).tenthsText).toBe("0 full + ½ tenths");
+  });
+  it("saved lines and totals carry both", () => {
+    const q = dq(gin as any, [{ method: "tenths", full_containers: 2, part_value: 7, ml_remaining: 2.7 * 700 } as any], 25);
+    expect(q.short).toBe("2.7 btl");
+    expect(q.detail).toBe("2 full + 7 tenths · 75 measures of 25ml");
   });
 });
