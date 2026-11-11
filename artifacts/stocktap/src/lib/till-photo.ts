@@ -61,3 +61,20 @@ export function tillPhotoToPints(rows: TillPhotoRow[], lines: TillPhotoLine[]): 
   for (const id of Object.keys(pints)) pints[id] = Math.round(pints[id] * 10) / 10;
   return { pints, used, unmatched, ignored };
 }
+
+/**
+ * Photo rows as the same kind of file any till exports ("Product,Quantity,Value"), so a photo
+ * of the report goes through the very same matching, remembering and till-vs-counts screens as
+ * a file from the till. Every line on the report is kept, not just draught.
+ */
+export const TILL_PHOTO_HEADERS = ["Product", "Quantity", "Value"] as const;
+export function tillPhotoRowsToCsv(rows: TillPhotoRow[]): string {
+  const q = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const out = [TILL_PHOTO_HEADERS.join(",")];
+  for (const r of rows) {
+    const name = (r.name ?? "").trim();
+    if (!name || !Number.isFinite(r.qty) || r.qty === 0) continue;
+    out.push([q(name), String(r.qty), r.value != null && Number.isFinite(r.value) ? r.value.toFixed(2) : ""].join(","));
+  }
+  return out.join("\n");
+}

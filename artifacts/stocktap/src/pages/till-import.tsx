@@ -9,6 +9,9 @@ import { useSaveTillMemory, useSaveTillSales, useTillMemory, useTillSalesInPerio
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatGBP } from "@/lib/calculations";
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabase";
+import { fileToBase64, prepareImage } from "@/lib/image";
+import { mergeTillPhotoRows, tillPhotoRowsToCsv, type TillPhotoRow } from "@/lib/till-photo";
 import {
   detectTillType, findHeaderRow, guessGenericMapping, parseCsvRows, parseTillFile,
   type GenericMapping, type TillParseResult, type TillType,
@@ -68,7 +71,49 @@ export default function TillImport() {
 
   // ── File ──
   const [till, setTill] = useState<TillType>(() => { try { return (localStorage.getItem("till-import:type") as TillType) || "sharp"; } catch { return "sharp"; } });
-  useEffect(() => { try { localStorage.setItem("till-import:type", till); } catch { /* ignore */ } }, [till]);
+  // A photo of the report is read as an "any till" file, without changing the till the pub has saved.
+  const [fromPhoto, setFromPhoto] = useState(false);
+  useEffect(() => { if (fromPhoto) return; try { localStorage.setItem("till-import:type", till); } catch { /* ignore */ } }, [till, fromPhoto]);
+  const camRef = useRef<HTMLInputElement>(null);
+  const libRef = useRef<HTMLInputElement>(null);
+  const [photoBusy, setPhotoBusy] = useState<string | null>(null);
+  const [photoSets, setPhotoSets] = useState<TillPhotoRow[][]>([]);
+  const readPhotos = async (list: FileList | null) => {
+    const files = list ? Array.from(list) : [];
+    if (!files.length || !venueId) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      toast({ title: "No signal", description: "Reading a photo needs a connection. Try again when you're back online.", variant: "destructive" });
+      return;
+    }
+    try {
+      const sets = [...photoSets];
+      for (let i = 0; i < files.length; i++) {
+        setPhotoBusy(files.length > 1 ? `Reading photo ${i + 1} of ${files.length}…` : "Reading the sales report…");
+        const img = await prepareImage(files[i]);
+        const token = (await supabase.auth.getSession()).data.session?.access_token ?? "";
+        const resp = await fetch(`${SUPABASE_URL}/functions/v1/read-till-photo`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ venue_id: venueId, image_base64: await fileToBase64(img), media_type: "image/jpeg" }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(data?.error || "Couldn't read that photo. Try a clearer, straight-on photo.");
+        sets.push(Array.isArray(data.rows) ? data.rows : []);
+      }
+      const merged = mergeTillPhotoRows(sets);
+      if (!merged.length) { toast({ title: "No product sales found on that photo", description: "It needs to be the report that lists each product and how many were sold.", variant: "destructive" }); return; }
+      setPhotoSets(sets);
+      setFromPhoto(true); setTill("generic");
+      setFileName(`${sets.length} ${sets.length === 1 ? "photo" : "photos"} of the sales report`);
+      setText(tillPhotoRowsToCsv(merged));
+    } catch (e: any) {
+      toast({ title: "Couldn't read the photo", description: e?.message ?? "Try again.", variant: "destructive" });
+    } finally {
+      setPhotoBusy(null);
+      if (camRef.current) camRef.current.value = "";
+      if (libRef.current) libRef.current.value = "";
+    }
+  };
   const fileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [text, setText] = useState("");
@@ -166,7 +211,7 @@ export default function TillImport() {
     }
   }
 
-  function reset() { setText(""); setFileName(""); setEdits({}); setStep("pick"); }
+  function reset() { setText(""); setFileName(""); setEdits({}); setPhotoSets([]); setStep("pick"); }
 
   const header = (
     <div className="p-4 border-b border-border bg-card sticky top-0 z-10 flex items-center gap-3">
@@ -332,9 +377,23 @@ export default function TillImport() {
         </section>
 
         <section className="space-y-2">
-          <div className="text-sm font-semibold">3. The file from the till</div>
+          <div className="text-sm font-semibold">3. The sales report: a photo or the till's file</div>
+          <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" data-testid="input-till-photo-camera" onChange={e => readPhotos(e.target.files)} />
+          <input ref={libRef} type="file" accept="image/*" multiple className="hidden" data-testid="input-till-photo" onChange={e => readPhotos(e.target.files)} />
+          <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2" data-testid="card-till-photo-all">
+            <div className="text-sm font-semibold">No file from your till? Photograph the report</div>
+            <p className="text-xs text-muted-foreground">The printout or the screen that lists each product and how many sold. Every line is read: draught, bottles, spirits, wine, soft drinks. A long roll can be several photos.</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button className="h-11 font-bold" disabled={!!photoBusy} onClick={() => camRef.current?.click()} data-testid="button-till-photo-camera">Take a photo</Button>
+              <Button variant="outline" className="h-11" disabled={!!photoBusy} onClick={() => libRef.current?.click()} data-testid="button-till-photo-library">Choose photos</Button>
+            </div>
+            {photoBusy && <div className="text-xs font-semibold text-primary" data-testid="till-photo-busy">{photoBusy}</div>}
+            {fromPhoto && photoSets.length > 0 && !photoBusy && (
+              <div className="text-xs text-muted-foreground" data-testid="till-photo-read">Read {photoSets.length} {photoSets.length === 1 ? "photo" : "photos"}. Add another if the report carries on.</div>
+            )}
+          </div>
           <input ref={fileRef} type="file" accept=".csv,.CSV,.txt,text/csv,text/plain" className="hidden" data-testid="input-till-file"
-            onChange={async e => { const f = e.target.files?.[0]; if (f) { setFileName(f.name); setText(await f.text()); } e.target.value = ""; }} />
+            onChange={async e => { const f = e.target.files?.[0]; if (f) { if (fromPhoto) { setFromPhoto(false); setPhotoSets([]); try { setTill((localStorage.getItem("till-import:type") as TillType) || "sharp"); } catch { setTill("sharp"); } } setFileName(f.name); setText(await f.text()); } e.target.value = ""; }} />
           <Button variant="outline" className="w-full h-12" onClick={() => fileRef.current?.click()} data-testid="button-till-file">
             <FileUp className="w-4 h-4 mr-2" /> {fileName ? `Picked: ${fileName}` : "Pick the file"}
           </Button>
@@ -343,7 +402,7 @@ export default function TillImport() {
               This looks like a {guessedType === "casio" ? "Casio" : "Sharp"} file. Tap to read it as {guessedType === "casio" ? "Casio" : "Sharp"}.
             </button>
           )}
-          {till === "generic" && rows.length > 0 && (
+          {till === "generic" && rows.length > 0 && !fromPhoto && (
             <div className="rounded-xl border border-border p-3 space-y-2" data-testid="till-mapper">
               <div className="text-xs font-semibold">Which column is which?</div>
               {([

@@ -48,3 +48,22 @@ describe("mergeTillPhotoRows", () => {
     expect(mergeTillPhotoRows([[{ name: "Carlsberg Pint", qty: 5 }, { name: "Carlsberg Pint", qty: 5 }]])).toHaveLength(2);
   });
 });
+
+import { tillPhotoRowsToCsv } from "./till-photo";
+import { guessGenericMapping, parseCsvRows, parseTillFile, type GenericMapping } from "./till-import";
+describe("a photo of the report goes through the same import as a till file, every line kept", () => {
+  const rows = [
+    { name: "CARLSBERG PT", qty: 150, value: 720 }, { name: "GORDONS GIN 25ML", qty: 42, value: 151.2 },
+    { name: 'J2O "APPLE, MANGO"', qty: 31, value: null }, { name: "PINOT GRIGIO 175", qty: 18 }, { name: "", qty: 4 }, { name: "VOID", qty: 0 },
+  ];
+  it("reads back name, quantity and money for spirits, wine and soft drinks, not just draught", () => {
+    const csv = tillPhotoRowsToCsv(rows as any);
+    const headers = parseCsvRows(csv)[0];
+    const m = guessGenericMapping(headers);
+    expect(m.name).toBe("Product"); expect(m.qty).toBe("Quantity"); expect(m.value).toBe("Value");
+    const r = parseTillFile("generic", csv, { ...m, name: m.name!, qty: m.qty!, headerRow: 0 } as GenericMapping);
+    expect(r.lines.map(l => [l.name, l.qty, l.value])).toEqual([
+      ["CARLSBERG PT", 150, 720], ["GORDONS GIN 25ML", 42, 151.2], ['J2O "APPLE, MANGO"', 31, null], ["PINOT GRIGIO 175", 18, null],
+    ]);
+  });
+});

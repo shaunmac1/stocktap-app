@@ -1,7 +1,9 @@
 """Generate public/videos/index.html from src/lib/help-videos.ts (the same list the in-app How to button uses)."""
 import html, json, re, sys
-SRC = "/home/claude/st/artifacts/stocktap/src/lib/help-videos.ts"
-OUT = sys.argv[1] if len(sys.argv) > 1 else "/home/claude/web/public/videos/index.html"
+import os
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, "..", "src", "lib", "help-videos.ts")
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "..", "public", "videos", "index.html")
 ts = open(SRC).read()
 vids = [dict(zip(("id", "group", "title", "blurb"), m)) for m in re.findall(r'\{ id: "([^"]+)", group: "([^"]+)", title: "([^"]+)", blurb: "([^"]+)" \}', ts)]
 OLD = []  # all refilmed in the demo bar
@@ -12,7 +14,7 @@ for v in vids:
 n = len(vids) + len(OLD)
 items = [{"@type": "ListItem", "position": i + 1, "item": {"@type": "VideoObject", "name": v["title"], "description": v["blurb"],
           "thumbnailUrl": f"https://stocktap.net/media/help/{v['id']}.jpg", "contentUrl": f"https://stocktap.net/media/help/{v['id']}.mp4", "uploadDate": "2026-09-29T09:00:00+01:00"}} for i, v in enumerate(vids)]
-css = open("/home/claude/web/videos_css.txt").read()
+css = open(os.path.join(HERE, "videos_css.txt")).read()
 out = f"""<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -24,11 +24,15 @@ export const HELP_VIDEOS: HelpVideo[] = [
   { id: "keg-box-sizes", group: "Stocktakes", title: "Keg and box sizes", blurb: "30L, 50L or 11 gallon kegs. Postmix boxes from 7 to 20 litres." },
   { id: "stocktake-postmix", group: "Stocktakes", title: "Count postmix", blurb: "Litres of drink like your stocktaker, or boxes. Both shown." },
   { id: "stocktake-count-units", group: "Stocktakes", title: "Cans and bottles", blurb: "Just count them. The value works itself out." },
+  { id: "cases-and-loose", group: "Stocktakes", title: "Cases + loose", blurb: "Bottles and cans the way they're stored: full cases in the cellar, loose ones on the bar." },
+  { id: "case-sizes-one-screen", group: "Stocktakes", title: "Set every case size at once", blurb: "One screen, every bottle and can line. The usual size is picked. Change any, then one button." },
+  { id: "tenths-and-measures", group: "Stocktakes", title: "Tenths and measures left", blurb: "Tenths for the stock sheet, measures left to sell, and glasses for wine. Want it exact? Weigh it." },
   { id: "stocktake-review-close", group: "Stocktakes", title: "Review and close", blurb: "Grouped by category, missing prices flagged, tap a line to fix it, then close." },
 
   { id: "paste-delivery", group: "Deliveries and orders", title: "Paste a delivery", blurb: "Copy the supplier's delivery email and paste it in. Lines matched to your products." },
   { id: "order-list-explained", group: "Deliveries and orders", title: "What to order", blurb: "Out now, running low, and what you've already got enough of. Change the days and copy the order." },
   { id: "invoice-scan", group: "Deliveries and orders", title: "Scan a paper delivery note", blurb: "Photograph the note. Check each line, then approve it into stock and prices." },
+  { id: "days-left-and-orders", group: "Deliveries and orders", title: "How long will it last?", blurb: "Every line: days left, what to order, and what not to buy. Plus today's check." },
   { id: "order-from-stocktakes", group: "Deliveries and orders", title: "Your order list", blurb: "What to order, from what sold between your stocktakes." },
   { id: "stock-and-orders", group: "Deliveries and orders", title: "Order list from a Venners audit", blurb: "Use Venners? Drop the audit in for the order, up and down and all stock." },
   { id: "ledger-wastage", group: "Deliveries and orders", title: "Breakages and transfers", blurb: "Log a dropped bottle so it doesn't show as a loss." },
@@ -56,13 +60,13 @@ export const HELP_VIDEOS: HelpVideo[] = [
 
 /** Which videos belong on which screen (first one plays first). */
 const BY_ROUTE: Array<[string, string[]]> = [
-  ["/library", ["library-add-from-catalogue", "library-add-product", "library-weigh-bottle", "library-prices-and-pars"]],
-  ["/stocktake", ["stocktake-start", "stocktake-weigh-setup", "spirits-tenths", "stocktake-casks", "draught-gallons", "stocktake-spots", "keg-box-sizes", "stocktake-postmix", "stocktake-count-units", "stocktake-review-close", "weighing-spot-check"]],
+  ["/library", ["days-left-and-orders", "case-sizes-one-screen", "library-add-from-catalogue", "library-add-product", "library-weigh-bottle", "library-prices-and-pars"]],
+  ["/stocktake", ["stocktake-start", "stocktake-weigh-setup", "spirits-tenths", "stocktake-casks", "draught-gallons", "stocktake-spots", "keg-box-sizes", "stocktake-postmix", "stocktake-count-units", "cases-and-loose", "tenths-and-measures", "stocktake-review-close", "weighing-spot-check"]],
   ["/first-count", ["first-count", "weighing-spot-check", "spirits-tenths"]],
-  ["/spot-check", ["weighing-spot-check"]],
+  ["/spot-check", ["weighing-spot-check", "days-left-and-orders"]],
   ["/delivery", ["paste-delivery", "invoice-scan"]],
   ["/invoice-scan", ["invoice-scan"]],
-  ["/orders", ["order-list-explained", "order-from-stocktakes", "stock-and-orders"]],
+  ["/orders", ["days-left-and-orders", "order-list-explained", "order-from-stocktakes", "stock-and-orders"]],
   ["/ledger", ["ledger-wastage", "paste-delivery", "invoice-scan"]],
   ["/reports", ["reports-tour", "library-prices-and-pars"]],
   ["/daily-board", ["daily-board", "board-past-days", "board-weeks-months", "board-was-it-worth-it", "board-import-takings"]],
