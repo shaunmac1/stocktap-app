@@ -7,6 +7,7 @@ import { deriveEmptyWeight, deriveDensity, checkCalibrationPlausibility, DEFAULT
 import type { Database } from "@/lib/database.types";
 import type { LocalReading, LocalProduct, LocalLineEntry, LocalCountLocation, LocalTillEntry, LocalSpotCheckSession } from "@/lib/db";
 import { applyPendingHidden, readPendingHidden, queueHidden, clearPendingHidden } from "@/lib/hidden-products";
+import { reconcileStocktakes } from "@/lib/stocktake-reconcile";
 import { applyPendingCaseSizes, readPendingCaseSizes, queueCaseSize, clearPendingCaseSize } from "@/lib/packaged";
 
 export type Product = LocalProduct;
@@ -904,6 +905,8 @@ export function useAddReading() {
 export function useStocktakes(venueId: string | undefined) {
   return useQuery({
     queryKey: ["stocktakes", venueId],
+    // Works with no signal (the phone's own copy), so never held back waiting for a connection.
+    networkMode: "always",
     queryFn: async () => {
       if (!venueId) return [];
       const local = await db.stocktakes
@@ -911,15 +914,25 @@ export function useStocktakes(venueId: string | undefined) {
         .equals(venueId)
         .toArray();
       local.sort(byOpenedAtDesc);
-      if (local.length > 0) return local;
-      const { data, error } = await supabase
-        .from("stocktakes")
-        .select("*")
-        .eq("venue_id", venueId)
-        .order("opened_at", { ascending: false });
-      if (error) throw error;
-      if (data?.length) await db.stocktakes.bulkPut(data);
-      return data ?? [];
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return local;
+      try {
+        const { data, error } = await supabase
+          .from("stocktakes")
+          .select("*")
+          .eq("venue_id", venueId)
+          .order("opened_at", { ascending: false });
+        if (error) throw error;
+        // With signal the server's list wins, plus anything made or changed here and not sent yet.
+        const queued = await db.sync_queue.filter(q => q.table_name === "stocktakes").toArray();
+        const pending = new Set<string>();
+        for (const q of queued) { if (q.local_id) pending.add(q.local_id); const pid = (q.payload as any)?.id; if (pid) pending.add(pid); }
+        const r = reconcileStocktakes(local as any[], (data ?? []) as any[], pending);
+        if (r.put.length) await db.stocktakes.bulkPut(r.put.map(x => ({ ...x, _temp: 0 })) as any);
+        if (r.remove.length) await db.stocktakes.bulkDelete(r.remove);
+        return r.list as typeof local;
+      } catch {
+        return local;
+      }
     },
     enabled: !!venueId,
     staleTime: 30_000,

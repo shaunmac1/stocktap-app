@@ -124,13 +124,15 @@ export function packFor(line: { name: string; base: AuditBase; unit: string; cat
     return { size: 1, one: "bottle", many: "bottles" };
   }
   if (line.base === "units") {
-    if (/^Dozen/i.test(line.unit)) {
+    // Bottles and cans counted each: the case size the pub has set, whatever the audit sheet's
+    // unit says. Not set yet → single units, same as the Library (it never assumes 12).
+    const isEach = !!product && (product.counting_method === "each" || product.counting_method === "count");
+    const cs = isEach ? caseSizeOf(product!) : null;
+    if (cs) return { size: cs, one: `case of ${cs}`, many: `cases of ${cs}` };
+    if (/^Dozen/i.test(line.unit) && !isEach) {
       const n = product?.pack_size && product.pack_size > 1 && product.counting_method === "dozen" ? product.pack_size : 12;
       return { size: n, one: `case of ${n}`, many: `cases of ${n}` };
     }
-    // Bottles and cans counted each with a case size set: order in those cases.
-    const cs = product && (product.counting_method === "each" || product.counting_method === "count") ? caseSizeOf(product) : null;
-    if (cs) return { size: cs, one: `case of ${cs}`, many: `cases of ${cs}` };
     return { size: 1, one: "unit", many: "units" };
   }
   if (line.base === "ml") {
@@ -268,6 +270,8 @@ export function orderList(
      * list and the Library's "lasts X days" on the same figure.
      */
     rateFor?: (key: string) => { recent: number; rate: number } | null;
+    /** Lines the pub has hidden in its Library (no longer stocked): left off every list. */
+    skip?: (key: string) => boolean;
   } = {},
 ): { rows: OrderRow[]; slow: Array<{ key: string; name: string; category: string; soldPerWeek: number; base: AuditBase }>; covered: CoveredRow[]; latest: StoredAudit | null; order: StoredAudit[] } {
   const { order, lines } = buildPatterns(audits);
@@ -279,6 +283,7 @@ export function orderList(
   for (const l of latest.lines) {
     if (l.delist) continue;
     const key = lineKey(l.name);
+    if (extras.skip?.(key)) continue;
     const pattern = lines.get(key)!;
     const own = extras.rateFor?.(key) ?? null;
     const recent = own ? own.recent : pattern.rates[order.length - 1] ?? 0;

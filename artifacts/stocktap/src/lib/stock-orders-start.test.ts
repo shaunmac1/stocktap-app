@@ -47,3 +47,17 @@ describe("Orders use the pub's own sales speed when the Library does", () => {
     expect(Math.round(r.covered[0].daysLeft)).toBe(43);
   });
 });
+
+describe("Orders leave out what the pub has hidden, and never assume a case of 12", () => {
+  it("a hidden line is on no list, however well it sold on the last audit", () => {
+    const r = orderList([audit], { basis: { kind: "latest" }, busyPct: 0, coverDays: 10, sinceDays: 46 }, { skip: () => true });
+    expect(r.rows.length + r.covered.length + r.slow.length).toBe(0);
+  });
+  it("a bottle line the audit calls 'Dozen': the pub's case size if set, single units if not", () => {
+    const l = { name: "PPS WKD Blue 275ml", base: "units" as const, unit: "Dozen", category: "Packaged" };
+    expect(packFor(l, { id: "w", name: l.name, counting_method: "each", size_ml: 275, pack_size: 24 }).one).toBe("case of 24");
+    expect(packFor(l, { id: "w", name: l.name, counting_method: "each", size_ml: 275, pack_size: null }).many).toBe("units");
+    expect(packFor(l, { id: "w", name: l.name, counting_method: "dozen", size_ml: 275, pack_size: null }).one).toBe("case of 12");
+    expect(packFor(l, null).one).toBe("case of 12");
+  });
+});

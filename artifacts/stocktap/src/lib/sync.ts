@@ -94,9 +94,11 @@ export async function syncDown(venueId: string): Promise<void> {
       // movements: skip gracefully if table schema not yet migrated
       if (movements?.length) {
         const serverIds = new Set(movements.map((m) => m.id));
+        // The movements table has no "_synced" index, so asking Dexie for
+        // where("_synced") threw and undid the WHOLE download (products, counts and
+        // readings too) on any device whose pub had a delivery. Filter in memory.
         const unsynced = await db.movements
-          .where("_synced")
-          .equals(0)
+          .filter((m) => m._synced === 0)
           .toArray();
         const unsyncedIds = new Set(unsynced.map((m) => m.id));
         const toWrite = movements

@@ -134,7 +134,7 @@ export default function Orders() {
   const recountedLines = useMemo(() => (latest?.lines ?? []).filter(l => startFor(lineKey(l.name))).length, [latest, startFor]);
 
   const basis: Basis = basisId === "latest" ? { kind: "latest" } : basisId === "average" ? { kind: "average" } : basisId === "busiest" ? { kind: "busiest" } : { kind: "period", auditId: basisId };
-  const result = useMemo(() => orderList(audits, { basis, busyPct: busy, coverDays: cover, sinceDays }, { deliveredOn, productFor: k => productByKey.get(k) ?? null, startFor, rateFor }),
+  const result = useMemo(() => orderList(audits, { basis, busyPct: busy, coverDays: cover, sinceDays }, { deliveredOn, productFor: k => productByKey.get(k) ?? null, startFor, rateFor, skip: k => !!(productByKey.get(k) as any)?.hidden_at }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [audits, basisId, busy, cover, sinceDays, deliveredOn, productByKey, startFor, rateFor]);
 

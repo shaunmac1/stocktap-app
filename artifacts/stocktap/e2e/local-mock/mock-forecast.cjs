@@ -35,6 +35,13 @@ db.deliveries = [{ id: require('crypto').randomUUID(), venue_id: V, product_id: 
 const aline = (name, category, sold, counted) => ({ name, category, unit: 'Each', base: 'units', open: 0, del: 0, ret: 0, tin: 0, tout: 0, adj: 0, waste: 0, sold, expected: 0, counted, variance: 0, retail: 0, delist: false });
 db.stock_audits = [{ id: 'aud1', venue_id: V, source: 'venners', file_name: null, created_at: now, period_start: '2026-08-25', period_end: '2026-09-25', days: 31, summary: { days: 31 },
   lines: [aline('PPL Peroni Nastro Azzurro 330ml', 'Packaged', 186, 40), aline('PPS Hooch Lemon 440ml Can', 'Packaged', 62, 30), aline('PPC Old Mout Berries 500ml', 'Packaged', 31, 50), aline('Soft J2O Apple & Mango 275ml', 'Minerals', 620, 200), aline('Crisps McCoys Salted 45g', 'Packaged', 0, 31), { ...aline('Gin Gordons 70cl', 'Spirits', 3.1, 3), unit: 'Bottle', base: 'bottles' }] }];
+// Orders checks (HIDDEN=1): a line the pub has hidden that sold well on the audit, and a bottle
+// line the audit calls "Dozen" with no case size set in StockTap.
+if (process.env.HIDDEN) {
+  db.products.push({ id: 'bbbbbbbb-0000-4000-8000-000000000007', venue_id: V, name: 'Cider Strongbow Dark Fruit 50L Keg', type: 'draught', unit: 'weigh', category: 'draught_cider', counting_method: 'keg_weight', size_ml: 50000, pack_size: null, cost_price: 120, pour_price: 4.8, hidden_at: now, created_at: now, updated_at: now });
+  db.products.push({ id: 'bbbbbbbb-0000-4000-8000-000000000008', venue_id: V, name: 'PPS WKD Blue 275ml', type: 'packaged', unit: 'count', category: 'packaged', counting_method: 'each', size_ml: 275, pack_size: null, cost_price: 1.1, pour_price: 4, created_at: now, updated_at: now });
+  db.stock_audits[0].lines.push({ ...aline('Cider Strongbow Dark Fruit 50L Keg', 'Draught Cider', 900, 0), unit: 'Keg', base: 'pints' }, { ...aline('PPS WKD Blue 275ml', 'Packaged', 124, 10), unit: 'Dozen' });
+}
 const log = [];
 const rid = () => require('crypto').randomUUID();
 function filt(rows, params) {
