@@ -42,6 +42,13 @@ const session = { access_token: jwt, refresh_token: 'r', token_type: 'bearer', e
     check('the background download finishes with a delivery on the books (no sync error)', syncErrors.length === 0, syncErrors[0] || '');
     const localMv = await p.evaluate(() => new Promise(ok => { const r = indexedDB.open('stocktap_v1'); r.onsuccess = () => { const q = r.result.transaction('movements').objectStore('movements').count(); q.onsuccess = () => { r.result.close(); ok(q.result); }; }; }));
     check('the delivery reaches this device', localMv >= 1, String(localMv));
+    // Terrible signal: the server never answers. The counts must still show from the phone's own copy.
+    await p.route('**/rest/v1/stocktakes*', () => { /* hang for ever */ });
+    await p.goto('http://localhost:5173/till-import', { waitUntil: 'domcontentloaded' }); await sleep(7500);
+    check('weak signal (server never answers): counts still offered from this phone within 7 seconds', (await p.locator('[data-testid="till-open-count"] option').count()) >= 2);
+    const ids2 = await localIds();
+    check('weak signal: nothing on the phone was thrown away', ids.every(i => ids2.includes(i)), ids2.join(','));
+    await p.unroute('**/rest/v1/stocktakes*');
     // No signal: the phone's own copy still works
     await ctx.setOffline(true);
     await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }).catch(() => {});

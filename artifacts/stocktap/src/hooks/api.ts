@@ -920,7 +920,9 @@ export function useStocktakes(venueId: string | undefined) {
           .from("stocktakes")
           .select("*")
           .eq("venue_id", venueId)
-          .order("opened_at", { ascending: false });
+          .order("opened_at", { ascending: false })
+          // Weak 4G in a cellar: don't sit waiting. After 4 seconds use the phone's own copy.
+          .abortSignal(AbortSignal.timeout(4000));
         if (error) throw error;
         // With signal the server's list wins, plus anything made or changed here and not sent yet.
         const queued = await db.sync_queue.filter(q => q.table_name === "stocktakes").toArray();
