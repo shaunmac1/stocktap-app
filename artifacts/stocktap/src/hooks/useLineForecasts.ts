@@ -34,7 +34,7 @@ export function useReadingHistory(venueId: string | undefined) {
         for (let from = 0; from < 20000; from += 1000) {
           const { data, error } = await supabase
             .from("readings")
-            .select("product_id, ml_remaining, reading_at")
+            .select("product_id, ml_remaining, reading_at, stocktake_id, method, full_containers, part_value, is_delivery")
             .eq("venue_id", venueId)
             .gte("reading_at", since)
             .order("reading_at", { ascending: false })
@@ -46,7 +46,9 @@ export function useReadingHistory(venueId: string | undefined) {
         return out;
       } catch {
         const local = await db.readings.where("venue_id").equals(venueId).toArray();
-        return local.filter(r => r.reading_at >= since).map(r => ({ product_id: r.product_id, ml_remaining: Number(r.ml_remaining), reading_at: r.reading_at }));
+        return local.filter(r => r.reading_at >= since).map(r => ({ product_id: r.product_id, ml_remaining: Number(r.ml_remaining), reading_at: r.reading_at,
+          stocktake_id: r.stocktake_id ?? null, method: r.method ?? null, full_containers: r.full_containers ?? null,
+          part_value: r.part_value ?? null, is_delivery: r.is_delivery ?? false }));
       }
     },
     enabled: !!venueId,
@@ -55,7 +57,12 @@ export function useReadingHistory(venueId: string | undefined) {
 }
 
 /** Days left and what to order, for every line, keyed by product id. */
-export function useLineForecasts(venueId: string | undefined, products: ForecastProduct[] | undefined): Map<string, LineForecast> {
+export function useLineForecasts(
+  venueId: string | undefined,
+  products: ForecastProduct[] | undefined,
+  /** The Orders page passes its live slider settings; other screens read the saved ones. */
+  live?: { cover: number; busy: number; basisId: string },
+): Map<string, LineForecast> {
   const { data: history = [] } = useReadingHistory(venueId);
   const since = useMemo(() => new Date(Date.now() - HISTORY_DAYS * 864e5).toISOString().slice(0, 10), []);
   const { data: deliveries = [] } = useDeliveries(venueId, since);
@@ -64,12 +71,19 @@ export function useLineForecasts(venueId: string | undefined, products: Forecast
   return useMemo(() => {
     const out = new Map<string, LineForecast>();
     if (!products?.length) return out;
-    const settings = orderSettings();
+    const saved = orderSettings();
+    const settings = live ? {
+      cover: live.cover, busy: live.busy,
+      basis: (live.basisId === "latest" ? { kind: "latest" } : live.basisId === "average" ? { kind: "average" } : live.basisId === "busiest" ? { kind: "busiest" } : { kind: "period", auditId: live.basisId }) as Basis,
+    } : saved;
     // Audit sales speeds, matched to library lines the same way the Orders page does.
     let auditRates = new Map<string, number>();
+    let auditRecent = new Map<string, number>();
+    let auditSpan: string | null = null;
     if (audits.length) {
       const { order, lines } = buildPatterns(audits);
       const latest = order[order.length - 1];
+      auditSpan = settings.basis.kind === "latest" && latest?.days ? `your last stock audit (${latest.days} days)` : "your stock audits";
       const byKey = new Map<string, ForecastProduct>();
       const live = new Set<string>();
       for (const l of latest?.lines ?? []) {
@@ -80,6 +94,7 @@ export function useLineForecasts(venueId: string | undefined, products: Forecast
       }
       const current = new Map([...lines].filter(([k]) => live.has(k)));
       auditRates = auditRatesByProduct(current, order, settings.basis, settings.busy, k => byKey.get(k) ?? null);
+      auditRecent = auditRatesByProduct(current, order, { kind: "latest" }, 0, k => byKey.get(k) ?? null);
     }
     const hByP = new Map<string, ForecastReading[]>();
     for (const r of history) { const a = hByP.get(r.product_id) ?? []; a.push(r); hByP.set(r.product_id, a); }
@@ -91,9 +106,12 @@ export function useLineForecasts(venueId: string | undefined, products: Forecast
         history: hByP.get(p.id) ?? [],
         deliveries: (dByP.get(p.id) ?? []) as any,
         auditRateMl: auditRates.get(p.id) ?? null,
+        auditSpan,
+        auditRecentMl: auditRecent.get(p.id) ?? null,
+        busyPct: settings.busy,
         coverDays: settings.cover,
       }));
     }
     return out;
-  }, [products, history, deliveries, audits]);
+  }, [products, history, deliveries, audits, live?.cover, live?.busy, live?.basisId]);
 }

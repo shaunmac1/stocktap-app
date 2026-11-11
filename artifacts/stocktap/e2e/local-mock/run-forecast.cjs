@@ -23,7 +23,13 @@ const B = n => `bbbbbbbb-0000-4000-8000-00000000000${n}`;
     check('J2O says where the speed comes from', (await txt(`line-forecast-detail-${B(1)}`)) === 'Sells about 44 bottles a week (from your counts)', await txt(`line-forecast-detail-${B(1)}`));
     check('Peroni (newer count + audit speed): Lasts 2 days · order 2 cases of 24', (await txt(`line-forecast-label-${B(2)}`)) === 'Lasts 2 days · order 2 cases of 24', await txt(`line-forecast-label-${B(2)}`));
     check('Peroni from your stock audits', /42 bottles a week \(from your stock audits\)/.test(await txt(`line-forecast-detail-${B(2)}`)), await txt(`line-forecast-detail-${B(2)}`));
-    check('Crisps: no guess', (await txt(`line-forecast-label-${B(3)}`)) === 'No sales speed yet', await txt(`line-forecast-label-${B(3)}`));
+    check("Crisps (on the audit, none sold): None sold … don't reorder", (await txt(`line-forecast-label-${B(3)}`)) === "None sold in your last stock audit (31 days) · don't reorder", await txt(`line-forecast-label-${B(3)}`));
+    check('Crisps In stock reads 31 units, not 31ml', (await txt(`text-stock-now-${B(3)}`)) === 'In stock: 31 units', await txt(`text-stock-now-${B(3)}`));
+    check('Gin: the open bottle weighed yesterday and the delivery reading are NOT taken as the count (3 btl)', (await txt(`text-stock-now-${B(6)}`)) === 'In stock: 3 btl', await txt(`text-stock-now-${B(6)}`));
+    check('Gin says how old the count is', (await txt(`text-counted-ago-${B(6)}`)) === 'counted 5 days ago, less whatever has sold since', await txt(`text-counted-ago-${B(6)}`));
+    check('Gin forecast runs from that count: 2.5 bottles at 0.1 a day', (await txt(`line-forecast-label-${B(6)}`)) === 'Lasts 24 days · no order needed', await txt(`line-forecast-label-${B(6)}`));
+    check('Gin slow seller wording', (await txt(`line-forecast-detail-${B(6)}`)) === 'Sells about 1 bottle a week (from your stock audits)', await txt(`line-forecast-detail-${B(6)}`));
+    check('J2O counted today: no "counted … ago" line', (await p.locator(`[data-testid="text-counted-ago-${B(1)}"]`).count()) === 0);
     check('Hooch: not counted yet', (await txt(`line-forecast-label-${B(4)}`)) === 'Not counted yet', await txt(`line-forecast-label-${B(4)}`));
     check('Old Mout: plenty', (await txt(`line-forecast-label-${B(5)}`)) === 'Lasts 60+ days · no order needed', await txt(`line-forecast-label-${B(5)}`));
     check('In stock starts from the same count (60 this morning), on a fresh phone', /^In stock: 60 units$/.test(await txt(`text-stock-now-${B(1)}`)), await txt(`text-stock-now-${B(1)}`));
@@ -38,12 +44,15 @@ const B = n => `bbbbbbbb-0000-4000-8000-00000000000${n}`;
     check('To order shows just the 2, soonest out first (Peroni)', shown === 2 && first === `card-product-${B(2)}`, `${shown} ${first}`);
     await p.screenshot({ path: `${SHOT}/f2-to-order.png` });
     await p.locator('[data-testid="filter-chip-to-order"]').tap(); await sleep(600);
-    check('tap again shows everything', (await p.locator('[data-testid^="card-product-"]:visible').count()) === 5);
+    check('tap again shows everything', (await p.locator('[data-testid^="card-product-"]:visible').count()) === 6);
     // Orders page agrees and says it used newer counts
     await p.goto('http://localhost:5173/orders', { waitUntil: 'domcontentloaded' }); await sleep(4000);
     const rc = await txt('text-recounted-lines');
-    check('Orders: 3 lines start from your newer StockTap count', /3 lines start from your newer StockTap count/.test(rc), rc);
+    check('Orders: 5 lines start from your newer StockTap count', /5 lines start from your newer StockTap count/.test(rc), rc);
     const body = await p.locator('body').innerText();
+    check('Orders: Gin is NOT listed as out (delivery reading / open-bottle weigh ignored)', !/Gin Gordons/.test(body.split('Covered')[0].split('All stock')[1] || body) || !/Out now[\s\S]*Gin Gordons/.test(body), body.slice(600, 1500).replace(/\n/g, ' | '));
+    { const m = (body.match(/J2O Apple & Mango[\s\S]{0,200}/) || [''])[0].replace(/\n+/g, ' | ');
+      check('Orders agrees with the Library on J2O (own counts): about 44 a week, 9 days, 1 case of 24', /Sells a week \| 44(\.\d)? units/.test(m) && /Lasts \| 9 days/.test(m) && /Order \| 1 case of 24/.test(m), m); }
     check('Orders: Peroni on the list as 2 cases', /Peroni[\s\S]{0,200}2 cases/.test(body), body.slice(0, 600).replace(/\n/g, ' | '));
     await p.screenshot({ path: `${SHOT}/f3-orders.png`, fullPage: false });
     // Today's check on Spot Check

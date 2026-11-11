@@ -1,5 +1,6 @@
 import { useLineForecasts, useReadingHistory } from "@/hooks/useLineForecasts";
 import { suggestChecks } from "@/lib/check-picks";
+import { isWholeLineCount } from "@/lib/line-forecast";
 import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -186,7 +187,7 @@ export default function SpotCheck() {
   const { data: readingHistory = [] } = useReadingHistory(venue?.id);
   const todaysPicks = useMemo(() => {
     const last = new Map<string, string>();
-    for (const r of readingHistory) { const c = last.get(r.product_id); if (!c || r.reading_at > c) last.set(r.product_id, r.reading_at); }
+    for (const r of readingHistory) { if (!isWholeLineCount(r)) continue; const c = last.get(r.product_id); if (!c || r.reading_at > c) last.set(r.product_id, r.reading_at); }
     return suggestChecks((products ?? []) as any, forecasts, last);
   }, [products, forecasts, readingHistory]);
   const pickReason = useMemo(() => new Map(todaysPicks.map(x => [x.id, x.label])), [todaysPicks]);

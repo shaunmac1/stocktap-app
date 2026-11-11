@@ -36,3 +36,14 @@ describe("Orders page orders packaged lines in their case size", () => {
     expect(packFor(l, null).many).toBe("units");
   });
 });
+
+describe("Orders use the pub's own sales speed when the Library does", () => {
+  it("rateFor replaces the audit speed for running down and for ordering", () => {
+    // audit says 6 a day; own counts say 2 a day. 90 counted 2 days ago → 86 now; 10 days needs 20.
+    const r = orderList([audit], { basis: { kind: "latest" }, busyPct: 0, coverDays: 10, sinceDays: 46 },
+      { startFor: () => ({ counted: 90, sinceDays: 2, deliveredOn: [] }), rateFor: () => ({ recent: 2, rate: 2 }) });
+    expect(r.rows.length).toBe(0);
+    expect(Math.round(r.covered[0].now)).toBe(86);
+    expect(Math.round(r.covered[0].daysLeft)).toBe(43);
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { forecastLine, countRate, orderPack, auditRateToMl, weekAmount, type ForecastProduct } from "./line-forecast";
+import { forecastLine, countRate, orderPack, auditRateToMl, weekAmount, sellsText, isWholeLineCount, type ForecastProduct } from "./line-forecast";
 import { ML_PER_PINT } from "./stock-orders";
 
 const DAY = 864e5;
@@ -76,10 +76,77 @@ describe("days left and the order, on every line", () => {
     expect(f.orderQty).toBe(3);
     expect(f.label).toMatch(/order 3 kegs$/);
   });
-  it("out of stock", () => {
+  it("out: counted at nothing and nothing delivered", () => {
     const f = forecastLine({ product: gin, history: [{ product_id: "gin", ml_remaining: 0, reading_at: ago(1) }], deliveries: [], auditRateMl: 100, coverDays: 7, now: NOW });
     expect(f.status).toBe("out");
-    expect(f.label).toBe("Probably out now · order 1 bottle");
+    expect(f.label).toBe("Out · order 1 bottle");
+  });
+  it("due: was in stock at the count, the sums say it has gone — said as an estimate, never 'out'", () => {
+    // Real Teal Farm case: 8.9 bottles of Pinot counted 6 days ago, sells 11.8 a week.
+    const wine = { ...gin, id: "wine", name: "Wine Pinot G. Colverde 75cl", category: "wine", size_ml: 750 };
+    const f = forecastLine({ product: wine, history: [{ product_id: "wine", ml_remaining: 8.9 * 750, reading_at: ago(6) }], deliveries: [], auditRateMl: (11.8 / 7) * 750, coverDays: 10, now: NOW });
+    expect(f.status).toBe("due");
+    expect(f.label).toBe("Due to run out about now · order 17 bottles");
+  });
+  it("slow sellers never read '0 a week'", () => {
+    expect(sellsText(gin, 700 / 63)).toBe("Sells about 1 bottle every 9 weeks");
+    expect(sellsText(gin, 700 / 7)).toBe("Sells about 1 bottle a week");
+    expect(sellsText(gin, 700 / 800)).toBe("Sells less than 1 bottle a year");
+    expect(sellsText(j2o, 6 * 275)).toBe("Sells about 42 bottles a week");
+    expect(sellsText(carls, 20 * ML_PER_PINT)).toBe("Sells about 140 pints a week");
+    const f = forecastLine({ product: gin, history: [{ product_id: "gin", ml_remaining: 0, reading_at: ago(1) }], deliveries: [], auditRateMl: 700 / 63, coverDays: 10, now: NOW });
+    expect(f.detail).toBe("Sells about 1 bottle every 9 weeks (from your stock audits)");
+  });
+  it("out + sells under a pack a month: shown as out, kept off the order list (same rule as the Orders page)", () => {
+    const f = forecastLine({ product: gin, history: [{ product_id: "gin", ml_remaining: 0, reading_at: ago(1) }], deliveries: [], auditRateMl: 700 / 63, coverDays: 10, now: NOW });
+    expect(f.status).toBe("out");
+    expect(f.orderQty).toBe(0);
+    expect(f.label).toBe("Out · slow seller, order only if you want it back");
+  });
+  it("'how busy' uplift orders for more but doesn't pretend the past week was busier", () => {
+    const base = { product: j2o, history: [{ product_id: "j2o", ml_remaining: 100 * 275, reading_at: ago(5) }], deliveries: [], coverDays: 10, now: NOW };
+    const normal = forecastLine({ ...base, auditRateMl: 6 * 275, auditRecentMl: 6 * 275, busyPct: 0 });
+    const xmas = forecastLine({ ...base, auditRateMl: 9 * 275, auditRecentMl: 6 * 275, busyPct: 50 });
+    expect(Math.round(normal.nowMl / 275)).toBe(70);
+    expect(Math.round(xmas.nowMl / 275)).toBe(70);          // same stock now
+    expect(normal.orderQty).toBe(0);                          // 70 ≥ 60
+    expect(xmas.orderQty).toBe(1);                            // 70 < 90 → 1 case of 24
+    // own counts get the uplift too
+    const h = [{ product_id: "j2o", ml_remaining: 142 * 275, reading_at: ago(7) }, { product_id: "j2o", ml_remaining: 100 * 275, reading_at: ago(0) }];
+    const own = forecastLine({ product: j2o, history: h, deliveries: [], auditRateMl: null, busyPct: 50, coverDays: 10, now: NOW });
+    expect(Math.round(own.runRate / 275)).toBe(6);
+    expect(Math.round(own.rate / 275)).toBe(9);
+  });
+  it("dead stock: on the audit, none sold, still on the shelf → don't reorder (not 'no data')", () => {
+    const f = forecastLine({ product: gin, history: [{ product_id: "gin", ml_remaining: 1400, reading_at: ago(6) }], deliveries: [], auditRateMl: 0, auditSpan: "your last stock audit (66 days)", coverDays: 10, now: NOW });
+    expect(f.status).toBe("dead");
+    expect(f.label).toBe("None sold in your last stock audit (66 days) · don't reorder");
+    expect(f.orderQty).toBe(0);
+    const none = forecastLine({ product: gin, history: [{ product_id: "gin", ml_remaining: 0, reading_at: ago(6) }], deliveries: [], auditRateMl: 0, auditSpan: "your last stock audit (66 days)", coverDays: 10, now: NOW });
+    expect(none.status).toBe("unknown");
+    expect(none.detail).toBe("None sold in your last stock audit (66 days)");
+  });
+  it("one open bottle weighed from the Library is NOT the whole line", () => {
+    const h = [
+      { product_id: "gin", ml_remaining: 3 * 700, reading_at: ago(5), stocktake_id: "st1", method: "tenths" },
+      { product_id: "gin", ml_remaining: 0.4 * 700, reading_at: ago(1), stocktake_id: null, method: "weigh", full_containers: null, part_value: null },
+    ];
+    const f = forecastLine({ product: gin, history: h, deliveries: [], auditRateMl: 10, coverDays: 7, now: NOW });
+    expect(Math.round(f.nowMl)).toBe(3 * 700 - 50);
+    expect(f.countedAt).toBe(h[0].reading_at);
+    expect(isWholeLineCount(h[1])).toBe(false);
+    // a spot check (full bottles + open one) IS the whole line
+    expect(isWholeLineCount({ product_id: "gin", ml_remaining: 900, reading_at: ago(1), stocktake_id: null, method: "weigh", full_containers: 1, part_value: 480 })).toBe(true);
+    expect(isWholeLineCount({ product_id: "gin", ml_remaining: 200, reading_at: ago(1), stocktake_id: null, method: "weigh", full_containers: null, part_value: 480 })).toBe(true);
+  });
+  it("a delivery logged as a reading is never read as 'counted none'", () => {
+    const h = [
+      { product_id: "gin", ml_remaining: 2 * 700, reading_at: ago(5), stocktake_id: "st1", method: "tenths" },
+      { product_id: "gin", ml_remaining: 0, reading_at: ago(1), is_delivery: true, method: "weigh", full_containers: 6 },
+    ];
+    const f = forecastLine({ product: gin, history: h, deliveries: [], auditRateMl: 10, coverDays: 7, now: NOW });
+    expect(f.status).not.toBe("out");
+    expect(Math.round(f.nowMl)).toBe(1400 - 50);
   });
   it("never guesses: no speed means no order figure", () => {
     const f = forecastLine({ product: crisps, history: [{ product_id: "crisps", ml_remaining: 31, reading_at: ago(1) }], deliveries: [], auditRateMl: null, coverDays: 7, now: NOW });

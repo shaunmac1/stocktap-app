@@ -10,21 +10,34 @@ const fc = (p: any, units: number, d: number, perDay: number | null) =>
   forecastLine({ product: p, history: [{ product_id: p.id, ml_remaining: units * (p.size_ml || 1), reading_at: ago(d) }], deliveries: [], auditRateMl: perDay == null ? null : perDay * (p.size_ml || 1), coverDays: 10, now: NOW });
 
 describe("today's check picks", () => {
-  it("running low first (soonest out), then dearest not checked for a week, then never checked; hidden left out", () => {
-    const low = P("low"), out = P("out"), dear = P("dear", { cost_price: 40 }), cheap = P("cheap", { cost_price: 5 }), fresh = P("fresh", { cost_price: 60 }),
+  it("running low by what sells most; counted-at-nothing left out; then dearest not checked; then never checked; hidden left out", () => {
+    const slowLow = P("slowLow", { cost_price: 15 }), bigLow = P("bigLow", { cost_price: 15 }), due = P("due", { cost_price: 15 }), out = P("out"),
+      dear = P("dear", { cost_price: 40 }), cheap = P("cheap", { cost_price: 5 }), fresh = P("fresh", { cost_price: 60 }),
       never = P("never"), hidden = P("hidden", { hidden_at: ago(1) });
-    const products = [low, out, dear, cheap, fresh, never, hidden];
+    const products = [slowLow, bigLow, due, out, dear, cheap, fresh, never, hidden];
     const f = new Map([
-      ["low", fc(low, 3, 0, 1)], ["out", fc(out, 0, 0, 1)], ["dear", fc(dear, 10, 9, 0.1)],
-      ["cheap", fc(cheap, 10, 9, 0.1)], ["fresh", fc(fresh, 10, 2, 0.1)], ["hidden", fc(hidden, 0, 0, 1)],
+      ["slowLow", fc(slowLow, 0.3, 0, 0.1)], ["bigLow", fc(bigLow, 6, 0, 2)], ["due", fc(due, 4, 6, 1)], ["out", fc(out, 0, 0, 1)],
+      ["dear", fc(dear, 10, 9, 0.1)], ["cheap", fc(cheap, 10, 9, 0.1)], ["fresh", fc(fresh, 10, 2, 0.1)], ["hidden", fc(hidden, 1, 0, 1)],
     ]);
-    const last = new Map([["low", ago(0)], ["out", ago(0)], ["dear", ago(9)], ["cheap", ago(9)], ["fresh", ago(2)], ["hidden", ago(0)]]);
+    const last = new Map([["slowLow", ago(0)], ["bigLow", ago(0)], ["due", ago(6)], ["out", ago(0)], ["dear", ago(9)], ["cheap", ago(9)], ["fresh", ago(2)], ["hidden", ago(0)]]);
     const picks = suggestChecks(products, f, last, { now: NOW });
-    expect(picks.map(x => x.id)).toEqual(["out", "low", "dear", "cheap", "never"]);
-    expect(picks[0].label).toBe("Probably out: check before ordering");
-    expect(picks[1].label).toBe("Running low: 3 days left");
-    expect(picks[2].label).toBe("Dearest lines: not checked for 9 days");
-    expect(picks[4].label).toBe("Never checked");
+    expect(picks.map(x => x.id)).toEqual(["bigLow", "due", "slowLow", "dear", "cheap", "never"]);
+    expect(picks[0].label).toBe("Running low: 3 days left");
+    expect(picks[1].label).toBe("Should be nearly out: check before you order");
+    expect(picks[3].label).toBe("Dearest lines: not checked for 9 days");
+    expect(picks[5].label).toBe("Never checked");
+    expect(picks.some(x => x.id === "out")).toBe(false);
+  });
+  it("ten running-low lines still leave room for the dearest and never-checked", () => {
+    const lows = Array.from({ length: 12 }, (_, i) => P(`low${i}`));
+    const dear = P("dear", { cost_price: 40 }), never = P("never");
+    const f = new Map<string, any>(lows.map(p => [p.id, fc(p, 2, 0, 1)])); f.set("dear", fc(dear, 10, 9, 0.1));
+    const last = new Map<string, string>(lows.map(p => [p.id, ago(0)])); last.set("dear", ago(9));
+    const picks = suggestChecks([...lows, dear, never], f, last, { now: NOW });
+    expect(picks.length).toBe(10);
+    expect(picks.filter(x => x.reason === "low").length).toBe(8);
+    expect(picks.some(x => x.id === "dear")).toBe(true);
+    expect(picks.some(x => x.id === "never")).toBe(true);
   });
   it("stays short: capped", () => {
     const many = Array.from({ length: 30 }, (_, i) => P(`n${i}`));

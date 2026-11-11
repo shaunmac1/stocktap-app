@@ -1171,7 +1171,10 @@ export function useProductReadingsMap(venueId: string | undefined) {
       const map = new Map<string, { ml_remaining: number; reading_at: string }[]>();
       for (const r of all) {
         if (!map.has(r.product_id)) map.set(r.product_id, []);
-        map.get(r.product_id)!.push({ ml_remaining: r.ml_remaining, reading_at: r.reading_at });
+        // Extra fields let readers tell a whole-line count from a single-bottle weigh or a delivery.
+        map.get(r.product_id)!.push({ ml_remaining: r.ml_remaining, reading_at: r.reading_at, product_id: r.product_id,
+          stocktake_id: r.stocktake_id ?? null, method: r.method ?? null, full_containers: r.full_containers ?? null,
+          part_value: r.part_value ?? null, is_delivery: r.is_delivery ?? false } as any);
       }
       return map;
     },

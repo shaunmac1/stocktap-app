@@ -6,8 +6,8 @@ import { useProducts, useStocktakes } from "@/hooks/api";
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { useDeleteStockAudit, useSaveStockAudit, useStockAudits, useStocktakeReadingsFor, type StockAuditRow } from "@/hooks/useStockAudits";
 import { buildCountAudits } from "@/lib/count-audits";
-import { useReadingHistory } from "@/hooks/useLineForecasts";
-import { mlToAuditBase } from "@/lib/line-forecast";
+import { useReadingHistory, useLineForecasts } from "@/hooks/useLineForecasts";
+import { mlToAuditBase, isWholeLineCount } from "@/lib/line-forecast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -102,7 +102,7 @@ export default function Orders() {
   const { data: history = [] } = useReadingHistory(venue?.id);
   const startFor = useMemo(() => {
     const newest = new Map<string, { ml_remaining: number; reading_at: string }>();
-    for (const r of history) { const c = newest.get(r.product_id); if (!c || r.reading_at > c.reading_at) newest.set(r.product_id, r); }
+    for (const r of history) { if (!isWholeLineCount(r)) continue; const c = newest.get(r.product_id); if (!c || r.reading_at > c.reading_at) newest.set(r.product_id, r); }
     const lineByKey = new Map((latest?.lines ?? []).map(l => [lineKey(l.name), l]));
     return (key: string) => {
       const p = productByKey.get(key); const line = lineByKey.get(key);
@@ -118,12 +118,25 @@ export default function Orders() {
       };
     };
   }, [history, latest, productByKey, deliveries]);
+  // Lines with a sales speed from the pub's own counts use it here too, so this list and the
+  // Library's "lasts X days" never disagree.
+  const forecasts = useLineForecasts(venue?.id, products as any, { cover, busy, basisId });
+  const rateFor = useMemo(() => {
+    const lineByKey = new Map((latest?.lines ?? []).map(l => [lineKey(l.name), l]));
+    return (key: string) => {
+      const p = productByKey.get(key); const line = lineByKey.get(key);
+      const f = p ? forecasts.get(p.id) : null;
+      if (!p || !line || !f || f.source !== "counts" || !(f.rate > 0)) return null;
+      return { recent: mlToAuditBase(f.runRate, line.base, p as any), rate: mlToAuditBase(f.rate, line.base, p as any) };
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forecasts, latest, productByKey, busy, cover, basisId]);
   const recountedLines = useMemo(() => (latest?.lines ?? []).filter(l => startFor(lineKey(l.name))).length, [latest, startFor]);
 
   const basis: Basis = basisId === "latest" ? { kind: "latest" } : basisId === "average" ? { kind: "average" } : basisId === "busiest" ? { kind: "busiest" } : { kind: "period", auditId: basisId };
-  const result = useMemo(() => orderList(audits, { basis, busyPct: busy, coverDays: cover, sinceDays }, { deliveredOn, productFor: k => productByKey.get(k) ?? null, startFor }),
+  const result = useMemo(() => orderList(audits, { basis, busyPct: busy, coverDays: cover, sinceDays }, { deliveredOn, productFor: k => productByKey.get(k) ?? null, startFor, rateFor }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [audits, basisId, busy, cover, sinceDays, deliveredOn, productByKey, startFor]);
+    [audits, basisId, busy, cover, sinceDays, deliveredOn, productByKey, startFor, rateFor]);
 
   useEffect(() => { store("orders:cover", String(cover)); }, [cover]);
   useEffect(() => { store("orders:busy", String(busy)); }, [busy]);

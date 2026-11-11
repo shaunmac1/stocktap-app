@@ -31,11 +31,37 @@ export interface ForecastProduct {
   container_l?: number | null;
   container_type?: string | null;
 }
-export interface ForecastReading { product_id: string; ml_remaining: number; reading_at: string }
+export interface ForecastReading {
+  product_id: string; ml_remaining: number; reading_at: string;
+  stocktake_id?: string | null; method?: string | null; full_containers?: number | null;
+  part_value?: number | null; is_delivery?: boolean | null;
+}
+
+/**
+ * Is this reading a count of the WHOLE line? Two kinds of reading are not, and must never be
+ * read as "this is all the stock there is":
+ *  - a delivery logged as a reading (ml 0, is_delivery) — that would look like "counted none";
+ *  - a single open bottle weighed from the Library (no stocktake, method weigh, no full
+ *    bottles and no part figure) — that would hide every full bottle on the shelf.
+ */
+export function isWholeLineCount(r: ForecastReading): boolean {
+  if (r.is_delivery) return false;
+  if (!r.stocktake_id && r.method === "weigh" && r.full_containers == null && r.part_value == null) return false;
+  return true;
+}
 export interface ForecastDelivery { product_id: string; delivered_at: string; quantity_ml: number | null }
 
 export type RateSource = "counts" | "audit";
-export type ForecastStatus = "out" | "low" | "order" | "ok" | "unknown";
+/**
+ * out   – counted none, nothing delivered since
+ * due   – was in stock at the count; at its sales speed it should have run out about now
+ * low   – under a week left
+ * order – enough for now, but not for the cover period
+ * ok    – enough
+ * dead  – in stock, but none sold over the stock audit: don't reorder
+ * unknown – not counted, or no sales speed yet
+ */
+export type ForecastStatus = "out" | "due" | "low" | "order" | "ok" | "dead" | "unknown";
 
 export interface Pack { ml: number; one: string; many: string }
 
@@ -43,8 +69,10 @@ export interface LineForecast {
   productId: string;
   status: ForecastStatus;
   source: RateSource | null;
-  /** sales speed in ml (or units) a day */
+  /** sales speed to order for, in ml (or units) a day — includes the "how busy" uplift */
   rate: number;
+  /** speed stock has been going down at since the count (no uplift) */
+  runRate: number;
   /** estimated stock now in ml */
   nowMl: number;
   daysLeft: number;
@@ -54,6 +82,8 @@ export interface LineForecast {
   label: string;
   /** "Sells about 31 bottles a week (from your counts)" */
   detail: string;
+  /** when the line was last counted in full */
+  countedAt: string | null;
 }
 
 const DAY = 864e5;
@@ -142,35 +172,68 @@ export function weekAmount(p: ForecastProduct, ratePerDay: number): string {
   return `${b} ${b === 1 ? "bottle" : "bottles"}`;
 }
 
+/** One whole thing a customer-facing line is sold down in: a pint, a litre, a bottle, a can, a bag. */
+function oneWhole(p: ForecastProduct): { ml: number; noun: string } {
+  if (isDraughtProduct(p as any)) return { ml: ML_PER_PINT, noun: "pint" };
+  if (isLitreLine(p)) return { ml: 1000, noun: "litre" };
+  if (isUnitLine(p)) return { ml: unitMl(p), noun: unitNoun(p, 1) };
+  return { ml: p.size_ml && p.size_ml > 0 ? p.size_ml : 700, noun: "bottle" };
+}
+
+/**
+ * Sales speed in plain words. A slow line never reads "0 bottles a week":
+ * "Sells about 31 bottles a week" / "Sells about 1 bottle every 9 weeks".
+ */
+export function sellsText(p: ForecastProduct, ratePerDay: number): string {
+  const one = oneWhole(p);
+  const perWeek = (ratePerDay * 7) / one.ml;
+  if (perWeek >= 1 || isLitreLine(p) && perWeek >= 0.5) return `Sells about ${weekAmount(p, ratePerDay)} a week`;
+  const weeks = Math.round(1 / perWeek);
+  if (weeks <= 1) return `Sells about 1 ${one.noun} a week`;
+  return weeks > 52 ? `Sells less than 1 ${one.noun} a year` : `Sells about 1 ${one.noun} every ${weeks} weeks`;
+}
+
 export interface ForecastInput {
   product: ForecastProduct;
   /** this line's counts, any order (closed stocktakes, spot checks, line checks) */
   history: ForecastReading[];
   /** this line's deliveries */
   deliveries: ForecastDelivery[];
-  /** sales a day from the audits, already in ml, or null */
+  /** sales a day from the audits, already in ml; 0 = on the audit and none sold; null = not on it */
   auditRateMl: number | null;
+  /** how long the audit figure covers, in words: "66 days" */
+  auditSpan?: string | null;
+  /**
+   * The latest audit's plain speed (no "how busy" uplift), in ml a day. Stock since the count
+   * runs down at this; the uplift is only for what's coming. Defaults to auditRateMl.
+   */
+  auditRecentMl?: number | null;
+  /** "How busy will it be?" uplift for what's coming, as a percentage (0, 10, 25, 50). */
+  busyPct?: number;
   coverDays: number;
   now?: number;
 }
 
 export function forecastLine(input: ForecastInput): LineForecast {
-  const { product: p, history, deliveries, auditRateMl, coverDays } = input;
+  const { product: p, deliveries, auditRateMl, coverDays } = input;
+  const history = input.history.filter(isWholeLineCount);
   const now = input.now ?? Date.now();
   const pack = orderPack(p);
   const good = countRate(history, deliveries, MIN_GOOD_SPAN);
   const any = good ?? countRate(history, deliveries, MIN_ANY_SPAN);
-  let rate = 0; let source: RateSource | null = null;
-  if (good && good.rate > 0) { rate = good.rate; source = "counts"; }
-  else if (auditRateMl != null && auditRateMl > 0) { rate = auditRateMl; source = "audit"; }
-  else if (any && any.rate > 0) { rate = any.rate; source = "counts"; }
+  const busy = 1 + (input.busyPct ?? 0) / 100;
+  let rate = 0; let runRate = 0; let source: RateSource | null = null;
+  if (good && good.rate > 0) { runRate = good.rate; rate = good.rate * busy; source = "counts"; }
+  else if (auditRateMl != null && auditRateMl > 0) { rate = auditRateMl; runRate = input.auditRecentMl ?? auditRateMl; source = "audit"; }
+  else if (any && any.rate > 0) { runRate = any.rate; rate = any.rate * busy; source = "counts"; }
 
   const latest = [...history].sort((a, b) => b.reading_at.localeCompare(a.reading_at))[0];
-  const base: LineForecast = { productId: p.id, status: "unknown", source, rate, nowMl: 0, daysLeft: Infinity, orderQty: 0, pack, label: "", detail: "" };
+  const base: LineForecast = { productId: p.id, status: "unknown", source, rate, runRate, nowMl: 0, daysLeft: Infinity, orderQty: 0, pack, label: "", detail: "", countedAt: latest?.reading_at ?? null };
+  const from = source === "counts" ? "from your counts" : "from your stock audits";
 
   if (!latest) {
     base.label = "Not counted yet";
-    base.detail = rate > 0 ? `Sells about ${weekAmount(p, rate)} a week` : "";
+    base.detail = rate > 0 ? sellsText(p, rate) : "";
     return base;
   }
   const lt = Date.parse(latest.reading_at);
@@ -178,27 +241,41 @@ export function forecastLine(input: ForecastInput): LineForecast {
   const after = deliveries
     .filter(d => Date.parse(d.delivered_at) > lt)
     .map(d => ({ day: (Date.parse(d.delivered_at) - lt) / DAY, qty: Number(d.quantity_ml) || 0 }));
-  const nowMl = Math.max(0, runDown(Number(latest.ml_remaining), rate, sinceDays, after));
+  const onHand = Number(latest.ml_remaining) + after.reduce((s2, d) => s2 + d.qty, 0);
+  const nowMl = Math.max(0, runDown(Number(latest.ml_remaining), runRate, sinceDays, after));
   base.nowMl = nowMl;
 
   if (!(rate > 0)) {
+    // On the stock audit and none sold: that's known, not "no data".
+    if (input.auditRateMl === 0 && onHand > 0.5) {
+      base.status = "dead";
+      base.label = `None sold in ${input.auditSpan ?? "your last stock audit"} · don't reorder`;
+      base.detail = "Stock sitting still: run it down before buying more";
+      return base;
+    }
     base.label = "No sales speed yet";
-    base.detail = "Count it again in a week, or add a stock audit";
+    base.detail = input.auditRateMl === 0 ? `None sold in ${input.auditSpan ?? "your last stock audit"}` : "Count it again in a week, or add a stock audit";
     return base;
   }
   const daysLeft = nowMl / rate;
   const need = rate * coverDays - nowMl;
-  const orderQty = need > 0 && pack.ml > 0 ? Math.ceil(need / pack.ml - 1e-9) : 0;
-  const status: ForecastStatus = nowMl <= 0.5 ? "out" : daysLeft < Math.min(7, coverDays) ? "low" : orderQty > 0 ? "order" : "ok";
-  const lasts = status === "out" ? "Probably out now"
+  // Same rule as the Orders page: a line with none left that sells less than one pack a month
+  // is a slow seller — shown as out, but not put on the order list.
+  const slowOut = nowMl <= 0.5 && rate * 30 < pack.ml;
+  const orderQty = !slowOut && need > 0 && pack.ml > 0 ? Math.ceil(need / pack.ml - 1e-9) : 0;
+  // "Out" only when it was counted at nothing and nothing has come in. If it was in stock at the
+  // count and the sums say it has gone, that is an estimate, and it says so.
+  const status: ForecastStatus = nowMl <= 0.5 ? (onHand <= 0.5 ? "out" : "due")
+    : daysLeft < Math.min(7, coverDays) ? "low" : orderQty > 0 ? "order" : "ok";
+  const lasts = status === "out" ? "Out"
+    : status === "due" ? "Due to run out about now"
     : daysLeft < 1 ? "Lasts under a day"
     : daysLeft >= 60 ? "Lasts 60+ days"
     : `Lasts ${Math.floor(daysLeft)} ${Math.floor(daysLeft) === 1 ? "day" : "days"}`;
-  const label = orderQty > 0 ? `${lasts} · order ${plural(orderQty, pack.one, pack.many)}` : `${lasts} · no order needed`;
-  return {
-    ...base, status, daysLeft, orderQty, label,
-    detail: `Sells about ${weekAmount(p, rate)} a week (${source === "counts" ? "from your counts" : "from your stock audits"})`,
-  };
+  const label = orderQty > 0 ? `${lasts} · order ${plural(orderQty, pack.one, pack.many)}`
+    : slowOut ? `${lasts} · slow seller, order only if you want it back`
+    : `${lasts} · no order needed`;
+  return { ...base, status, daysLeft, orderQty, label, detail: `${sellsText(p, rate)} (${from})` };
 }
 
 /** Audit sales a day per product id, in ml, using the same settings as the Orders page. */
@@ -213,8 +290,9 @@ export function auditRatesByProduct(
   patterns.forEach((pat, key) => {
     const p = productForKey(key);
     if (!p) return;
-    const r = basisRate(pat, order, basis) * (1 + busyPct / 100);
-    if (r > 0) out.set(p.id, (out.get(p.id) ?? 0) + auditRateToMl(r, pat.base, p));
+    const r = Math.max(0, basisRate(pat, order, basis)) * (1 + busyPct / 100);
+    // Keep zeros: "on the audit and none sold" is a fact worth showing.
+    out.set(p.id, (out.get(p.id) ?? 0) + auditRateToMl(r, pat.base, p));
   });
   return out;
 }

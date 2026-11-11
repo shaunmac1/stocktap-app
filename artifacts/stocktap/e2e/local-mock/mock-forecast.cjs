@@ -18,15 +18,23 @@ const db = {
   ],
 };
 
+// A spirit with one open bottle weighed from the Library and a delivery logged as a reading
+// since its count: neither is a count of the whole line.
+db.products.push({ id: 'bbbbbbbb-0000-4000-8000-000000000006', venue_id: V, name: 'Gin Gordons 70cl', type: 'spirit', unit: 'weigh', category: 'spirits', counting_method: 'tenths', size_ml: 700, pack_size: null, cost_price: 14, pour_price: 3.6, created_at: now, updated_at: now });
 // ── forecast data: counts, a delivery and a Venners-style audit ──
 const DAYMS = 864e5, ago = d => new Date(Date.now() - d * DAYMS).toISOString();
 const B = n => `bbbbbbbb-0000-4000-8000-00000000000${n}`;
 const rd = (n, units, size, d) => ({ id: require('crypto').randomUUID(), venue_id: V, product_id: B(n), ml_remaining: units * size, reading_at: ago(d), method: 'each', created_at: now });
 db.readings = [rd(1, 100, 275, 14), rd(1, 60, 275, 0.1), rd(2, 29, 330, 2), rd(3, 31, 1, 1), rd(5, 100, 500, 3)];
+db.readings.push(
+  { id: require('crypto').randomUUID(), venue_id: V, product_id: B(6), ml_remaining: 3 * 700, reading_at: ago(5), method: 'tenths', stocktake_id: 'st-old', created_at: now },
+  { id: require('crypto').randomUUID(), venue_id: V, product_id: B(6), ml_remaining: 280, reading_at: ago(1), method: 'weigh', weight_g: 700, stocktake_id: null, full_containers: null, part_value: null, created_at: now },
+  { id: require('crypto').randomUUID(), venue_id: V, product_id: B(6), ml_remaining: 0, reading_at: ago(0.5), method: 'weigh', is_delivery: true, full_containers: 6, stocktake_id: null, created_at: now },
+);
 db.deliveries = [{ id: require('crypto').randomUUID(), venue_id: V, product_id: B(1), delivered_at: ago(7), quantity: 48, quantity_ml: 48 * 275, created_at: now }];
 const aline = (name, category, sold, counted) => ({ name, category, unit: 'Each', base: 'units', open: 0, del: 0, ret: 0, tin: 0, tout: 0, adj: 0, waste: 0, sold, expected: 0, counted, variance: 0, retail: 0, delist: false });
 db.stock_audits = [{ id: 'aud1', venue_id: V, source: 'venners', file_name: null, created_at: now, period_start: '2026-08-25', period_end: '2026-09-25', days: 31, summary: { days: 31 },
-  lines: [aline('PPL Peroni Nastro Azzurro 330ml', 'Packaged', 186, 40), aline('PPS Hooch Lemon 440ml Can', 'Packaged', 62, 30), aline('PPC Old Mout Berries 500ml', 'Packaged', 31, 50), aline('Soft J2O Apple & Mango 275ml', 'Minerals', 620, 200)] }];
+  lines: [aline('PPL Peroni Nastro Azzurro 330ml', 'Packaged', 186, 40), aline('PPS Hooch Lemon 440ml Can', 'Packaged', 62, 30), aline('PPC Old Mout Berries 500ml', 'Packaged', 31, 50), aline('Soft J2O Apple & Mango 275ml', 'Minerals', 620, 200), aline('Crisps McCoys Salted 45g', 'Packaged', 0, 31), { ...aline('Gin Gordons 70cl', 'Spirits', 3.1, 3), unit: 'Bottle', base: 'bottles' }] }];
 const log = [];
 const rid = () => require('crypto').randomUUID();
 function filt(rows, params) {

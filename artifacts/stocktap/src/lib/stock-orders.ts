@@ -262,6 +262,12 @@ export function orderList(
      * it and deliveries after it. Used instead of the audit's closing count when given.
      */
     startFor?: (key: string) => { counted: number; sinceDays: number; deliveredOn: Array<{ day: number; qty: number }> } | null;
+    /**
+     * The pub's own sales speed for the line from its counts (base units a day), when there is
+     * one: `recent` for running stock down since the count, `rate` to order for. Keeps this
+     * list and the Library's "lasts X days" on the same figure.
+     */
+    rateFor?: (key: string) => { recent: number; rate: number } | null;
   } = {},
 ): { rows: OrderRow[]; slow: Array<{ key: string; name: string; category: string; soldPerWeek: number; base: AuditBase }>; covered: CoveredRow[]; latest: StoredAudit | null; order: StoredAudit[] } {
   const { order, lines } = buildPatterns(audits);
@@ -274,8 +280,9 @@ export function orderList(
     if (l.delist) continue;
     const key = lineKey(l.name);
     const pattern = lines.get(key)!;
-    const recent = pattern.rates[order.length - 1] ?? 0;
-    const rate = basisRate(pattern, order, opts.basis) * (1 + opts.busyPct / 100);
+    const own = extras.rateFor?.(key) ?? null;
+    const recent = own ? own.recent : pattern.rates[order.length - 1] ?? 0;
+    const rate = own ? own.rate : basisRate(pattern, order, opts.basis) * (1 + opts.busyPct / 100);
     if (rate <= 0) continue;
     const product = extras.productFor?.(key) ?? null;
     const pack = packFor(l, product);

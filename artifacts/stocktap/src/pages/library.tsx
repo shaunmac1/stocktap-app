@@ -3,6 +3,8 @@ import React, { useState, useMemo, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts, useAddProduct, useLocations, useProductReadingsMap, useDeleteProduct } from "@/hooks/api";
 import { useLineForecasts, useReadingHistory } from "@/hooks/useLineForecasts";
+import { isWholeLineCount } from "@/lib/line-forecast";
+import { costPerMl } from "@/lib/check-picks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +68,7 @@ import { matchKnownBottles } from "@/hooks/useCatalogue";
 import { isHidden } from "@/lib/hidden-products";
 import { useQuickHide } from "@/hooks/useQuickHide";
 import { containerSizeLabel } from "@/lib/container-sizes";
-import { stockNow } from "@/lib/stock-now";
+import { stockNow, countedAgo } from "@/lib/stock-now";
 import { useDeliveries } from "@/hooks/useDeliveries";
 
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -3694,7 +3696,10 @@ export default function Library() {
     [products, forecasts]);
   const filtered = useMemo(() => {
     let list = unweighedOnly ? searchFiltered.filter(needsWeigh) : searchFiltered;
-    if (toOrderOnly) list = list.filter(p => isToOrder(p.id)).sort((a, b) => (forecasts.get(a.id)?.daysLeft ?? 0) - (forecasts.get(b.id)?.daysLeft ?? 0));
+    // Soonest out first; among lines already out, the ones that sell the most money first.
+    const weekly = (p: any) => { const f = forecasts.get(p.id); return f ? f.rate * 7 * costPerMl(p, f) : 0; };
+    if (toOrderOnly) list = list.filter(p => isToOrder(p.id)).sort((a, b) =>
+      Math.floor(forecasts.get(a.id)?.daysLeft ?? 0) - Math.floor(forecasts.get(b.id)?.daysLeft ?? 0) || weekly(b) - weekly(a));
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchFiltered, unweighedOnly, toOrderOnly, forecasts]);
@@ -4238,7 +4243,9 @@ export default function Library() {
               )}
               <div className="space-y-2">
                 {prods.map(p => {
-                  const pReadings = [...(readingsMap?.get(p.id) ?? []), ...(historyByProduct.get(p.id) ?? [])];
+                  // Whole-line counts only: one open bottle weighed from this screen, or a delivery
+                  // logged as a reading, must never show as "all the stock there is".
+                  const pReadings = [...(readingsMap?.get(p.id) ?? []), ...(historyByProduct.get(p.id) ?? [])].filter(r => isWholeLineCount(r as any));
                   const latestReading = pReadings.length > 0
                     ? pReadings.reduce((best, r) => new Date(r.reading_at) > new Date(best.reading_at) ? r : best)
                     : null;
@@ -4246,11 +4253,13 @@ export default function Library() {
                   return (
                     <div
                       key={p.id}
-                      className="bg-card border border-border rounded-xl p-3 flex items-center gap-3"
+                      className="bg-card border border-border rounded-xl p-3"
                       data-testid={`card-product-${p.id}`}
                     >
+                      <div className="flex items-center gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold truncate">{p.name}</div>
+                        {/* Two lines, not cut off: "Gin Gord…" next to a Weigh button told nobody which gin */}
+                        <div className="font-semibold leading-snug break-words" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.name}</div>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <Badge className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground border border-border">{p.category ? (CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category) : "—"}</Badge>
                           {/* Size display: show capacity in litres for keg/dipstick, ml for bottles */}
@@ -4268,9 +4277,11 @@ export default function Library() {
                           {(() => {
                             const sn = stockNow(p as any, latestReading as any, recentDeliveries as any);
                             return sn ? (
-                              <span className="basis-full text-xs font-semibold text-primary" data-testid={`text-stock-now-${p.id}`}>
-                                In stock: {sn.label}{sn.deliveredLabel ? <span className="font-normal text-muted-foreground"> · incl. {sn.deliveredLabel} delivered since last count</span> : null}
-                              </span>
+                              <>
+                                <span className="basis-full text-xs font-semibold text-primary" data-testid={`text-stock-now-${p.id}`}>
+                                  In stock: {sn.label}{sn.deliveredLabel ? <span className="font-normal text-muted-foreground"> · incl. {sn.deliveredLabel} delivered since last count</span> : null}
+                                </span>
+                              </>
                             ) : null;
                           })()}
                           {estimatedPriceIds.has(p.id) && (
@@ -4348,23 +4359,6 @@ export default function Library() {
                               {(p as any).bottle_shape_id ? "Shape set" : "Set shape"}
                             </button>
                           )}
-                          {(() => {
-                            // Days left and what to order, from the newest count, deliveries since and
-                            // the sales speed (own counts first, then stock audits). Never a guess.
-                            const fc = forecasts.get(p.id);
-                            if (!fc || fc.status === "unknown" && !fc.label) return null;
-                            const tone = fc.status === "out" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                              : fc.status === "low" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-                              : fc.status === "order" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                              : fc.status === "ok" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-muted text-muted-foreground";
-                            return (
-                              <span className="basis-full flex flex-col gap-0.5" data-testid={`line-forecast-${p.id}`}>
-                                <span className={`self-start text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${tone}`} data-testid={`line-forecast-label-${p.id}`}>{fc.label}</span>
-                                {fc.detail && <span className="text-[11px] text-muted-foreground" data-testid={`line-forecast-detail-${p.id}`}>{fc.detail}</span>}
-                              </span>
-                            );
-                          })()}
                           {litreOnBottleIds.has(p.id) ? (
                             <button
                               type="button"
@@ -4437,6 +4431,31 @@ export default function Library() {
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
                       </div>
+                      </div>
+                      {/* Full width under the row, so a line with a "Weigh a full one" button still reads on a phone */}
+                                {latestReading && countedAgo(latestReading.reading_at) !== "counted today" && (
+                                  <span className="block mt-1 text-[11px] text-muted-foreground" data-testid={`text-counted-ago-${p.id}`}>
+                                    {countedAgo(latestReading.reading_at)}, less whatever has sold since
+                                  </span>
+                                )}
+                          {(() => {
+                            // Days left and what to order, from the newest count, deliveries since and
+                            // the sales speed (own counts first, then stock audits). Never a guess.
+                            const fc = forecasts.get(p.id);
+                            if (!fc || fc.status === "unknown" && !fc.label) return null;
+                            const tone = fc.status === "out" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              : fc.status === "dead" ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                              : fc.status === "low" || fc.status === "due" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                              : fc.status === "order" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                              : fc.status === "ok" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-muted text-muted-foreground";
+                            return (
+                              <div className="mt-2 flex flex-col gap-0.5" data-testid={`line-forecast-${p.id}`}>
+                                <span className={`self-start text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${tone}`} data-testid={`line-forecast-label-${p.id}`}>{fc.label}</span>
+                                {fc.detail && <span className="text-[11px] text-muted-foreground" data-testid={`line-forecast-detail-${p.id}`}>{fc.detail}</span>}
+                              </div>
+                            );
+                          })()}
                     </div>
                   );
                 })}
