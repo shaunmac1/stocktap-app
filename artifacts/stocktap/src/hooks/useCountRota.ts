@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts, useLatestReadings } from "@/hooks/api";
+import { describeQuantity } from "@/lib/stock-display";
 import { readRota, readStaffGroups, rotaToday, groupStatus, type RotaToday, type CountRota, type GroupStatus } from "@/lib/count-rota";
 
 /** Today's count for this pub, from the rota in Settings and what's actually been counted. */
@@ -61,6 +62,51 @@ export function useStaffCounts(venueId: string | undefined, myId: string | undef
       const names = new Map<string, string>(((staff ?? []) as any[]).map(s => [s.user_id, s.name]));
       return Array.from(by.entries()).map(([stocktakeId, g]) => ({ stocktakeId, at: g.at, lines: g.products.size, by: names.get(g.user) ?? "Your team" }))
         .sort((a, b) => (a.at < b.at ? 1 : -1));
+    },
+  });
+}
+
+export interface StaffCountInProgress { stocktakeId: string; at: string; by: string; lines: { productId: string; name: string; short: string }[] }
+
+/** Counts someone else has started and not sent in yet, with what they've counted so far (owner's Home). */
+export function useStaffCountsInProgress(venueId: string | undefined, myId: string | undefined) {
+  const { data: products } = useProducts(venueId);
+  return useQuery({
+    queryKey: ["staff-counts-open", venueId, myId, (products ?? []).length],
+    enabled: !!venueId && !!myId && !!products,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    queryFn: async (): Promise<StaffCountInProgress[]> => {
+      const since = new Date(Date.now() - 2 * 86_400_000).toISOString();
+      const { data, error } = await supabase.from("stocktake_line_entries")
+        .select("stocktake_id, user_id, product_id, method, full_containers, part_value, ml_remaining, entered_at")
+        .eq("venue_id", venueId!).gte("entered_at", since).not("stocktake_id", "is", null).neq("user_id", myId!)
+        .order("entered_at", { ascending: true }).limit(2000);
+      if (error) throw error;
+      const rows = (data ?? []) as any[];
+      if (rows.length === 0) return [];
+      const ids = Array.from(new Set(rows.map(r => r.stocktake_id)));
+      const { data: open } = await supabase.from("stocktakes").select("id, status").in("id", ids).eq("status", "open");
+      const openIds = new Set(((open ?? []) as any[]).map(s => s.id));
+      const users = Array.from(new Set(rows.map(r => r.user_id)));
+      const { data: staff } = await (supabase as any).from("staff").select("name, user_id").eq("venue_id", venueId!).in("user_id", users);
+      const names = new Map<string, string>(((staff ?? []) as any[]).map(s => [s.user_id, s.name]));
+      const out: StaffCountInProgress[] = [];
+      for (const id of ids) {
+        if (!openIds.has(id)) continue;
+        const mine = rows.filter(r => r.stocktake_id === id);
+        const byProduct = new Map<string, any[]>();
+        for (const r of mine) byProduct.set(r.product_id, [...(byProduct.get(r.product_id) ?? []), r]);
+        const lines = Array.from(byProduct.entries()).map(([productId, es]) => {
+          const p = (products as any[]).find(x => x.id === productId);
+          if (!p) return null;
+          const q = describeQuantity({ ...p, cost_price: null }, es.map(e => ({ method: e.method, full_containers: e.full_containers, part_value: e.part_value == null ? null : Number(e.part_value), ml_remaining: Number(e.ml_remaining) || 0 })));
+          return { productId, name: p.name as string, short: q.short };
+        }).filter(Boolean) as StaffCountInProgress["lines"];
+        if (lines.length === 0) continue;
+        out.push({ stocktakeId: id, at: mine[mine.length - 1].entered_at, by: names.get(mine[0].user_id) ?? "Your team", lines });
+      }
+      return out.sort((a, b) => (a.at < b.at ? 1 : -1));
     },
   });
 }

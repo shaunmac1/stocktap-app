@@ -1660,9 +1660,9 @@ export default function Stocktake() {
                               <span className="font-semibold" data-testid="text-container-size">{activeProduct?.container_l ? containerSizeLabel(Number(activeProduct.container_l), sizeKind) : "not set"}</span>
                               {activeProduct?.category === "postmix" && activeProduct?.container_l ? <span className="text-muted-foreground" data-testid="text-postmix-yield"> · makes {postmixDrinkLitresPerBox(activeProduct as any)}L</span> : null}
                             </div>
-                            <button type="button" className="text-sm font-semibold text-primary underline" onClick={() => setShowSizePicker(v => !v)} data-testid="button-change-container-size">
+                            {!(isStaff && activeProduct?.container_l) && <button type="button" className="text-sm font-semibold text-primary underline" onClick={() => setShowSizePicker(v => !v)} data-testid="button-change-container-size">
                               {showSizePicker ? "Cancel" : "Change"}
-                            </button>
+                            </button>}
                           </div>
                           {showSizePicker && (
                             <div className="mt-3 space-y-3">
@@ -1787,6 +1787,7 @@ export default function Stocktake() {
                           loose={entryNumStr}
                           onLoose={setEntryNumStr}
                           onSetCaseSize={size => { if (venue?.id) setCaseSize.mutate({ id: activeProduct.id, venue_id: venue.id, size }); }}
+                          locked={isStaff}
                         />
                       )}
                       {entryActiveMethod === "litre" && activeProduct?.category === "postmix" && (

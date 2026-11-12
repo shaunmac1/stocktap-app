@@ -17,6 +17,7 @@ export function PackagedEntry({
   loose,
   onLoose,
   onSetCaseSize,
+  locked = false,
 }: {
   product: PackagedProductLike;
   cases: string;
@@ -24,12 +25,14 @@ export function PackagedEntry({
   loose: string;
   onLoose: (v: string) => void;
   onSetCaseSize: (size: number) => void;
+  /** Staff count: the landlord sets case sizes, so no question and no change link. */
+  locked?: boolean;
 }) {
   const [choosing, setChoosing] = useState(false);
   const [other, setOther] = useState("");
   const caseSize = caseSizeOf(product);
   const suggested = suggestedCaseSize(product);
-  const asking = needsCaseSizeAnswer(product) || choosing;
+  const asking = !locked && (needsCaseSizeAnswer(product) || choosing);
   const casesN = Math.max(0, Math.floor(parseFloat(cases) || 0));
   const many = unitNoun(product, 2);
 
@@ -109,9 +112,9 @@ export function PackagedEntry({
         <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground" data-testid="label-full-cases">Full cases ({caseSize})</div>
-            <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setChoosing(true)} data-testid="button-change-case-size">
+            {!locked && <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setChoosing(true)} data-testid="button-change-case-size">
               Not {caseSize} to a case?
-            </button>
+            </button>}
           </div>
           <div className="flex items-center gap-2">
             <button

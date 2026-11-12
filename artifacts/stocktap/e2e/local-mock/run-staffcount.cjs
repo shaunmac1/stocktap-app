@@ -59,6 +59,7 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
     await s.tap('card-count-kegs', 2500);
     check('one tap and they are counting: 0 of 2', /0 of 2 counted/.test(await s.txt('text-count-progress')), (await s.body()).slice(0, 200));
     check('no Hide buttons for staff', await staff.p.locator('[data-testid^="button-quick-hide-"]').count() === 0);
+    let canChangeSize = false;
     const countKeg = async (pid, full, gal) => {
       if (await s.has(`counting-product-${pid}`)) await s.tap(`counting-product-${pid}`); await sleep(600);
       if (!(await s.has('button-full-plus'))) { await s.tap('button-add-entry', 600); if (!(await s.has('button-location-loc-cellar')) && await s.has('button-change-spot')) await s.tap('button-change-spot'); await s.tap('button-location-loc-cellar', 600); }
@@ -66,11 +67,13 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
       for (let i = 0; i < full; i++) await s.tap('button-full-plus', 150);
       if (gal != null) await s.tap(`button-part-gallons-${gal}`);
       const during = await s.body();
+      if (await s.has('button-change-container-size')) canChangeSize = true;
       await s.tap('button-save-entry', 1500);
       if (await s.has('button-back-to-products')) await s.tap('button-back-to-products');
       return during;
     };
     const seen = [await countKeg(A, 2, 4)]; await sleep(6000); seen.push(await countKeg(B, 1, null));
+    check('staff cannot change a keg size while counting', !canChangeSize);
     check('staff have no Review & Close, one Finish & send instead', !(await s.has('button-review-stocktake')) && await s.has('button-staff-finish'));
     await s.tap('button-staff-finish', 800); seen.push(await s.body());
     check('asks before sending, says how many counted', /Send this count in\? 2 of \d+ counted/.test(await s.txt('staff-send-ask')), await s.txt('staff-send-ask'));
@@ -117,6 +120,16 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
     await owner.p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(3500);
     await o.tap(`button-dismiss-staff-count-${sts[0].id}`, 600);
     check('"Got it" clears the notice', !(await o.has('staff-counts')));
+    // someone has started a count and not sent it in: the landlord can see it without asking anyone
+    const OPEN = '99999999-9999-4999-8999-999999999999'; const post = (t, row) => fetch(`http://localhost:8899/rest/v1/${t}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(row) });
+    await post('stocktakes', { id: OPEN, venue_id: V, status: 'open', opened_at: new Date().toISOString(), created_at: new Date().toISOString(), product_ids: [A, B] });
+    await post('stocktake_line_entries', { id: '99999999-9999-4999-8999-99999999999a', venue_id: V, stocktake_id: OPEN, spot_check_id: null, product_id: A, count_location_id: 'loc-cellar', method: 'keg_weight', full_containers: 2, part_value: null, ml_remaining: 100000, user_id: U2, entered_at: new Date().toISOString() });
+    await owner.p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(4000);
+    check('Home: "Sam is counting", 1 line so far, not sent in yet', /Sam is counting/.test(await o.txt(`staff-counting-${OPEN}`)) && /1 line so far/.test(await o.txt(`staff-counting-${OPEN}`)) && /Not sent in yet/.test(await o.txt(`staff-counting-${OPEN}`)), await o.txt('staff-counts'));
+    await o.tap(`button-staff-counting-toggle-${OPEN}`, 600);
+    check('one tap shows what has been counted so far', /Carlsberg/.test(await o.txt(`staff-counting-lines-${OPEN}`)) && /gal/.test(await o.txt(`staff-counting-lines-${OPEN}`)), await o.txt(`staff-counting-lines-${OPEN}`));
+    await owner.p.screenshot({ path: `${SHOT}/r8.png` });
+    await fetch(`http://localhost:8899/rest/v1/stocktakes?id=eq.${OPEN}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: 'closed' }) });
     // the landlord sets what staff count: bottles only, so nobody is sent to the cellar
     await owner.p.goto('http://localhost:5173/settings', { waitUntil: 'domcontentloaded' }); await sleep(2500);
     await owner.p.getByRole('tab', { name: 'Counting' }).tap(); await sleep(600);
