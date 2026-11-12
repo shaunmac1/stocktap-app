@@ -4,6 +4,7 @@
  * syncDown: Supabase → Dexie (pull latest data)
  * syncUp:   Dexie sync_queue → Supabase (flush pending writes)
  */
+import { reportFault } from "./fault-report";
 import { supabase } from "./supabase";
 import { db } from "./db";
 
@@ -261,6 +262,8 @@ export async function syncUp(): Promise<number> {
       const message =
         (err as any)?.message ?? (err as any)?.error_description ?? String(err);
       console.warn("[syncUp] item", item.id, "will retry:", message);
+      // Third failed try: this upload is stuck, not just waiting for a signal. Tell us.
+      if (item.retry_count + 1 === 3) reportFault("sync", { message: `${item.table_name} ${item.operation} stuck: ${message}` });
       await db.sync_queue.update(item.id!, {
         retry_count: item.retry_count + 1,
         last_error: String(message).slice(0, 300),

@@ -1,3 +1,4 @@
+import { reportFault } from "@/lib/fault-report";
 import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -992,6 +993,7 @@ export default function Stocktake() {
       const closedBefore = (stocktakes ?? []).filter(s => s.status === "closed" && s.id !== activeStocktakeId).length;
       if (closedBefore === 0) setShowSecondCountPrompt(true);
     } catch (err: any) {
+      reportFault("count", { message: `finish failed: ${String(err?.message ?? err)}`, stack: err?.stack });
       toast({
         title: "Stocktake not closed",
         description: `No success was reported because a reading failed to save: ${String(err?.message ?? err)}`,
