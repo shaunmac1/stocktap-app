@@ -920,6 +920,7 @@ export default function Stocktake() {
     toast({ title: "Lines added", description: "Everything you've already counted is still there." });
   };
   const finishing = React.useRef(false);
+  const [staffSendAsk, setStaffSendAsk] = useState(false);
   const finishStocktake = async () => {
     if (!activeStocktakeId || !venue?.id || !user?.id) return;
     if (finishing.current) return;
@@ -1014,6 +1015,18 @@ export default function Stocktake() {
   })();
 
   // ─── STEP: list ──────────────────────────────────────────────────────────────
+
+  const staffCounted = new Set((lineEntries ?? []).map(e => e.product_id).filter(pid => selectedProductIds.includes(pid))).size;
+  const staffSendBox = isStaff && staffSendAsk ? (
+    <div className="mt-3 rounded-xl border-2 border-primary bg-primary/5 p-3 space-y-2" data-testid="staff-send-ask">
+                <p className="text-sm font-semibold">Send this count in? {staffCounted} of {selectedProductIds.length} counted.</p>
+                {staffCounted < selectedProductIds.length && <p className="text-xs text-muted-foreground">That's fine if you've run out of time. What you've counted is sent as it is.</p>}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button className="h-12 font-bold" onClick={finishStocktake} disabled={closeStocktake.isPending} data-testid="button-staff-send">{closeStocktake.isPending ? "Sending..." : "Send it"}</Button>
+                  <Button variant="outline" className="h-12 font-semibold" onClick={() => setStaffSendAsk(false)} data-testid="button-staff-keep-counting">Keep counting</Button>
+                </div>
+              </div>
+  ) : null;
 
   if (step === "list") {
     return (
@@ -1265,10 +1278,17 @@ export default function Stocktake() {
                   <p className="text-xs text-muted-foreground mt-0.5" data-testid="text-count-progress">{enteredCount} of {filteredProducts.length} counted · saved as you go</p>
                 </div>
               </div>
+              {isStaff ? (
+                <Button size="sm" onClick={() => setStaffSendAsk(true)} disabled={enteredCount === 0} data-testid="button-staff-finish">
+                  Finish &amp; send
+                </Button>
+              ) : (
               <Button size="sm" variant="outline" onClick={() => setStep("summary")} data-testid="button-review-stocktake">
                 Review &amp; Close
               </Button>
+              )}
             </div>
+            {staffSendBox}
             <Button variant="outline" className="mt-3 w-full h-11 font-semibold border-primary text-primary" onClick={() => { setAddingLines(true); setSearchStr(""); setStep("select"); }} data-testid="button-add-lines">
               <Plus className="w-4 h-4 mr-1" /> Add more lines to this count
             </Button>
@@ -1468,10 +1488,11 @@ export default function Stocktake() {
               </Button>
             )}
             {productEntries.length > 0 && !nextUncounted && (
-              <Button size="lg" variant="outline" className="w-full h-12 font-semibold" onClick={() => setStep("summary")} data-testid="button-all-counted-review">
-                All counted · Review &amp; close
+              <Button size="lg" variant={isStaff ? "default" : "outline"} className="w-full h-12 font-semibold" onClick={() => { if (isStaff) setStaffSendAsk(true); else setStep("summary"); }} data-testid="button-all-counted-review">
+                {isStaff ? "All counted · Finish & send" : "All counted · Review & close"}
               </Button>
             )}
+            {staffSendBox}
           </div>
 
           {/* Add entry bottom sheet — z-[60] so it sits above the z-50 bottom nav */}

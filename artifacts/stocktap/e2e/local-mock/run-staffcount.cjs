@@ -71,10 +71,14 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
       return during;
     };
     const seen = [await countKeg(A, 2, 4)]; await sleep(6000); seen.push(await countKeg(B, 1, null));
-    await s.tap('button-review-stocktake', 1500); seen.push(await s.body());
-    check('review shows lines counted, not a value', /Lines counted \| 2/.test(await s.txt('card-staff-summary')), await s.txt('card-staff-summary'));
+    check('staff have no Review & Close, one Finish & send instead', !(await s.has('button-review-stocktake')) && await s.has('button-staff-finish'));
+    await s.tap('button-staff-finish', 800); seen.push(await s.body());
+    check('asks before sending, says how many counted', /Send this count in\? 2 of \d+ counted/.test(await s.txt('staff-send-ask')), await s.txt('staff-send-ask'));
+    await s.tap('button-staff-keep-counting', 600);
+    check('Keep counting goes back to the count, nothing sent', !(await s.has('staff-send-ask')) && await s.has('button-staff-finish'));
+    await s.tap('button-staff-finish', 800);
     await staff.p.screenshot({ path: `${SHOT}/r4.png` });
-    await s.tap('button-finish-stocktake', 3000); seen.push(await s.body());
+    await s.tap('button-staff-send', 3000); seen.push(await s.body());
     check('finished: thanked, back on the staff count screen', await s.has('staff-count-done') && !/Past Stocktakes/.test(await s.body()), (await s.body()).slice(0, 200));
     check('staff never saw a £ sign or a GP figure', !seen.some(t => /£|GP \d|stock value|cost price/i.test(t)), seen.map(t => (t.match(/.{0,30}(£|GP \d|stock value|cost price).{0,30}/i) || [''])[0]).filter(Boolean).join(' ~ '));
     await staff.ctx.setOffline(false); await staff.p.evaluate(() => window.dispatchEvent(new Event('online'))); await sleep(10000);
