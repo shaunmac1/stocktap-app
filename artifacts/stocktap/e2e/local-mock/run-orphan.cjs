@@ -20,13 +20,21 @@ const ORPHAN = '814c40ec-6cbd-4b8a-a90d-2743cd31fdc1';
     const put = await p.evaluate(async ({ DBNAME, entry }) => new Promise((res, rej) => {
       const rq = indexedDB.open(DBNAME);
       rq.onerror = () => rej(String(rq.error));
-      rq.onsuccess = () => { const d = rq.result; const tx = d.transaction('line_entries', 'readwrite'); tx.objectStore('line_entries').put(entry); tx.oncomplete = () => { d.close(); res('ok'); }; tx.onerror = () => rej(String(tx.error)); };
+      rq.onsuccess = () => { const d = rq.result; const tx = d.transaction(['line_entries', 'sync_queue'], 'readwrite'); tx.objectStore('line_entries').put(entry);
+        // and an old-style queued "create this stocktake" with no id in it, as phones had before the fix
+        tx.objectStore('sync_queue').add({ table_name: 'stocktakes', operation: 'insert', payload: { venue_id: entry.venue_id, status: 'open', opened_at: entry.entered_at, location_id: null, product_ids: [entry.product_id] }, created_at: entry.entered_at, retry_count: 3, local_id: entry.stocktake_id });
+        tx.oncomplete = () => { d.close(); res('ok'); }; tx.onerror = () => rej(String(tx.error)); };
     }), { DBNAME: process.env.DBNAME, entry: { id: 'eeeeeeee-0000-4000-8000-000000000001', venue_id: V, stocktake_id: ORPHAN, product_id: A, count_location_id: 'loc-cellar', count_location_name: 'Cellar', method: 'keg_weight', full_containers: 2, part_value: 24, ml_remaining: 2 * 50000 + 24 * 568.261, sync_status: 'pending', entered_at: now, user_id: U, created_at: now, updated_at: now } });
     check('phone holds a count for a stocktake the server never got', put === 'ok' && !(await get('stocktakes')).some(s => s.id === ORPHAN));
     await p.reload({ waitUntil: 'domcontentloaded' }); await sleep(9000);
     const sts = await get('stocktakes'), ents = await get('stocktake_line_entries');
     check('the stocktake is put up under the same id, open', sts.some(s => s.id === ORPHAN && s.status === 'open'), JSON.stringify(sts.map(s => [s.id.slice(0, 4), s.status])));
     check('the count is on the server: 2 full + 3 gal', ents.some(e => e.id === 'eeeeeeee-0000-4000-8000-000000000001' && e.stocktake_id === ORPHAN && e.full_containers === 2 && Number(e.part_value) === 24), `n=${ents.length}`);
+    await p.reload({ waitUntil: 'domcontentloaded' }); await sleep(8000); await p.reload({ waitUntil: 'domcontentloaded' }); await sleep(8000);
+    const sts2 = await get('stocktakes');
+    check('three more syncs later: still exactly one stocktake, no copies', sts2.length === 1, `n=${sts2.length}`);
+    const left = await p.evaluate(async (DBNAME) => new Promise(res => { const rq = indexedDB.open(DBNAME); rq.onsuccess = () => { const d = rq.result; const c = d.transaction('sync_queue').objectStore('sync_queue').count(); c.onsuccess = () => { d.close(); res(c.result); }; }; }), process.env.DBNAME);
+    check('nothing left pending on the phone', left === 0, `queue=${left}`);
     await p.goto('http://localhost:5173/stocktake', { waitUntil: 'domcontentloaded' }); await sleep(3500);
     const body = (await p.locator('body').innerText()).replace(/\n/g, ' | ');
     check('it shows as an open count to carry on', /open|Resume|Carry on|In progress/i.test(body), body.slice(0, 300));

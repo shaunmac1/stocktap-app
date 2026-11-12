@@ -142,6 +142,10 @@ export async function syncUp(): Promise<number> {
           payload = { ...payload, stocktake_id: tempStocktakeToReal[payload.stocktake_id] };
         }
 
+        // A stocktake always goes up under the id it has on the phone (older queued ones
+        // had none and came back with a new id each time).
+        if (item.table_name === "stocktakes" && payload && !payload.id) payload = { ...payload, id: item.local_id };
+
         const { data, error } = await (supabase as any)
           .from(item.table_name)
           .insert(payload)
@@ -157,7 +161,13 @@ export async function syncUp(): Promise<number> {
           if (local) await db.stocktakes.put({ ...local, _temp: 0 });
         }
 
-        if (data) {
+        // It is on the server: take it off the queue NOW. The tidy-up below once threw
+        // after a successful upload, which left the item queued and sent the same
+        // stocktake up again on every sync.
+        await db.sync_queue.delete(item.id!);
+        flushed++;
+
+        if (data) try {
           if (item.table_name === "readings") {
             await db.readings.delete(item.local_id);
             await db.readings.put({ ...data, _synced: 1, _temp: 0 });
@@ -166,9 +176,8 @@ export async function syncUp(): Promise<number> {
             await db.stocktakes.delete(item.local_id);
             await db.stocktakes.put({ ...data, _temp: 0 });
             // Re-point any local readings that referenced the temp stocktake id
-            const affected = await db.readings
-              .where("stocktake_id")
-              .equals(item.local_id)
+            const affected = data.id === item.local_id ? [] : await db.readings
+              .filter((r: any) => r.stocktake_id === item.local_id)
               .toArray();
             for (const r of affected) {
               await db.readings.put({ ...r, stocktake_id: data.id });
@@ -193,10 +202,9 @@ export async function syncUp(): Promise<number> {
             await db.movements.delete(item.local_id);
             await db.movements.put({ ...data, _synced: 1 });
           }
+        } catch (tidyErr) {
+          console.warn("[syncUp] uploaded, local tidy-up failed:", (tidyErr as any)?.message ?? tidyErr);
         }
-
-        await db.sync_queue.delete(item.id!);
-        flushed++;
       } else if (item.operation === "update") {
         if (item.table_name === "stocktakes" && (item.payload as any)?.status === "closed") {
           // Never close a count on the server while some of its lines are still on the
