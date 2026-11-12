@@ -87,6 +87,15 @@ http.createServer((req, res) => {
           if (!sc || sc.status === 'closed') return send(409, { code: 'P0001', message: 'Spot check does not belong to this venue or is already closed' });
         }
       }
+      // Like the real database: a count needs its stocktake to exist and be open; a reading needs its stocktake.
+      if (table === 'stocktake_line_entries') {
+        for (const i of items) if (i.stocktake_id) {
+          const st = (db.stocktakes || []).find(x => x.id === i.stocktake_id);
+          if (!st || st.status === 'closed') { log.push({ refused: table, why: !st ? 'no stocktake' : 'closed' }); return send(409, { code: '23503', message: 'Stocktake does not belong to this venue or is already closed' }); }
+        }
+      }
+      if (table === 'readings') for (const i of items) if (i.stocktake_id && !(db.stocktakes || []).some(x => x.id === i.stocktake_id)) { log.push({ refused: table, why: 'no stocktake' }); return send(409, { code: '23503', message: 'insert or update on table "readings" violates foreign key constraint' }); }
+      if (!u.searchParams.has('on_conflict')) for (const i of items) if (i.id && db[table].some(r => r.id === i.id)) return send(409, { code: '23505', message: 'duplicate key value violates unique constraint' });
       items = items.map(i => ({ id: i.id || rid(), created_at: now, ...i }));
       for (const i of items) { const k = db[table].findIndex(r => r.id === i.id); if (k >= 0) db[table][k] = { ...db[table][k], ...i }; else db[table].push(i); }
       log.push({ insert: table, items });
@@ -95,6 +104,7 @@ http.createServer((req, res) => {
     if (req.method === 'PATCH') {
       const patch = JSON.parse(body || '{}'); const rows = filt(db[table], params);
       rows.forEach(r => Object.assign(r, patch)); log.push({ update: table, patch, n: rows.length });
+      if (single && !rows.length) return send(406, { code: 'PGRST116', message: 'no rows' });
       return send(200, single ? rows[0] : rows);
     }
     if (req.method === 'DELETE') { const rows = filt(db[table], params); db[table] = db[table].filter(r => !rows.includes(r)); return send(200, rows); }

@@ -22,6 +22,7 @@ import Stocktake from "@/pages/stocktake";
 import FirstCount from "@/pages/first-count";
 import SpotCheck from "@/pages/spot-check";
 import LineCheck from "@/pages/line-check";
+import DaysLeftPage from "@/pages/days-left";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import Ledger from "@/pages/ledger";
@@ -41,7 +42,15 @@ import Clock from "@/pages/clock";
 import { useOutstandingToday } from "@/hooks/useChecks";
 import { Layout } from "@/components/Layout";
 
-const queryClient = new QueryClient();
+// StockTap saves to the phone first and uploads when it can, so nothing may wait for a
+// signal: with the default setting, reads and saves silently paused in a no-signal cellar
+// ("Saving…" for ever). "always" lets each one run and fall back to what's on the phone.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { networkMode: "always" },
+    mutations: { networkMode: "always" },
+  },
+});
 
 // ─── Dev banner ───────────────────────────────────────────────────────────────
 function DevBannerBar() {
@@ -97,6 +106,7 @@ const StocktakeRoute   = () => <ProtectedRoute component={Stocktake} />;
 const FirstCountRoute  = () => <ProtectedRoute component={FirstCount} />;
 const SpotCheckRoute   = () => <ProtectedRoute component={SpotCheck} />;
 const LineCheckRoute   = () => <ProtectedRoute component={LineCheck} />;
+const DaysLeftRoute    = () => <ProtectedRoute component={DaysLeftPage} />;
 const ReportsRoute     = () => <ProtectedRoute component={Reports} />;
 const SettingsRoute    = () => <ProtectedRoute component={Settings} />;
 const LedgerRoute      = () => <ProtectedRoute component={Ledger} />;
@@ -129,6 +139,7 @@ function AppRouter({ authenticated }: { authenticated: boolean }) {
       <Route path="/first-count"   component={FirstCountRoute} />
       <Route path="/spot-check"    component={SpotCheckRoute} />
       <Route path="/line-check"    component={LineCheckRoute} />
+      <Route path="/days-left"     component={DaysLeftRoute} />
       <Route path="/reports"       component={ReportsRoute} />
       <Route path="/settings"      component={SettingsRoute} />
       <Route path="/ledger"        component={LedgerRoute} />

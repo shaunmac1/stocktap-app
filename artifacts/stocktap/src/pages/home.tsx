@@ -176,6 +176,16 @@ export default function Home() {
           );
         })()}
 
+        <Link href="/days-left" className="block">
+          <div className="rounded-xl border-2 border-primary/40 bg-primary/5 p-4 flex items-center justify-between gap-3" data-testid="card-days-left">
+            <div>
+              <div className="font-bold">Days left on every keg</div>
+              <div className="text-xs text-muted-foreground mt-0.5">For order day: what you've got, how fast it's going, what to order.</div>
+            </div>
+            <span className="text-sm font-semibold text-primary whitespace-nowrap">Open →</span>
+          </div>
+        </Link>
+
         {/* GP + Last updated */}
         <div className="grid grid-cols-2 gap-3">
           <Card>

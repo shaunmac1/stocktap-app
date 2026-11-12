@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   useProducts, useLocations, useStocktakes,
   useCreateStocktake, useCloseStocktake, useAddReading,
-  useCountLocations, useLineEntries, addLineEntry, deleteLineEntry,
+  useCountLocations, useLineEntries, addLineEntry, deleteLineEntry, setStocktakeProducts,
   useAddCountLocation, useBottleShapes, useUpdateProduct, recomputeOpenEntriesForProduct,
   useLatestReadingsByProduct, useSetCaseSize,
   type BottleShape,
@@ -33,6 +33,7 @@ import {
 import { isLitreOnBottles } from "@/lib/library-hygiene";
 import { describeQuantity } from "@/lib/stock-display";
 import { ContainerSizePicker } from "@/components/ContainerSizePicker";
+import { dropUnsentReadingsFor } from "@/lib/sync";
 import { DraughtGaugeEntry } from "@/components/DraughtGaugeEntry";
 import { isHidden } from "@/lib/hidden-products";
 import { bottleBreakdown } from "@/lib/stock-display";
@@ -844,8 +845,24 @@ export default function Stocktake() {
     }
   };
 
+  // "Add more lines": back to the pick list for the count that's already open.
+  const [addingLines, setAddingLines] = useState(false);
+  const addLinesToCount = async () => {
+    if (!activeStocktakeId) return;
+    // A line that's already been counted stays in, even if it was unticked.
+    const counted = Array.from(entriesByProduct.keys());
+    const ids = Array.from(new Set([...selectedProductIds, ...counted]));
+    setSelectedProductIds(ids);
+    await setStocktakeProducts(activeStocktakeId, ids.length < (products?.length ?? 0) ? ids : null);
+    if (venue?.id) queryClient.invalidateQueries({ queryKey: ["stocktakes", venue.id] });
+    setAddingLines(false); setSearchStr(""); setCountingView("products"); setLeftOnly(false); setStep("counting");
+    toast({ title: "Lines added", description: "Everything you've already counted is still there." });
+  };
+  const finishing = React.useRef(false);
   const finishStocktake = async () => {
     if (!activeStocktakeId || !venue?.id || !user?.id) return;
+    if (finishing.current) return;
+    finishing.current = true;
 
     try {
       let totalValue = 0;
@@ -886,6 +903,7 @@ export default function Stocktake() {
         }
       }
 
+      await dropUnsentReadingsFor(activeStocktakeId);
       const pendingSyncProducts = await persistReadingsThenClose(
         readingsToPersist,
         (payload) => addReading.mutateAsync(payload),
@@ -912,6 +930,8 @@ export default function Stocktake() {
         description: `No success was reported because a reading failed to save: ${String(err?.message ?? err)}`,
         variant: "destructive",
       });
+    } finally {
+      finishing.current = false;
     }
   };
 
@@ -964,7 +984,7 @@ export default function Stocktake() {
                 {confirmNew && openOne && (
                   <Card className="border-[#E0A343]/40 bg-[#E0A343]/10" data-testid="card-confirm-new">
                     <CardContent className="p-4 space-y-3">
-                      <p className="text-sm">You've already got a count open from {formatDate(openOne.opened_at)}. Carry on with that one? Starting another means two counts on the go, and Reports compares closed counts only.</p>
+                      <p className="text-sm">You've already got a count open from {formatDate(openOne.opened_at)}. Carry on with that one: everything you counted is still in it, and you can add more lines to it. Starting another means two counts on the go.</p>
                       <div className="flex gap-2">
                         <Button className="flex-1 h-11 font-semibold" onClick={() => { setConfirmNew(false); openStocktake(openOne); }} data-testid="button-carry-on-open">Carry on that count</Button>
                         <Button variant="outline" className="h-11" onClick={() => { setConfirmNew(false); setStep("select"); }} data-testid="button-start-another">Start another</Button>
@@ -1032,10 +1052,10 @@ export default function Stocktake() {
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-border bg-card sticky top-0 z-10 space-y-3">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setStep("list")} data-testid="button-back-to-list" aria-label="Back"><ArrowLeft /></Button>
+            <Button variant="ghost" size="icon" onClick={() => { if (addingLines) { setAddingLines(false); setStep("counting"); } else setStep("list"); }} data-testid="button-back-to-list" aria-label="Back"><ArrowLeft /></Button>
             <div>
-              <h1 className="text-xl font-bold text-primary">Choose what to count</h1>
-              <p className="text-xs text-muted-foreground">Pick any lines. You don't have to do the whole bar.</p>
+              <h1 className="text-xl font-bold text-primary">{addingLines ? "Add more lines" : "Choose what to count"}</h1>
+              <p className="text-xs text-muted-foreground">{addingLines ? "Tick what else you want in this count. What you've counted stays." : "Pick any lines. You don't have to do the whole bar."}</p>
             </div>
           </div>
           <Input placeholder={`Search ${products?.length ?? 0} products…`} value={searchStr} onChange={e => setSearchStr(e.target.value)} data-testid="input-stocktake-search" />
@@ -1107,9 +1127,15 @@ export default function Stocktake() {
           })}
         </div>
         <div className="p-4 border-t border-border bg-card sticky bottom-0">
+          {addingLines ? (
+            <Button size="lg" className="w-full h-14 text-lg font-bold" onClick={addLinesToCount} disabled={selectedProductIds.length === 0} data-testid="button-add-lines-confirm">
+              Back to my count ({selectedProductIds.length} lines)
+            </Button>
+          ) : (
           <Button size="lg" className="w-full h-14 text-lg font-bold" onClick={startStocktake} disabled={createStocktake.isPending || selectedProductIds.length === 0} data-testid="button-start-stocktake">
             {createStocktake.isPending ? "Starting..." : `Start counting (${selectedProductIds.length})`}
           </Button>
+          )}
         </div>
       </div>
     );
@@ -1177,6 +1203,9 @@ export default function Stocktake() {
                 Review &amp; Close
               </Button>
             </div>
+            <Button variant="outline" className="mt-3 w-full h-11 font-semibold border-primary text-primary" onClick={() => { setAddingLines(true); setSearchStr(""); setStep("select"); }} data-testid="button-add-lines">
+              <Plus className="w-4 h-4 mr-1" /> Add more lines to this count
+            </Button>
             <div className="mt-3 flex gap-2">
               <Input
                 placeholder="Find a product…"

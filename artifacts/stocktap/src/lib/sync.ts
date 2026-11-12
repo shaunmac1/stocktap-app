@@ -148,7 +148,14 @@ export async function syncUp(): Promise<number> {
           .select()
           .single();
 
-        if (error) throw error;
+        // Already on the server under this id (an earlier upload got there but the reply
+        // was lost): that is success, not something to retry for ever.
+        const already = !!error && (error as any).code === "23505" && !!payload?.id;
+        if (error && !already) throw error;
+        if (already && item.table_name === "stocktakes") {
+          const local = await db.stocktakes.get(item.local_id);
+          if (local) await db.stocktakes.put({ ...local, _temp: 0 });
+        }
 
         if (data) {
           if (item.table_name === "readings") {
@@ -191,12 +198,34 @@ export async function syncUp(): Promise<number> {
         await db.sync_queue.delete(item.id!);
         flushed++;
       } else if (item.operation === "update") {
-        const { error } = await (supabase as any)
+        if (item.table_name === "stocktakes" && (item.payload as any)?.status === "closed") {
+          // Never close a count on the server while some of its lines are still on the
+          // phone: a closed count refuses them and they'd be stuck for good.
+          const waiting = await db.line_entries.where("stocktake_id").equals(item.local_id).filter((e: any) => e.sync_status === "pending").count();
+          if (waiting > 0) throw new Error(`${waiting} line counts still to upload before this stocktake can close`);
+        }
+        const { data: changed, error } = await (supabase as any)
           .from(item.table_name)
           .update(item.payload)
-          .eq("id", item.local_id);
+          .eq("id", item.local_id)
+          .select("id");
 
         if (error) throw error;
+        if (!changed || changed.length === 0) {
+          // The row isn't on the server. For a stocktake still on this phone, put it up
+          // whole (with this change applied); if the phone has no trace of it either,
+          // there is nothing to change and the item is done.
+          const stillQueued = items.some(q => q.id !== item.id && q.operation === "insert" && q.local_id === item.local_id);
+          if (stillQueued) throw new Error(`${item.table_name} ${item.local_id} is not on the server yet`);
+          if (item.table_name === "stocktakes") {
+            const local: any = await db.stocktakes.get(item.local_id);
+            if (local) {
+              const { _temp, ...row } = { ...local, ...(item.payload as any) };
+              const { error: e2 } = await (supabase as any).from("stocktakes").insert(row);
+              if (e2 && (e2 as any).code !== "23505") throw e2;
+            }
+          }
+        }
         await db.sync_queue.delete(item.id!);
         flushed++;
       } else if (item.operation === "delete") {
@@ -263,6 +292,25 @@ export async function flushPendingLineEntries(): Promise<number> {
         if (fresh) { entry.spot_check_id = fresh; await db.line_entries.update(entry.id, { spot_check_id: fresh } as any); }
       }
       error = (await upsertEntry(entry)).error;
+    }
+    if (error && entry.stocktake_id && /already closed|does not belong|foreign key|violates/i.test(error.message ?? "")) {
+      // The stocktake itself never reached the server (started with no signal): put it up
+      // under the same id, then the line counts can follow. Never lose a count.
+      const { data: st } = await supabase.from("stocktakes").select("id,status").eq("id", entry.stocktake_id).maybeSingle();
+      if (!st) {
+        const local = await db.stocktakes.get(entry.stocktake_id);
+        const { error: e3 } = await supabase.from("stocktakes").insert({
+          id: entry.stocktake_id, venue_id: entry.venue_id, status: "open",
+          opened_at: (local as any)?.opened_at ?? entry.entered_at,
+          location_id: (local as any)?.location_id ?? null,
+          product_ids: (local as any)?.product_ids ?? null,
+        } as any);
+        if (!e3) {
+          const now = new Date().toISOString();
+          if (!local) { try { await db.stocktakes.put({ id: entry.stocktake_id, venue_id: entry.venue_id, location_id: null, status: "open", opened_at: entry.entered_at, closed_at: null, total_value: null, product_ids: null, created_at: now, updated_at: now, _temp: 0 } as any); } catch { /* local cache only */ } }
+          error = (await upsertEntry(entry)).error;
+        }
+      }
     }
     if (!error) {
       await db.line_entries.update(entry.id, {
@@ -332,5 +380,19 @@ export async function queueWrite(
   // (not-yet-synced) write never masquerades as fully saved.
   if (typeof window !== "undefined") {
     try { window.dispatchEvent(new Event("stocktap:pending-changed")); } catch { /* noop */ }
+  }
+}
+
+/**
+ * Finishing a count writes one reading per line. If Finish is pressed again before the
+ * first lot has uploaded, drop the earlier not-yet-uploaded set so a line is never read twice.
+ */
+export async function dropUnsentReadingsFor(stocktakeId: string): Promise<void> {
+  const queued = await db.sync_queue.where("table_name").equals("readings").toArray();
+  for (const q of queued) {
+    if (q.operation === "insert" && (q.payload as any)?.stocktake_id === stocktakeId) {
+      await db.sync_queue.delete(q.id!);
+      try { await db.readings.delete(q.local_id); } catch { /* already gone */ }
+    }
   }
 }

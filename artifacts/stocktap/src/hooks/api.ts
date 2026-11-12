@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { recomputeEntryMl } from "@/lib/stock-display";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/db";
-import { queueWrite } from "@/lib/sync";
+import { queueWrite, flushPendingLineEntries } from "@/lib/sync";
 import { deriveEmptyWeight, deriveDensity, checkCalibrationPlausibility, DEFAULT_DENSITIES } from "@/lib/calculations";
 import type { Database } from "@/lib/database.types";
 import type { LocalReading, LocalProduct, LocalLineEntry, LocalCountLocation, LocalTillEntry, LocalSpotCheckSession } from "@/lib/db";
@@ -944,22 +944,30 @@ export function useStocktakes(venueId: string | undefined) {
 export function useCreateStocktake() {
   const queryClient = useQueryClient();
   return useMutation({
+    // Saves on the phone and queues its own upload, so it must run with no signal too.
+    networkMode: "always",
     mutationFn: async (
       stocktake: Database["public"]["Tables"]["stocktakes"]["Insert"]
     ) => {
       const now = new Date().toISOString();
+      // The id is made on the phone and never changes. A count started with no signal
+      // used to get a different id when it reached the server, which left its line
+      // counts and its close pointing at a stocktake that didn't exist.
+      const localId = (stocktake as { id?: string }).id ?? crypto.randomUUID();
+      stocktake = { ...stocktake, id: localId };
       try {
+        // A weak cellar signal can leave a request hanging: give it 8 seconds, then carry on offline.
         const { data, error } = await supabase
           .from("stocktakes")
           .insert(stocktake)
           .select()
+          .abortSignal(AbortSignal.timeout(8000))
           .single();
         if (error) throw error;
         await db.stocktakes.put({ ...data, _temp: 0 });
         return data;
       } catch (_err) {
-        // Offline fallback — create with temp UUID, sync later
-        const localId = crypto.randomUUID();
+        // Offline fallback: same id, uploaded later
         const local = {
           id: localId,
           venue_id: stocktake.venue_id,
@@ -984,9 +992,25 @@ export function useCreateStocktake() {
   });
 }
 
+/** Change which lines an open count covers ("Add more lines"). Works with no signal. */
+export async function setStocktakeProducts(id: string, productIds: string[] | null): Promise<void> {
+  const updates = { product_ids: productIds };
+  const existing = await db.stocktakes.get(id);
+  if (existing) await db.stocktakes.put({ ...existing, ...updates } as any);
+  try {
+    const { data, error } = await supabase.from("stocktakes").update(updates as never).eq("id", id).select("id");
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error("not on the server yet");
+  } catch {
+    await queueWrite("stocktakes", "update", updates, id);
+  }
+}
+
 export function useCloseStocktake() {
   const queryClient = useQueryClient();
   return useMutation({
+    // Saves on the phone and queues its own upload, so it must run with no signal too.
+    networkMode: "always",
     mutationFn: async ({
       id,
       total_value,
@@ -1000,11 +1024,16 @@ export function useCloseStocktake() {
         closed_at: new Date().toISOString(),
       };
       try {
+        // Line counts go up before the close: a closed count refuses late lines.
+        await flushPendingLineEntries().catch(() => 0);
+        const waiting = await db.line_entries.where("stocktake_id").equals(id).filter((e: any) => e.sync_status === "pending").count();
+        if (waiting > 0) throw new Error("line counts still uploading");
         const { data, error } = await supabase
           .from("stocktakes")
           .update(updates)
           .eq("id", id)
           .select()
+          .abortSignal(AbortSignal.timeout(8000))
           .single();
         if (error) throw error;
         await db.stocktakes.put({ ...data, _temp: 0 });
@@ -1096,6 +1125,8 @@ export function useMovements(venueId: string | undefined) {
 export function useAddMovement() {
   const queryClient = useQueryClient();
   return useMutation({
+    // Saves on the phone and queues its own upload, so it must run with no signal too.
+    networkMode: "always",
     mutationFn: async (movement: MovementInsert) => {
       const localId = crypto.randomUUID();
       const now = new Date().toISOString();

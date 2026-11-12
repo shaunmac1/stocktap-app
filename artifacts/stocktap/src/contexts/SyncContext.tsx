@@ -47,7 +47,12 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       running.current = true;
       setIsSyncing(true);
       try {
-        const flushed = (await syncUp()) + (await flushPendingLineEntries());
+        // Stocktakes first (so counts have somewhere to land), then line counts, then
+        // everything again so a close that was waiting on those counts goes through.
+        let flushed = await syncUp();
+        const lines = await flushPendingLineEntries();
+        flushed += lines;
+        if (lines > 0) flushed += await syncUp();
         await syncDown(venueId);
         setLastSyncAt(new Date());
         await refreshPending();
