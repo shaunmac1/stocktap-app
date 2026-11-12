@@ -9,6 +9,7 @@ import React, {
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "./AuthContext";
 import { syncDown, syncUp, getPendingCount, flushPendingLineEntries } from "@/lib/sync";
+import { flushCountPings } from "@/lib/count-notify";
 
 interface SyncContextType {
   isOnline: boolean;
@@ -53,6 +54,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         const lines = await flushPendingLineEntries();
         flushed += lines;
         if (lines > 0) flushed += await syncUp();
+        // A staff count finished with no signal: tell the landlord now it has uploaded.
+        if ((await getPendingCount()) === 0) void flushCountPings();
         await syncDown(venueId);
         setLastSyncAt(new Date());
         await refreshPending();

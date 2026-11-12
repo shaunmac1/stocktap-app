@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
+import { COUNT_GROUPS, DAY_NAMES, readRota, groupLabel, type CountGroupKey } from "@/lib/count-rota";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { generateReferralCode, MEASURE_PRESETS } from "@/lib/calculations";
@@ -236,6 +237,32 @@ export default function Settings() {
   // Optional extras each pub can switch off. A missing key means on.
   const features: Record<string, boolean> = ((venue as any)?.features ?? {}) as Record<string, boolean>;
   const [savingFeature, setSavingFeature] = useState<string | null>(null);
+  const rota = readRota(features);
+  const saveRota = async (day: number, key: CountGroupKey | null) => {
+    if (!venue?.id) return;
+    const next = [...rota]; next[day] = key;
+    try {
+      const { error } = await supabase.from("venues").update({ features: { ...features, count_rota: next } } as any).eq("id", venue.id);
+      if (error) throw error;
+      await refreshVenue();
+      toast({ title: `${DAY_NAMES[day]}: ${key ? groupLabel(key) : "no count"}` });
+    } catch (err: any) {
+      toast({ title: "Couldn't save that", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const saveWeeklyTarget = async (n: number) => {
+    if (!venue?.id) return;
+    try {
+      const { error } = await supabase.from("venues").update({ features: { ...features, weekly_line_target: n > 0 ? n : null } } as any).eq("id", venue.id);
+      if (error) throw error;
+      await refreshVenue();
+      toast({ title: n > 0 ? `Target: ${n} lines a week` : "No weekly target" });
+    } catch (err: any) {
+      toast({ title: "Couldn't save that", description: err.message, variant: "destructive" });
+    }
+  };
+
   const setFeature = async (key: string, on: boolean) => {
     if (!venue?.id) return;
     setSavingFeature(key);
@@ -350,6 +377,58 @@ export default function Settings() {
                 onCheckedChange={v => setFeature("morning_line_check", v)}
                 data-testid="switch-line-check"
               />
+            </div>
+          </div>
+          <div data-testid="settings-daily-count">
+            <h2 className="text-sm font-semibold text-primary mb-1">A count a day</h2>
+            <div className="space-y-2">
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0">
+                  <Label htmlFor="feature-daily-count" className="text-sm font-semibold">Today's count on Home</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">One group of lines each day, so the whole pub is counted every week in ten-minute bites. Home shows today's group and anything missed.</p>
+                </div>
+                <Switch id="feature-daily-count" checked={features.daily_count !== false} disabled={savingFeature === "daily_count"} onCheckedChange={v => setFeature("daily_count", v)} data-testid="switch-daily-count" />
+              </div>
+              {features.daily_count !== false && (
+                <div className="rounded-xl border border-border p-3 space-y-2" data-testid="rota-editor">
+                  <div className="text-sm font-semibold">Which day is which count</div>
+                  {[1, 2, 3, 4, 5, 6, 0].map(d => (
+                    <div key={d} className="flex items-center justify-between gap-3">
+                      <span className="text-sm w-24">{DAY_NAMES[d]}</span>
+                      <select
+                        className="flex-1 h-10 rounded-lg border border-border bg-background px-2 text-sm"
+                        value={rota[d] ?? ""}
+                        onChange={e => saveRota(d, (e.target.value || null) as CountGroupKey | null)}
+                        aria-label={`${DAY_NAMES[d]} count`}
+                        data-testid={`select-rota-${d}`}
+                      >
+                        <option value="">No count</option>
+                        {COUNT_GROUPS.map(g => <option key={g.key} value={g.key}>{g.label}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {features.daily_count !== false && (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+                  <div className="min-w-0">
+                    <Label htmlFor="weekly-target" className="text-sm font-semibold">Lines to count each week</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">If your pub company asks for a number (50 a week, say), put it here and Home shows how far through you are. Leave it empty for no target.</p>
+                  </div>
+                  <input id="weekly-target" type="number" inputMode="numeric" min={0} placeholder="none"
+                    className="h-10 w-20 rounded-lg border border-border bg-background text-center text-base font-bold tabular-nums"
+                    defaultValue={(features as any).weekly_line_target ?? ""}
+                    onBlur={e => { const n = Math.max(0, Math.floor(Number(e.target.value) || 0)); if (n !== Number((features as any).weekly_line_target ?? 0)) saveWeeklyTarget(n); }}
+                    data-testid="input-weekly-target" />
+                </div>
+              )}
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+                <div className="min-w-0">
+                  <Label htmlFor="feature-staff-count" className="text-sm font-semibold">Staff can do the count</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">Staff with a StockTap login get a Count button showing today's count. They see the same counting screens with no prices or values, and you're told the moment they finish. Add staff on the Team page.</p>
+                </div>
+                <Switch id="feature-staff-count" checked={features.staff_count === true} disabled={savingFeature === "staff_count"} onCheckedChange={v => setFeature("staff_count", v)} data-testid="switch-staff-count" />
+              </div>
             </div>
           </div>
           <div data-testid="settings-deliveries">

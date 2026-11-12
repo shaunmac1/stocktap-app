@@ -116,6 +116,13 @@ export async function syncDown(venueId: string): Promise<void> {
       }
     }
   );
+  // Counting spots (Cellar, Bar, Outside) come down with everything else, so a phone that
+  // opens its first count with no signal still has them to pick from.
+  try {
+    const { data: spots } = await supabase.from("count_locations").select("*").eq("venue_id", venueId);
+    if (spots?.length) await db.count_locations.bulkPut(spots as any);
+  } catch { /* offline or table missing: keep what's on the phone */ }
+
 }
 
 export async function syncUp(): Promise<number> {

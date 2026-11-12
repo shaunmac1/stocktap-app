@@ -19,6 +19,7 @@ module.exports = function (req, u, body, send, db, log) {
     if (db.__tillFail) { send(422, { error: 'No product sales were found in that photo.' }); return true; }
     send(200, { rows: TILL, report_date: null }); return true;
   }
+  if (u.pathname === '/functions/v1/send-push') { const b = JSON.parse(body || '{}'); log.push({ fn: 'send-push', notify_venue: b.notify_venue, title: b.title, body: b.body, url: b.url }); send(200, { sent: 1 }); return true; }
   const ex = /^\/__extract\/([0-9a-f-]{36})$/.exec(u.pathname);
   if (ex) {
     const doc = (db.delivery_documents || []).find(d => d.id === ex[1]); if (!doc) { send(404, { error: 'Document not found' }); return true; }

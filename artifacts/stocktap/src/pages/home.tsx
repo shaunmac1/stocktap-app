@@ -23,6 +23,8 @@ import { NewPubWelcome } from "@/components/NewPubWelcome";
 import { isHidden } from "@/lib/hidden-products";
 import { draughtAmount, isDraughtProduct } from "@/lib/draught-gauge";
 import { useLineChecks } from "@/hooks/useLineChecks";
+import { TodaysCountCard } from "@/components/TodaysCountCard";
+import { StaffCountsCard } from "@/components/StaffCountsCard";
 
 export default function Home() {
   const { venue } = useAuth();
@@ -175,6 +177,9 @@ export default function Home() {
             </Link>
           );
         })()}
+
+        <StaffCountsCard />
+        <TodaysCountCard />
 
         <Link href="/days-left" className="block">
           <div className="rounded-xl border-2 border-primary/40 bg-primary/5 p-4 flex items-center justify-between gap-3" data-testid="card-days-left">

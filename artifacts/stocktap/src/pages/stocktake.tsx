@@ -11,7 +11,7 @@ import {
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { findLooksWrong } from "@/lib/looks-wrong";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSaveStocktakeSchedule } from "@/hooks/useStocktakeCadence";
@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase";
 import {
   calcMlRemaining, calcTenths, calcMeasuresLeft,
   calcWeighValuation, calcCountValuation,
-  calcProductGpPercent, formatGBP,
+  calcProductGpPercent, formatGBP as formatGBPReal,
   computeCategoryReading, resolveMeasureMl, draughtCapacityMl, productCapacityMl,
   CATEGORY_METHODS, METHOD_LABELS, CATEGORY_LABELS, ML_PER_PINT,
   formatGallonsPints, pintsToGallonsAndPints, litreContainerMl, postmixDrinkLitresPerBox,
@@ -41,6 +41,8 @@ import { isQuickCount, setQuickCount, overTheBar } from "@/lib/quick-count";
 import { PackagedEntry } from "@/components/PackagedEntry";
 import { caseSizeOf, totalUnits, packagedBreakdown, needsCaseSizeAnswer } from "@/lib/packaged";
 import { useQuickHide } from "@/hooks/useQuickHide";
+import { COUNT_GROUPS, linesFor, groupLabel, type CountGroupKey } from "@/lib/count-rota";
+import { notifyCountFinished } from "@/lib/count-notify";
 import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
@@ -95,7 +97,11 @@ function formatDate(ts: string) {
 }
 
 export default function Stocktake() {
-  const { venue, user } = useAuth();
+  const { venue, user, role } = useAuth();
+  // Staff count the stock; they never see what it cost or what it's worth.
+  const isStaff = role === "staff";
+  const [, navigate] = useLocation();
+  const formatGBP = (n: number | null | undefined) => (isStaff ? "" : formatGBPReal(n as number));
   const queryClient = useQueryClient();
   const { data: products } = useProducts(venue?.id);
   const { data: locations } = useLocations(venue?.id);
@@ -634,6 +640,57 @@ export default function Stocktake() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products, stocktakes]);
 
+  // /stocktake?group=wine (Today's count on Home, or a staff count): straight into counting
+  // that group. An open count from today that already covers it is carried on, not doubled.
+  const countGroupRef = React.useRef<CountGroupKey | null>(null);
+  const groupStarted = React.useRef(false);
+  useEffect(() => {
+    if (groupStarted.current || !products || !stocktakes || !venue?.id) return;
+    const key = new URLSearchParams(window.location.search).get("group") as CountGroupKey | null;
+    if (!key || !COUNT_GROUPS.some(g => g.key === key)) return;
+    groupStarted.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+    const ids = linesFor(key, products as any[]).map(p => p.id);
+    if (ids.length === 0) { toast({ title: "Nothing to count", description: `There are no ${groupLabel(key).toLowerCase()} lines on your list.` }); return; }
+    countGroupRef.current = key;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const open = stocktakes.find(st => st.status === "open" && new Date(st.opened_at) >= today
+      && Array.isArray((st as any).product_ids) && ids.every(id => ((st as any).product_ids as string[]).includes(id)));
+    if (open) { void openStocktake(open); return; }
+    setSelectedProductIds(ids);
+    (async () => {
+      try {
+        const st = await createStocktake.mutateAsync({ venue_id: venue.id, location_id: null, status: "open", opened_at: new Date().toISOString(), product_ids: ids });
+        setActiveStocktakeId(st.id); setLegacyReadings([]); setCountingView("products"); setActiveProductId(null); setStep("counting");
+      } catch (err: any) { toast({ title: "Couldn't start the count", description: err.message, variant: "destructive" }); }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, stocktakes, venue?.id]);
+
+  // Staff only ever see the count they're doing: leaving it goes back to "Today's count",
+  // never to the landlord's list of past stocktakes.
+  const everCounting = React.useRef(false);
+  useEffect(() => {
+    if (!isStaff) return;
+    if (step === "counting" || step === "summary") everCounting.current = true;
+    else if (step === "list" && everCounting.current) { everCounting.current = false; navigate("/count?home=1"); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, isStaff]);
+
+  // /stocktake?view=<id>: open one finished count (from "counted by staff" on Home).
+  const viewOpened = React.useRef(false);
+  useEffect(() => {
+    if (viewOpened.current || !stocktakes || !products) return;
+    const id = new URLSearchParams(window.location.search).get("view");
+    if (!id) return;
+    const st = stocktakes.find(x => x.id === id);
+    if (!st) return;
+    viewOpened.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+    void openStocktake(st);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stocktakes, products]);
+
   const resetEntryForm = () => {
     setEntryWeightStr("0"); setEntryNumStr("0"); setEntryFullContainersStr("0");
     setEntryGallonsStr("0"); setEntryPintsStr("0");
@@ -911,13 +968,18 @@ export default function Stocktake() {
       );
       toast({
         title: pendingSyncProducts.length > 0 ? "Stocktake saved — sync pending" : "Stocktake complete",
-        description: pendingSyncProducts.length > 0
+        description: isStaff
+          ? (pendingSyncProducts.length > 0 ? "Saved on this phone. It uploads when there's a signal." : "Thanks. The manager has been told.")
+          : pendingSyncProducts.length > 0
           ? `Total value: ${formatGBP(totalValue)}. Waiting to sync: ${pendingSyncProducts.join(", ")}.`
           : `Total value: ${formatGBP(totalValue)}`,
         variant: pendingSyncProducts.length > 0 ? "default" : undefined,
       });
+      // Tell the owner and managers straight away when someone else finished a count.
+      void notifyCountFinished(venue.id, { lines: readingsToPersist.length, group: countGroupRef.current, stocktakeId: activeStocktakeId, byStaff: isStaff });
       setQuickCount(false);
       setStep("list");
+      if (isStaff) { everCounting.current = false; navigate("/count?done=1"); }
       setActiveStocktakeId(null); setLegacyReadings([]);
       setSelectedProductIds([]); setCountingView("products"); setActiveProductId(null);
       // The variance only exists once there's a second count to compare with.
@@ -1115,13 +1177,13 @@ export default function Stocktake() {
                   {checked && <CheckCircle className="w-4 h-4 text-primary-foreground" />}
                 </div>
               </button>
-              <button
+              {!isStaff && <button
                 type="button"
                 onClick={() => { setSelectedProductIds(ids => ids.filter(id => id !== p.id)); quickHide(p); }}
                 className="shrink-0 px-3 border-l border-border text-xs font-semibold text-muted-foreground"
                 aria-label={`Hide ${p.name}, we don't stock it`}
                 data-testid={`button-quick-hide-${p.id}`}
-              >Hide</button>
+              >Hide</button>}
               </div>
             );
           })}
@@ -1269,7 +1331,7 @@ export default function Stocktake() {
                       <div className="text-xs text-muted-foreground">
                         {q?.short ?? ""}
                         {entries.length > 1 && ` · ${entries.length} spots`}
-                        {q?.value != null && ` · ${formatGBP(q.value)}`}
+                        {!isStaff && q?.value != null && ` · ${formatGBP(q.value)}`}
                       </div>
                     )}
                     {spot && (
@@ -1333,7 +1395,7 @@ export default function Stocktake() {
                         {eq.kind === "units" && eq.detail ? eq.detail : eq.short}
                         {eq.kind === "draught" && entry.full_containers ? ` · ${entry.full_containers} full + ${formatGauge(entry.part_value ?? 0)}` : ""}
                         {eq.kind === "bottles" && ` · ${eq.detail}`}
-                        {eq.value != null && ` · ${formatGBP(eq.value)}`}
+                        {!isStaff && eq.value != null && ` · ${formatGBP(eq.value)}`}
                       </div>
                     </div>
                     {eq.kind === "draught" && entry.full_containers != null && (
@@ -1809,7 +1871,7 @@ export default function Stocktake() {
                                 <div className="text-sm text-muted-foreground mt-1">
                                   {activeProduct?.container_l ? `${full} full ${entryActiveMethod === "dipstick" ? (full === 1 ? "cask" : "casks") : (full === 1 ? "keg" : "kegs")} + ${formatGauge(partPints)} in the open one` : ""}
                                 </div>
-                                {activeProduct?.cost_price && entryCategoryResult ? (
+                                {!isStaff && activeProduct?.cost_price && entryCategoryResult ? (
                                   <div className="text-sm text-muted-foreground">{formatGBP(entryCategoryResult.valueGbp)} stock value</div>
                                 ) : null}
                               </>
@@ -1824,7 +1886,7 @@ export default function Stocktake() {
                                 </div>
                                 <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
                                   <div>{entryCategoryResult?.fullContainers ?? 0} × {activeProduct?.pack_size ?? 12} + {parseFloat(entryNumStr) || 0} loose</div>
-                                  {activeProduct?.cost_price && <div>{formatGBP((units / (activeProduct.pack_size ?? 12)) * activeProduct.cost_price)} stock value</div>}
+                                  {!isStaff && activeProduct?.cost_price && <div>{formatGBP((units / (activeProduct.pack_size ?? 12)) * activeProduct.cost_price)} stock value</div>}
                                 </div>
                               </>
                             );
@@ -1840,7 +1902,7 @@ export default function Stocktake() {
                                   {activeProduct?.category === "postmix"
                                     ? <div data-testid="text-postmix-boxes">= {(() => { const b = Math.round((litres / postmixDrinkLitresPerBox(activeProduct as any)) * 100) / 100; return `${b} ${b === 1 ? "box" : "boxes"}`; })()} ({postmixDrinkLitresPerBox(activeProduct as any)}L of drink a box)</div>
                                     : activeProduct?.container_l ? <div>= {(() => { const b = Math.round((litres / activeProduct.container_l!) * 100) / 100; return `${b} ${b === 1 ? "box" : "boxes"}`; })()} of {activeProduct.container_l}L</div> : null}
-                                  {activeProduct?.cost_price && entryCategoryResult ? <div>{formatGBP(entryCategoryResult.valueGbp)} stock value</div> : null}
+                                  {!isStaff && activeProduct?.cost_price && entryCategoryResult ? <div>{formatGBP(entryCategoryResult.valueGbp)} stock value</div> : null}
                                 </div>
                               </>
                             );
@@ -1857,7 +1919,7 @@ export default function Stocktake() {
                                     </div>
                                     <div className="text-sm font-semibold mt-1" data-testid="text-units-breakdown">{packagedBreakdown(units, activeProduct as any)}</div>
                                     <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
-                                      {activeProduct?.cost_price ? (
+                                      {!isStaff && activeProduct?.cost_price ? (
                                         <div>{formatGBP(units * activeProduct.cost_price)} stock value</div>
                                       ) : null}
                                     </div>
@@ -1904,7 +1966,7 @@ export default function Stocktake() {
                               })()}
                               {activeProduct?.unit !== "count" && (
                                 <div className="text-sm text-muted-foreground mt-2 space-y-0.5">
-                                  {activeProduct.cost_price && (
+                                  {!isStaff && activeProduct.cost_price && (
                                     <div>{formatGBP(entryCategoryResult
                                       ? entryCategoryResult.valueGbp
                                       : calcWeighValuation(entryMl ?? 0, productCapacityMl(activeProduct), activeProduct.cost_price)
@@ -1979,7 +2041,16 @@ export default function Stocktake() {
           </h1>
         </div>
         <div className="flex-1 overflow-auto p-4 pb-24 space-y-3">
-          <Card className="bg-primary text-primary-foreground border-none">
+          {isStaff && (
+            <Card className="bg-primary text-primary-foreground border-none" data-testid="card-staff-summary">
+              <CardContent className="p-4">
+                <div className="text-sm text-primary-foreground/80">Lines counted</div>
+                <div className="text-4xl font-bold font-mono tabular-nums">{summaryLines.length}</div>
+                <div className="text-xs text-primary-foreground/70 mt-1">Check the list, then finish. The manager is told as soon as you do.</div>
+              </CardContent>
+            </Card>
+          )}
+          <Card className={`bg-primary text-primary-foreground border-none ${isStaff ? "hidden" : ""}`}>
             <CardContent className="p-4">
               <div className="text-sm text-primary-foreground/80">Total Stock Value</div>
               <div className="text-4xl font-bold font-mono tabular-nums">{formatGBP(totalSummaryValue)}</div>
@@ -2019,7 +2090,7 @@ export default function Stocktake() {
           )}
           {(() => {
             const noPrice = summaryLines.filter(l => !l.prod.cost_price);
-            return noPrice.length > 0 ? (
+            return noPrice.length > 0 && !isStaff ? (
               <div className="rounded-xl border border-[#E0A343]/40 bg-[#E0A343]/10 p-3 text-sm" data-testid="banner-no-price">
                 <span className="font-medium">{noPrice.length} counted {noPrice.length === 1 ? "line has" : "lines have"} no cost price</span>, so {noPrice.length === 1 ? "it's" : "they're"} £0 in this total: {noPrice.slice(0, 3).map(l => l.prod.name).join(", ")}{noPrice.length > 3 ? ` and ${noPrice.length - 3} more` : ""}. The counts are kept. Add prices in the Library (Cost prices) and the value comes right.
               </div>
@@ -2074,8 +2145,8 @@ export default function Stocktake() {
                   <div className="font-semibold text-sm">{line.prod.name}</div>
                   <div className="text-xs text-muted-foreground">
                     {summaryQuantityLabel(line)}
-                    {line.gp != null && ` · GP ${line.gp.toFixed(0)}%`}
-                    {!line.prod.cost_price && <span className="text-[#E0A343]"> · no price</span>}
+                    {!isStaff && line.gp != null && ` · GP ${line.gp.toFixed(0)}%`}
+                    {!isStaff && !line.prod.cost_price && <span className="text-[#E0A343]"> · no price</span>}
                   </div>
                 </div>
                 <div className="text-right shrink-0">

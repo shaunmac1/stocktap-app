@@ -1,6 +1,6 @@
 import React from "react";
 import { Switch, Route, Router as WouterRouter, Redirect, Link, useLocation } from "wouter";
-import { Clock as ClockIcon, Thermometer } from "lucide-react";
+import { Clock as ClockIcon, Thermometer, ClipboardList } from "lucide-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +23,7 @@ import FirstCount from "@/pages/first-count";
 import SpotCheck from "@/pages/spot-check";
 import LineCheck from "@/pages/line-check";
 import DaysLeftPage from "@/pages/days-left";
+import StaffCount from "@/pages/staff-count";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import Ledger from "@/pages/ledger";
@@ -179,6 +180,8 @@ function StaffNav() {
   const items = [
     { href: "/", icon: ClockIcon, label: "Clock", badge: 0 },
     { href: "/checks", icon: Thermometer, label: "Checks", badge: outstanding.total },
+    // Stock count: only when the landlord has switched staff counting on (Settings).
+    ...(((venue as any)?.features ?? {}).staff_count === true ? [{ href: "/count", icon: ClipboardList, label: "Count", badge: 0 }] : []),
   ];
   return (
     <nav className="fixed bottom-0 w-full max-w-md bg-card border-t border-border flex justify-around items-center p-2 pb-safe z-50">
@@ -201,19 +204,28 @@ function StaffNav() {
   );
 }
 
+// The staff count only exists when the landlord has switched it on; otherwise /count is the clock.
+function StaffCountRoute() {
+  const { venue } = useAuth();
+  return ((venue as any)?.features ?? {}).staff_count === true ? <StaffCount /> : <Clock />;
+}
+
 function StaffApp() {
   return (
+    <SyncProvider>
     <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <div className="min-h-[100dvh] w-full max-w-md mx-auto bg-background relative pb-16 shadow-xl flex flex-col">
         <main className="flex-1 flex flex-col overflow-y-auto">
           <Switch>
             <Route path="/checks" component={Checks} />
+            <Route path="/count" component={StaffCountRoute} />
             <Route component={Clock} />
           </Switch>
         </main>
         <StaffNav />
       </div>
     </WouterRouter>
+    </SyncProvider>
   );
 }
 
