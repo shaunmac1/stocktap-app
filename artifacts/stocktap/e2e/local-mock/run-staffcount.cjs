@@ -33,27 +33,30 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
     const owner = await mk(U, 'owner@example.test'); const o = H(owner.p);
     await owner.p.goto('http://localhost:5173/settings', { waitUntil: 'domcontentloaded' }); await sleep(3000);
     await owner.p.getByRole('tab', { name: 'Counting' }).tap(); await sleep(600);
-    check('rota editor shows seven days', await owner.p.locator('[data-testid^="select-rota-"]:visible').count() === 7);
-    await o.T(`select-rota-${day}`).scrollIntoViewIfNeeded(); await o.T(`select-rota-${day}`).selectOption('kegs'); await sleep(1500);
+    check('rota editor shows seven days', await owner.p.locator('[data-testid^="rota-day-"]:visible').count() === 7);
+    const DEF = [['rum', 'liqueurs'], ['bottles'], ['minerals'], ['wine'], ['kegs'], ['gin', 'vodka', 'whisky'], []];
+    for (const k of DEF[day]) if (k !== 'kegs') await o.tap(`rota-${day}-${k}`, 1200);   // clear today's defaults
+    if (!DEF[day].includes('kegs')) await o.tap(`rota-${day}-kegs`, 1200);
+    check('a day can hold more than one group', (await o.T(`rota-${day}-kegs`).getAttribute('aria-pressed')) === 'true');
     await o.tap('switch-staff-count', 1500);
     await o.T('input-weekly-target').scrollIntoViewIfNeeded(); await o.T('input-weekly-target').fill('50'); await o.T('input-weekly-target').blur(); await sleep(1500);
     const ven = (await get('venues'))[0];
     check('weekly target of 50 saved', ven.features?.weekly_line_target === 50, JSON.stringify(ven.features));
-    check('rota and staff switch saved for the pub', ven.features?.count_rota?.[day] === 'kegs' && ven.features?.staff_count === true, JSON.stringify(ven.features));
+    check('rota and staff switch saved for the pub', JSON.stringify((ven.features?.count_rota ?? DEF)[day]) === '["kegs"]' && ven.features?.staff_count === true, JSON.stringify(ven.features));
     await owner.p.screenshot({ path: `${SHOT}/r1.png` });
     await owner.p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(3500);
-    check("Home: today's count is kegs and casks, 2 lines", /Kegs and casks/.test(await o.txt('text-todays-group')) && /2 lines, about/.test(await o.txt('text-todays-detail')), `${await o.txt('text-todays-group')} / ${await o.txt('text-todays-detail')}`);
-    await o.T('card-todays-count').scrollIntoViewIfNeeded(); await owner.p.screenshot({ path: `${SHOT}/r2.png` });
+    check("Home: today's count is kegs and casks, 2 lines", /Kegs and casks/.test(await o.txt('text-count-group-kegs')) && /2 lines, about/.test(await o.txt('text-count-detail-kegs')), `${await o.txt('text-count-group-kegs')} / ${await o.txt('text-count-detail-kegs')}`);
+    await o.T('card-count-kegs').scrollIntoViewIfNeeded(); await owner.p.screenshot({ path: `${SHOT}/r2.png` });
 
     // ── staff phone ──
     const staff = await mk(U2, 'sam@example.test'); const s = H(staff.p);
     await staff.p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(3500);
     check('staff see a Count button', /Count/.test(await staff.p.locator('nav').innerText()), await staff.p.locator('nav').innerText());
     await staff.p.locator('nav a[href$="/count"]').tap(); await sleep(2500);
-    check("staff: today's count is kegs and casks", /Kegs and casks/.test(await s.txt('text-todays-group')), await s.body());
+    check("staff: today's count is kegs and casks", /Kegs and casks/.test(await s.txt('text-count-group-kegs')), await s.body());
     await staff.p.screenshot({ path: `${SHOT}/r3.png` });
     await staff.ctx.setOffline(true);                       // no signal in the cellar
-    await s.tap('card-todays-count', 2500);
+    await s.tap('card-count-kegs', 2500);
     check('one tap and they are counting: 0 of 2', /0 of 2 counted/.test(await s.txt('text-count-progress')), (await s.body()).slice(0, 200));
     check('no Hide buttons for staff', await staff.p.locator('[data-testid^="button-quick-hide-"]').count() === 0);
     const countKeg = async (pid, full, gal) => {
@@ -80,7 +83,7 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
     check('the readings are stamped with the staff member', rds.every(r => r.user_id === U2), JSON.stringify(rds.map(r => r.user_id)));
     // bottles: the sheet that shows "£ stock value" to the landlord
     await staff.p.goto('http://localhost:5173/count', { waitUntil: 'domcontentloaded' }); await sleep(3000);
-    check('today now shows as counted', await s.has('card-todays-count-done'), (await s.body()).slice(0, 200));
+    check('today now shows as counted', await s.has('card-count-done-kegs'), (await s.body()).slice(0, 200));
     await staff.p.locator('[data-testid="count-something-else"] summary').tap(); await sleep(400);
     await s.tap('button-group-bottles', 3000);
     if (await s.has(`counting-product-${PK}`)) await s.tap(`counting-product-${PK}`); await sleep(800);
@@ -102,7 +105,7 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
     // ── landlord again ──
     await owner.p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(4000);
     check('Home: "Counted by Sam", 2 lines', /Counted by Sam/.test(await o.txt('staff-counts')) && /2 lines/.test(await o.txt('staff-counts')), await o.txt('staff-counts'));
-    check('Home: today shows done', await o.has('card-todays-count-done'));
+    check('Home: today shows done', await o.has('card-count-done-kegs'));
     check('Home: 2 of 50 lines counted this week, 48 to go', /2 of 50 lines counted this week/.test(await o.txt('card-weekly-target')) && /48 to go/.test(await o.txt('card-weekly-target')), await o.txt('card-weekly-target'));
     await owner.p.screenshot({ path: `${SHOT}/r6.png` });
     await o.tap(`button-view-staff-count-${sts[0].id}`, 3000);
@@ -110,6 +113,16 @@ const A = 'aaaaaaaa-0000-4000-8000-00000000000a', B = 'aaaaaaaa-0000-4000-8000-0
     await owner.p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' }); await sleep(3500);
     await o.tap(`button-dismiss-staff-count-${sts[0].id}`, 600);
     check('"Got it" clears the notice', !(await o.has('staff-counts')));
+    // the landlord sets what staff count: bottles only, so nobody is sent to the cellar
+    await owner.p.goto('http://localhost:5173/settings', { waitUntil: 'domcontentloaded' }); await sleep(2500);
+    await owner.p.getByRole('tab', { name: 'Counting' }).tap(); await sleep(600);
+    await o.tap('staff-group-bottles', 1500);
+    check('Settings says what staff count', /Staff count: Bottles and cans/.test(await o.txt('text-staff-groups')), await o.txt('text-staff-groups'));
+    await staff.p.goto('http://localhost:5173/count', { waitUntil: 'domcontentloaded' }); await sleep(3500);
+    check('staff now see only "Yours to count: Bottles and cans"', /Yours to count/i.test(await s.txt('card-count-bottles')) && !(await s.has('card-count-kegs')) && !(await s.has('card-count-done-kegs')) && !(await s.has('count-something-else')) && !(await s.has('card-count-overdue')), (await s.body()).slice(0, 260));
+    await staff.p.screenshot({ path: `${SHOT}/r7.png` });
+    await o.tap('staff-group-bottles', 1500);
+    check('untick it and staff are back on the rota', /Staff follow the rota/.test(await o.txt('text-staff-groups')), await o.txt('text-staff-groups'));
     // switch it off again: the staff Count button goes
     await owner.p.goto('http://localhost:5173/settings', { waitUntil: 'domcontentloaded' }); await sleep(2500);
     await owner.p.getByRole('tab', { name: 'Counting' }).tap(); await sleep(600); await o.tap('switch-staff-count', 1500);

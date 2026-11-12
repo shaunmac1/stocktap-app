@@ -3,26 +3,35 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts, useLatestReadings } from "@/hooks/api";
-import { readRota, rotaToday, type RotaToday, type CountRota } from "@/lib/count-rota";
+import { readRota, readStaffGroups, rotaToday, groupStatus, type RotaToday, type CountRota, type GroupStatus } from "@/lib/count-rota";
 
 /** Today's count for this pub, from the rota in Settings and what's actually been counted. */
-export function useRotaToday(): { rota: CountRota; on: boolean; status: RotaToday | null; weeklyTarget: number | null } {
+export function useRotaToday(): {
+  rota: CountRota; on: boolean; status: RotaToday | null; weeklyTarget: number | null;
+  /** what the landlord has set staff to count; null = staff follow the day's rota */
+  staffGroups: GroupStatus[] | null;
+} {
   const { venue } = useAuth();
   const { data: products } = useProducts(venue?.id);
   const { data: readings = [] } = useLatestReadings(venue?.id);
   const features = (venue as any)?.features ?? {};
   const rota = useMemo(() => readRota(features), [JSON.stringify(features?.count_rota ?? null)]); // eslint-disable-line react-hooks/exhaustive-deps
-  const status = useMemo(() => {
-    if (!products) return null;
-    const last: Record<string, string> = {};
+  const staffKeys = useMemo(() => readStaffGroups(features), [JSON.stringify(features?.staff_groups ?? null)]); // eslint-disable-line react-hooks/exhaustive-deps
+  const last = useMemo(() => {
+    const m: Record<string, string> = {};
     for (const r of readings as any[]) {
       if (r.is_delivery) continue;
-      if (!last[r.product_id] || r.reading_at > last[r.product_id]) last[r.product_id] = r.reading_at;
+      if (!m[r.product_id] || r.reading_at > m[r.product_id]) m[r.product_id] = r.reading_at;
     }
-    return rotaToday(rota, products as any[], last);
-  }, [products, readings, rota]);
+    return m;
+  }, [readings]);
+  const status = useMemo(() => (products ? rotaToday(rota, products as any[], last) : null), [products, last, rota]);
+  const staffGroups = useMemo(
+    () => (products && staffKeys ? staffKeys.map(k => groupStatus(k, products as any[], last)).filter(g => g.lines > 0) : null),
+    [products, last, staffKeys],
+  );
   const t = Number(features.weekly_line_target);
-  return { rota, on: features.daily_count !== false, status, weeklyTarget: Number.isFinite(t) && t > 0 ? Math.round(t) : null };
+  return { rota, on: features.daily_count !== false, status, staffGroups, weeklyTarget: Number.isFinite(t) && t > 0 ? Math.round(t) : null };
 }
 
 export interface StaffCount { stocktakeId: string; at: string; lines: number; by: string }

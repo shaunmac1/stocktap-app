@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
-import { COUNT_GROUPS, DAY_NAMES, readRota, groupLabel, type CountGroupKey } from "@/lib/count-rota";
+import { COUNT_GROUPS, DAY_NAMES, readRota, readStaffGroups, groupsLabel, type CountGroupKey } from "@/lib/count-rota";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { generateReferralCode, MEASURE_PRESETS } from "@/lib/calculations";
@@ -238,17 +238,28 @@ export default function Settings() {
   const features: Record<string, boolean> = ((venue as any)?.features ?? {}) as Record<string, boolean>;
   const [savingFeature, setSavingFeature] = useState<string | null>(null);
   const rota = readRota(features);
-  const saveRota = async (day: number, key: CountGroupKey | null) => {
+  const staffGroups = readStaffGroups(features);
+  const saveFeatureValue = async (key: string, value: unknown, done: string) => {
     if (!venue?.id) return;
-    const next = [...rota]; next[day] = key;
     try {
-      const { error } = await supabase.from("venues").update({ features: { ...features, count_rota: next } } as any).eq("id", venue.id);
+      const { error } = await supabase.from("venues").update({ features: { ...features, [key]: value } } as any).eq("id", venue.id);
       if (error) throw error;
       await refreshVenue();
-      toast({ title: `${DAY_NAMES[day]}: ${key ? groupLabel(key) : "no count"}` });
+      toast({ title: done });
     } catch (err: any) {
       toast({ title: "Couldn't save that", description: err.message, variant: "destructive" });
     }
+  };
+  const toggleRota = (day: number, key: CountGroupKey) => {
+    const next = rota.map(d => [...d]);
+    next[day] = next[day].includes(key) ? next[day].filter(k => k !== key) : [...next[day], key];
+    return saveFeatureValue("count_rota", next, `${DAY_NAMES[day]}: ${next[day].length ? groupsLabel(next[day]) : "no count"}`);
+  };
+  const toggleStaffGroup = (key: CountGroupKey) => {
+    const cur = staffGroups ?? [];
+    const next = cur.includes(key) ? cur.filter(k => k !== key) : [...cur, key];
+    // Nothing picked = back to following the rota.
+    return saveFeatureValue("staff_groups", next.length ? next : null, next.length ? `Staff count: ${groupsLabel(next)}` : "Staff follow the rota");
   };
 
   const saveWeeklyTarget = async (n: number) => {
@@ -392,19 +403,20 @@ export default function Settings() {
               {features.daily_count !== false && (
                 <div className="rounded-xl border border-border p-3 space-y-2" data-testid="rota-editor">
                   <div className="text-sm font-semibold">Which day is which count</div>
+                  <p className="text-xs text-muted-foreground">Tap the groups to count on each day. A day can have more than one, or none.</p>
                   {[1, 2, 3, 4, 5, 6, 0].map(d => (
-                    <div key={d} className="flex items-center justify-between gap-3">
-                      <span className="text-sm w-24">{DAY_NAMES[d]}</span>
-                      <select
-                        className="flex-1 h-10 rounded-lg border border-border bg-background px-2 text-sm"
-                        value={rota[d] ?? ""}
-                        onChange={e => saveRota(d, (e.target.value || null) as CountGroupKey | null)}
-                        aria-label={`${DAY_NAMES[d]} count`}
-                        data-testid={`select-rota-${d}`}
-                      >
-                        <option value="">No count</option>
-                        {COUNT_GROUPS.map(g => <option key={g.key} value={g.key}>{g.label}</option>)}
-                      </select>
+                    <div key={d} data-testid={`rota-day-${d}`}>
+                      <div className="text-sm font-medium mb-1">{DAY_NAMES[d]}</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {COUNT_GROUPS.map(g => {
+                          const on = rota[d].includes(g.key);
+                          return (
+                            <button key={g.key} type="button" aria-pressed={on} onClick={() => toggleRota(d, g.key)}
+                              className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}
+                              data-testid={`rota-${d}-${g.key}`}>{g.label}</button>
+                          );
+                        })}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -429,6 +441,25 @@ export default function Settings() {
                 </div>
                 <Switch id="feature-staff-count" checked={features.staff_count === true} disabled={savingFeature === "staff_count"} onCheckedChange={v => setFeature("staff_count", v)} data-testid="switch-staff-count" />
               </div>
+              {features.staff_count === true && (
+                <div className="rounded-xl border border-border p-3 space-y-2" data-testid="staff-groups-editor">
+                  <div className="text-sm font-semibold">What staff count</div>
+                  <p className="text-xs text-muted-foreground">Tap what you want staff to count. They see only these, every day, until you change it. Pick nothing and they follow the rota above. Leave kegs and casks off to keep them out of the cellar.</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {COUNT_GROUPS.map(g => {
+                      const on = (staffGroups ?? []).includes(g.key);
+                      return (
+                        <button key={g.key} type="button" aria-pressed={on} onClick={() => toggleStaffGroup(g.key)}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}
+                          data-testid={`staff-group-${g.key}`}>{g.label}</button>
+                      );
+                    })}
+                  </div>
+                  <div className="text-xs font-semibold" data-testid="text-staff-groups">
+                    {staffGroups && staffGroups.length > 0 ? `Staff count: ${groupsLabel(staffGroups)}` : "Staff follow the rota"}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <div data-testid="settings-deliveries">

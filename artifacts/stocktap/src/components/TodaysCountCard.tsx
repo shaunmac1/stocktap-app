@@ -2,41 +2,54 @@ import React from "react";
 import { Link } from "wouter";
 import { CheckCircle2 } from "lucide-react";
 import { useRotaToday } from "@/hooks/useCountRota";
-import { COUNT_GROUPS, DAY_NAMES, minutesFor } from "@/lib/count-rota";
+import { COUNT_GROUPS, DAY_NAMES, minutesFor, type GroupStatus } from "@/lib/count-rota";
+
+function GroupRow({ g, base, eyebrow }: { g: GroupStatus; base: string; eyebrow: string }) {
+  if (g.doneToday) {
+    return (
+      <div className="rounded-xl border-2 border-green-600/40 bg-green-600/5 p-4" data-testid={`card-count-done-${g.key}`}>
+        <div className="flex items-center gap-2 font-bold text-green-700 dark:text-green-400"><CheckCircle2 className="w-5 h-5" /> {g.label} counted today</div>
+        <div className="text-xs text-muted-foreground mt-1">{g.countedThisWeek} of {g.lines} lines done this week. <Link href={`${base}?group=${g.key}`} className="underline font-semibold">Carry on or recount</Link></div>
+      </div>
+    );
+  }
+  return (
+    <Link href={`${base}?group=${g.key}`} className="block">
+      <div className="rounded-xl border-2 border-primary bg-primary/5 p-4 flex items-center justify-between gap-3" data-testid={`card-count-${g.key}`}>
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{eyebrow}</div>
+          <div className="text-lg font-bold" data-testid={`text-count-group-${g.key}`}>{g.label}</div>
+          <div className="text-xs text-muted-foreground mt-0.5" data-testid={`text-count-detail-${g.key}`}>{g.lines} lines, {minutesFor(g.lines)}</div>
+        </div>
+        <span className="shrink-0 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground">Start</span>
+      </div>
+    </Link>
+  );
+}
 
 /**
- * "Today's count": the one group to count today, one tap to start. Used on the owner's Home
- * and as the whole of the staff count screen. `base` is where the count screen lives.
+ * "Today's count": the groups to count today, one tap to start each. On the landlord's Home
+ * it follows the rota. For staff it shows what the landlord has set them to count (if
+ * anything), otherwise the day's rota. `base` is where the count screen lives.
  */
-export function TodaysCountCard({ base = "/stocktake", showOthers = false }: { base?: string; showOthers?: boolean }) {
-  const { on, status, weeklyTarget } = useRotaToday();
-  if (!on || !status) return null;
-  const { today, doneToday, overdue, linesThisWeek } = status;
+export function TodaysCountCard({ base = "/stocktake", staff = false }: { base?: string; staff?: boolean }) {
+  const { on, status, weeklyTarget, staffGroups } = useRotaToday();
+  if (!status) return null;
+  if (!staff && !on) return null;
+  const { today, overdue, linesThisWeek } = status;
   const day = DAY_NAMES[new Date().getDay()];
+  const assigned = staff && staffGroups != null;
+  const groups = assigned ? staffGroups! : today;
   return (
     <div className="space-y-2" data-testid="todays-count">
-      {today ? (
-        doneToday ? (
-          <div className="rounded-xl border-2 border-green-600/40 bg-green-600/5 p-4" data-testid="card-todays-count-done">
-            <div className="flex items-center gap-2 font-bold text-green-700 dark:text-green-400"><CheckCircle2 className="w-5 h-5" /> {today.label} counted today</div>
-            <div className="text-xs text-muted-foreground mt-1">{today.countedThisWeek} of {today.lines} lines done this week. <Link href={`${base}?group=${today.key}`} className="underline font-semibold">Carry on or recount</Link></div>
-          </div>
-        ) : (
-          <Link href={`${base}?group=${today.key}`} className="block">
-            <div className="rounded-xl border-2 border-primary bg-primary/5 p-4 flex items-center justify-between gap-3" data-testid="card-todays-count">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{day}'s count</div>
-                <div className="text-lg font-bold" data-testid="text-todays-group">{today.label}</div>
-                <div className="text-xs text-muted-foreground mt-0.5" data-testid="text-todays-detail">{today.lines} lines, {minutesFor(today.lines)}</div>
-              </div>
-              <span className="shrink-0 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground">Start</span>
-            </div>
-          </Link>
-        )
+      {groups.length > 0 ? (
+        groups.map(g => <GroupRow key={g.key} g={g} base={base} eyebrow={assigned ? "Yours to count" : `${day}'s count`} />)
       ) : (
-        <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground" data-testid="card-todays-count-off">No count set for {day}.</div>
+        <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground" data-testid="card-todays-count-off">
+          {assigned ? "Nothing has been set for you to count yet. Ask your manager." : `No count set for ${day}.`}
+        </div>
       )}
-      {overdue.length > 0 && (
+      {!assigned && overdue.length > 0 && (
         <div className="rounded-xl border border-[#E0A343]/50 bg-[#E0A343]/10 p-3 text-sm" data-testid="card-count-overdue">
           <div className="font-semibold">Not counted yet this week</div>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -57,7 +70,7 @@ export function TodaysCountCard({ base = "/stocktake", showOthers = false }: { b
       ) : (
         <div className="text-xs text-muted-foreground px-1" data-testid="text-lines-this-week">{linesThisWeek} {linesThisWeek === 1 ? "line" : "lines"} counted so far this week.</div>
       )}
-      {showOthers && (
+      {staff && !assigned && (
         <details className="rounded-xl border border-border bg-card p-3 text-sm" data-testid="count-something-else">
           <summary className="font-semibold cursor-pointer">Count something else</summary>
           <div className="mt-2 grid grid-cols-2 gap-2">

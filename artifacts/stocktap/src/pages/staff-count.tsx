@@ -36,7 +36,7 @@ export default function StaffCount() {
             <div className="text-xs text-muted-foreground mt-1">The manager can see it now.</div>
           </div>
         )}
-        <TodaysCountCard base="/count" showOthers />
+        <TodaysCountCard base="/count" staff />
       </div>
     </div>
   );
