@@ -349,14 +349,24 @@ export default function SpotCheck() {
 
   // Save the composed entry for the chosen counting location.
   // Replaces any existing entry for the same product + location (recalculate, never duplicate).
+  // A quick second tap on Save must never land on the next spot and write an empty count there.
+  const saveGuard = React.useRef({ busy: false, doneAt: 0 });
   const saveLocationEntry = async (decision?: "replace" | "add") => {
     if (!currentProduct || !venue || !user || entryMl === null) return;
+    if (saveGuard.current.busy || Date.now() - saveGuard.current.doneAt < 700) return;
+    saveGuard.current.busy = true;
+    let saved = false;
+    try { saved = await saveLocationEntryNow(decision); }
+    finally { saveGuard.current = { busy: false, doneAt: saved ? Date.now() : saveGuard.current.doneAt }; }
+  };
+  const saveLocationEntryNow = async (decision?: "replace" | "add"): Promise<boolean> => {
+    if (!currentProduct || !venue || !user || entryMl === null) return false;
     const locId = entryCountLocationId;
     // Editing the same product × location REUSES the entry id, so the remote
     // id-keyed upsert updates in place (no delete/insert race, no unique-index conflict).
     const existing = productEntries.find(e => (e.count_location_id ?? null) === locId);
     // Draught already counted here: recount (replace) or a second open keg (add to it)?
-    if (existing && isDraughtLine && !decision) { setScDupAsk(true); return; }
+    if (existing && isDraughtLine && !decision) { setScDupAsk(true); return false; }
     setScDupAsk(false);
     const addTo = decision === "add" && existing;
     const sid = await ensureSession();
@@ -393,6 +403,7 @@ export default function SpotCheck() {
       l => l.id !== locId && !productEntries.some(e => e.count_location_id === l.id),
     );
     if (remaining.length > 0) setEntryCountLocationId(remaining[0].id);
+    return true;
   };
 
   const removeEntry = async (id: string) => {
