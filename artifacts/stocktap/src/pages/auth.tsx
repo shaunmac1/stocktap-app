@@ -746,7 +746,7 @@ export default function Auth() {
                     autoFocus
                   />
                   <p className="text-xs text-muted-foreground">
-                    Enter the code your manager gave you to link this phone. You'll be able to clock in and out — that's it.
+                    Enter the code your manager gave you to link this phone. You'll be able to clock in and out, fill in the daily checks, and do a stock count if your manager has switched that on.
                   </p>
                 </div>
                 {authError && (

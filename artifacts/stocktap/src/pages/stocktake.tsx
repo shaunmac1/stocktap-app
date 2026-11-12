@@ -43,6 +43,7 @@ import { caseSizeOf, totalUnits, packagedBreakdown, needsCaseSizeAnswer } from "
 import { useQuickHide } from "@/hooks/useQuickHide";
 import { COUNT_GROUPS, linesFor, groupLabel, type CountGroupKey } from "@/lib/count-rota";
 import { notifyCountFinished } from "@/lib/count-notify";
+import { readShelfOrder, shelfComparator } from "@/lib/shelf-order";
 import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
@@ -242,8 +243,11 @@ export default function Stocktake() {
   const countListOrder = useMemo(() => {
     const order = Object.keys(CATEGORY_LABELS);
     const rank = (c: string | null) => { const i = order.indexOf(c ?? ""); return i === -1 ? 99 : i; };
-    return [...filteredProducts].sort((a, b) => rank(a.category) - rank(b.category) || a.name.localeCompare(b.name));
-  }, [filteredProducts]);
+    // Inside each section, the pub's own shelf order if it has saved one (fridge by fridge).
+    const shelf = shelfComparator<{ id: string; name: string }>(readShelfOrder((venue as any)?.features));
+    return [...filteredProducts].sort((a, b) => rank(a.category) - rank(b.category) || shelf(a, b));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredProducts, JSON.stringify((venue as any)?.features?.count_order ?? null)]);
 
   const vendorOptions = useMemo(() => {
     if (!products) return [];

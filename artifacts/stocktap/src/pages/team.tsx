@@ -124,10 +124,10 @@ export default function Team() {
   const [showCodes, setShowCodes] = useState(false);
   async function shareCode(s: Staff) {
     const code = s.link_code ?? "";
-    const msg = `Hi ${s.name.split(" ")[0]}, here's your StockTap code to clock in on your phone: ${code}. Open ${window.location.origin} , sign up, and enter this code.`;
+    const msg = `Hi ${s.name.split(" ")[0]}, here's your StockTap code for work: ${code}. Open ${window.location.origin} on your phone, sign up, tap "Joining a team? Enter your code instead" and put this code in.`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "StockTap clock-in code", text: msg });
+        await navigator.share({ title: "StockTap team code", text: msg });
         return;
       }
     } catch {
