@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildEntrySheet, entrySheetCsv, entrySheetText, entrySheetTsv, sizeLabel } from "./entry-sheet";
+import { buildEntrySheet, entryFromTotal, entrySheetCsv, entrySheetText, entrySheetTsv, sizeLabel } from "./entry-sheet";
 
 const PINT = 568.261;
 const lines = [
@@ -46,5 +46,18 @@ describe("entry sheet in stocktake-sheet order", () => {
     expect(text).toContain("SPIRITS\nabsolut: 0 bottles 2½ tenths\nGin Gordons: 2 bottles 7 tenths");
     expect(entrySheetTsv(rows).split("\n")[2]).toBe("Draught Lager\tLager Carlsberg\tGallon 8 Pint\t13\t5");
     expect(entrySheetCsv(rows, "The Red Lion", "13 Nov 2026")).toContain("Postmix,Postmix Pepsi,Litre,17.25,\n");
+  });
+});
+
+describe("counts stored as one total per product (older counts, audit imports)", () => {
+  const becks = { id: "b", name: "PPL Becks 275ml", category: "packaged", counting_method: "each", size_ml: 275 };
+  const gin = { id: "g", name: "Gin Gordons", category: "spirits", counting_method: "tenths", size_ml: 700 };
+  const keg = { id: "c", name: "Lager Carlsberg", category: "draught_lager", counting_method: "keg_weight", container_l: 50 };
+  const sheet = (prod: any, ml: number, count?: number | null) => buildEntrySheet([{ prod, entries: [entryFromTotal(prod, ml, count)] }])[0];
+  it("units from the stored count", () => { expect(sheet(becks, 63 * 275, 63)).toMatchObject({ whole: "5", part: "3" }); });
+  it("units from ml when no count was stored", () => { expect(sheet(becks, 30 * 275, null)).toMatchObject({ whole: "2", part: "6" }); });
+  it("bottles and draught straight from ml", () => {
+    expect(sheet(gin, 2.7 * 700)).toMatchObject({ whole: "2", part: "7" });
+    expect(sheet(keg, 109 * 568.261)).toMatchObject({ whole: "13", part: "5" });
   });
 });

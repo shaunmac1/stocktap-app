@@ -48,7 +48,8 @@ export function buildEntrySheet(lines: { prod: EntrySheetProduct; entries: (Disp
   const rows: EntrySheetRow[] = [];
   for (const { prod, entries } of lines) {
     if (!entries.length) continue;
-    const method = entries[0]?.method ?? prod.counting_method ?? null;
+    // "ml" marks a total with no typed count (see entryFromTotal): the product says what kind of line it is.
+    const method = (entries[0]?.method && entries[0].method !== "ml" ? entries[0].method : prod.counting_method) ?? null;
     const kind = quantityKind(method, prod.category);
     const totalMl = entries.reduce((s, e) => s + (e.ml_remaining ?? 0), 0);
     const base = { id: prod.id, name: prod.name, category: SHEET_CATEGORY[prod.category ?? ""] ?? "Other" };
@@ -61,7 +62,7 @@ export function buildEntrySheet(lines: { prod: EntrySheetProduct; entries: (Disp
         rows.push({ ...base, unit: "Each", whole: String(units), part: null, wholeLabel: "each", partLabel: null, spoken: `${units} each` });
       } else {
         const doz = Math.floor(units / 12), odd = units - doz * 12;
-        rows.push({ ...base, unit: "Dozen 12 Each", whole: String(doz), part: String(odd), wholeLabel: "doz", partLabel: "singles", spoken: `${doz} doz ${odd} (${plural(units, "single", "singles")})` });
+        rows.push({ ...base, unit: "Dozen 12 Each", whole: String(doz), part: String(odd), wholeLabel: "doz", partLabel: odd === 1 ? "single" : "singles", spoken: `${doz} doz ${odd} (${plural(units, "single", "singles")})` });
       }
     } else if (kind === "litres") {
       const l = num(totalMl / 1000);
@@ -69,11 +70,25 @@ export function buildEntrySheet(lines: { prod: EntrySheetProduct; entries: (Disp
     } else {
       const b = bottleBreakdown(totalMl, prod, venueMeasureMl);
       const tenths = Number.isInteger(b.tenths) ? String(b.tenths) : `${Math.floor(b.tenths) || ""}½`;
-      rows.push({ ...base, unit: `10 ${sizeLabel(prod.size_ml)}`, whole: String(b.whole), part: tenths, wholeLabel: "full", partLabel: "tenths", spoken: `${plural(b.whole, "bottle", "bottles")} ${plural(tenths, "tenth", "tenths")}` });
+      rows.push({ ...base, unit: `10 ${sizeLabel(prod.size_ml)}`, whole: String(b.whole), part: tenths, wholeLabel: "full", partLabel: tenths === "1" ? "tenth" : "tenths", spoken: `${plural(b.whole, "bottle", "bottles")} ${plural(tenths, "tenth", "tenths")}` });
     }
   }
   const rank = (c: string) => (c === "Other" ? "~" : c);
   return rows.sort((a, b) => rank(a.category).localeCompare(rank(b.category)) || a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
+}
+
+/**
+ * Older counts, and ones read in from a stock audit, are stored as one total per product with
+ * no per-spot entries. This turns that total into a single entry so those counts get a sheet too.
+ */
+export function entryFromTotal(prod: DisplayProduct, mlRemaining: number, count?: number | null): DisplayEntry {
+  const m = prod.counting_method ?? "";
+  const unitMethod = m === "each" || m === "dozen" || m === "count";
+  if (quantityKind(m || null, prod.category) === "units") {
+    // With a unit count, use it as singles. Without one, "ml" makes the units come from ml ÷ size.
+    return count != null ? { method: "each", full_containers: null, part_value: count, ml_remaining: mlRemaining } : { method: unitMethod ? "ml" : m, full_containers: null, part_value: null, ml_remaining: mlRemaining };
+  }
+  return { method: m, full_containers: null, part_value: null, ml_remaining: mlRemaining };
 }
 
 /** Plain text for an email or a note: a heading per category, one line per product. */
