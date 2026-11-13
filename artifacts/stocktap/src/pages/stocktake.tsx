@@ -45,6 +45,7 @@ import { COUNT_GROUPS, linesFor, groupLabel, type CountGroupKey } from "@/lib/co
 import { notifyCountFinished } from "@/lib/count-notify";
 import { readShelfOrder, shelfComparator } from "@/lib/shelf-order";
 import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
+import { EntrySheetCard } from "@/components/EntrySheetCard";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
 import { ToastAction } from "@/components/ui/toast";
@@ -2187,6 +2188,9 @@ export default function Stocktake() {
           {summaryLines.length === 0 && (
             <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No products counted yet</CardContent></Card>
           )}
+          <EntrySheetCard
+            lines={summaryLines.map(l => ({ prod: l.prod as any, entries: (entriesByProduct.get(l.prod.id) ?? []) as any }))}
+            venueName={venue?.name ?? "StockTap"} venueMeasureMl={venue?.measure_ml} stocktakeId={activeStocktakeId} />
           {(() => {
             const sheet = buildDraughtSheet(summaryLines.map(l => ({ prod: l.prod as any, entries: (entriesByProduct.get(l.prod.id) ?? []) as any })));
             if (sheet.length === 0) return null;
