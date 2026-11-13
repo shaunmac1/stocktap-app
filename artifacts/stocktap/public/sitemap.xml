@@ -1036,7 +1036,7 @@
   </url>
   <url>
     <loc>https://stocktap.net/guides/pub-quiz-night-make-money-break-even</loc>
-    <lastmod>2026-10-22</lastmod>
+    <lastmod>2026-11-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1306,7 +1306,7 @@
   </url>
   <url>
     <loc>https://stocktap.net/guides/beer-cellar-hygiene-rating-cask-marque-2027</loc>
-    <lastmod>2026-11-05</lastmod>
+    <lastmod>2026-11-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1453,5 +1453,23 @@
     <lastmod>2026-09-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stocktap.net/guides/how-many-glasses-of-wine-in-a-bottle</loc>
+    <lastmod>2026-11-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stocktap.net/guides/how-long-does-a-keg-last-once-tapped</loc>
+    <lastmod>2026-11-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stocktap.net/guides/how-much-do-pub-landlords-earn</loc>
+    <lastmod>2026-11-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
