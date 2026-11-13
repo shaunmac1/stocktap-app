@@ -46,6 +46,7 @@ import { notifyCountFinished } from "@/lib/count-notify";
 import { readShelfOrder, shelfComparator } from "@/lib/shelf-order";
 import { buildDraughtSheet, draughtSheetCsv } from "@/lib/draught-sheet";
 import { EntrySheetCard } from "@/components/EntrySheetCard";
+import { entryFromTotal } from "@/lib/entry-sheet";
 import { gaugeToPints, formatGauge, draughtBreakdown } from "@/lib/draught-gauge";
 import { containerSizeLabel } from "@/lib/container-sizes";
 import { ToastAction } from "@/components/ui/toast";
@@ -2189,7 +2190,7 @@ export default function Stocktake() {
             <Card><CardContent className="p-4 text-center text-muted-foreground text-sm">No products counted yet</CardContent></Card>
           )}
           <EntrySheetCard
-            lines={summaryLines.map(l => ({ prod: l.prod as any, entries: (entriesByProduct.get(l.prod.id) ?? []) as any }))}
+            lines={summaryLines.map(l => { const es = entriesByProduct.get(l.prod.id) ?? []; return { prod: l.prod as any, entries: (es.length ? es : [entryFromTotal(l.prod as any, l.mlRemaining, l.count ?? null)]) as any }; })}
             venueName={venue?.name ?? "StockTap"} venueMeasureMl={venue?.measure_ml} stocktakeId={activeStocktakeId} />
           {(() => {
             const sheet = buildDraughtSheet(summaryLines.map(l => ({ prod: l.prod as any, entries: (entriesByProduct.get(l.prod.id) ?? []) as any })));
